@@ -1,0 +1,52 @@
+# Reverse proxy and TLS.
+#
+# Caddy over nginx here for one reason: it obtains and renews certificates
+# automatically. A platform holding money must not be one expired certificate
+# away from every member seeing a browser warning, and manual renewal is how
+# that happens.
+
+{
+	# Fail loudly at startup rather than serving without TLS.
+	email {$ACME_EMAIL:admin@example.com}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# ── security headers ────────────────────────────────────────────────────
+	header {
+		# Two years, so browsers refuse plain HTTP to this domain outright.
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options    "nosniff"
+		X-Frame-Options           "SAMEORIGIN"
+		Referrer-Policy           "strict-origin-when-cross-origin"
+		# The platform never needs any of these.
+		Permissions-Policy        "camera=(), microphone=(), geolocation=(), payment=()"
+		-Server
+	}
+
+	# ── API ─────────────────────────────────────────────────────────────────
+	handle /api/* {
+		# Metrics report member counts and platform liability. Internal only —
+		# a scraper reaches the container directly on the compose network.
+		@metrics path /api/v1/metrics
+		respond @metrics 404
+
+		reverse_proxy api:4000 {
+			# The rate limiter, the audit log and the IP allowlist all read the
+			# client address. Without this every request appears to come from
+			# the proxy, and the allowlist silently protects nothing.
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# ── everything else is the web app ──────────────────────────────────────
+	handle {
+		reverse_proxy web:3010
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

@@ -1,0 +1,163 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FortuneX — production stack
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+#
+# The --env-file flag is required, not optional. Compose reads it for two
+# separate things: substituting ${...} in this file, and injecting variables
+# into the containers. Without it, ${DOMAIN} and ${POSTGRES_PASSWORD} are
+# unset and the stack refuses to start rather than coming up with an empty
+# database password.
+#
+# Four processes, on purpose:
+#
+#   api      serves requests
+#   worker   runs the ROI, payout, digest and maintenance jobs
+#   web      the Next.js server
+#   migrate  runs once at start, then exits
+#
+# The API and the worker share one image and one codebase but run separately so
+# a slow job cannot starve a request, and so the API can be scaled without
+# scheduling the daily ROI run four times.
+#
+# Copy .env.production.example to .env.production and fill it in first — the
+# API refuses to start on a placeholder secret.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: fortunex
+
+x-api-image: &api-image
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  image: fortunex-api:${TAG:-latest}
+  env_file: [.env.production]
+  restart: unless-stopped
+  # Restart on repeated failure, but not in a tight loop that hides the cause.
+  deploy:
+    restart_policy:
+      condition: on-failure
+      delay: 10s
+      max_attempts: 5
+
+services:
+  # ── data ───────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fortunex}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-fortunex}
+      # Money maths is done in Decimal, but a mismatched collation still makes
+      # index behaviour differ between environments.
+      LANG: C.UTF-8
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./ops/backups:/backups
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-fortunex} -d ${POSTGRES_DB:-fortunex}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    # Not published. Nothing outside this network has any business reaching it.
+    expose: ['5432']
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Durable, because the queue holds jobs that move money. An in-memory Redis
+    # losing a restart means a payout run silently never happened.
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    expose: ['6379']
+
+  # ── schema ─────────────────────────────────────────────────────────────────
+  migrate:
+    <<: *api-image
+    restart: 'no'
+    command: ['npx', 'prisma', 'migrate', 'deploy']
+    depends_on:
+      postgres: { condition: service_healthy }
+    deploy: {}
+
+  # ── application ────────────────────────────────────────────────────────────
+  api:
+    <<: *api-image
+    command: ['node', 'dist/server.js']
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+      migrate:  { condition: service_completed_successfully }
+    volumes:
+      # KYC documents and ticket attachments. A container filesystem is not
+      # durable — this must be a real volume or an object store.
+      - storage:/app/storage
+    expose: ['4000']
+    healthcheck:
+      # Readiness, not liveness: compose only uses this to gate dependents, and
+      # what they need to know is whether it can actually serve.
+      test: ['CMD-SHELL', 'node -e "fetch(''http://127.0.0.1:4000/api/v1/ready'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"']
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 30s
+
+  worker:
+    <<: *api-image
+    command: ['node', 'dist/jobs/worker.js']
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+      migrate:  { condition: service_completed_successfully }
+    volumes:
+      - storage:/app/storage
+    # Exactly one. The ROI run is idempotent per (investment, date) and payouts
+    # claim their row before broadcasting, so a second worker would be safe —
+    # but it would also be pointless, and it makes the nonce contention on the
+    # payout signer worse for nothing.
+    scale: 1
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        API_URL: ${NEXT_PUBLIC_API_URL:-}
+    image: fortunex-web:${TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+    expose: ['3010']
+
+  # ── edge ───────────────────────────────────────────────────────────────────
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ['80:80', '443:443']
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN}
+    volumes:
+      - ./ops/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    depends_on: [api, web]
+
+volumes:
+  pgdata:
+  redisdata:
+  storage:
+  caddydata:
+  caddyconfig:

@@ -1,0 +1,70 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Nothing here belongs in version control.
+#
+# The secrets section is the one that matters. A committed .env puts the JWT
+# signing keys and the encryption key into the history permanently — rewriting
+# history does not help once a repository has been cloned or pushed, and those
+# keys are enough to mint a session for any account and read every TOTP seed.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── secrets ──────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Anything that looks like key material, wherever it lands.
+*.pem
+*.key
+*.p12
+*.keystore
+secrets/
+
+# ── member data ──────────────────────────────────────────────────────────────
+# KYC documents and ticket attachments. Identity documents in a git history are
+# a breach that cannot be undone.
+storage/
+backend/storage/
+ops/backups/
+*.sql
+*.sql.gz
+!backend/prisma/migrations/**/*.sql
+
+# ── dependencies and build output ────────────────────────────────────────────
+node_modules/
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# ── test and tooling ─────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# ── logs ─────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── editors and OS ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+.vscode/*
+!.vscode/extensions.json
+
+# ── local scratch ────────────────────────────────────────────────────────────
+.cache/
+tmp/
+
+# Competitor research captures.
+# Excluded deliberately: research/ holds scraped pages and logged-in
+# screenshots from a third-party platform, including real members' names and
+# account IDs. That is other people's personal data and must not be published.
+# Remove this rule only if the captures have been scrubbed.
+research/

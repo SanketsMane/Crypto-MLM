@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — typecheck, migrations, tests
+    runs-on: ubuntu-latest
+
+    # The money tests run against a real PostgreSQL, not a mock. An in-memory
+    # substitute cannot enforce a CHECK constraint or lose a concurrent UPDATE,
+    # which is precisely what those tests exist to prove.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: fortunex
+          POSTGRES_PASSWORD: fortunex
+          POSTGRES_DB: fortunex_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fortunex"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql://fortunex:fortunex@localhost:5432/fortunex_test?schema=public
+      SHADOW_DATABASE_URL: postgresql://fortunex:fortunex@localhost:5432/fortunex_shadow?schema=public
+      JWT_ACCESS_SECRET: ci-access-secret-value-that-is-long-enough-000
+      JWT_REFRESH_SECRET: ci-refresh-secret-value-that-is-long-enough-00
+      NODE_ENV: test
+      ENCRYPTION_KEY: ci-encryption-key-long-enough-for-the-guard
+      TEST_RPC_URL: http://localhost:8545
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+      - run: npx prisma generate
+
+      - name: Create the shadow database
+        run: PGPASSWORD=fortunex psql -h localhost -U fortunex -d postgres -c 'CREATE DATABASE fortunex_shadow'
+
+      # A real EVM node, started as a step rather than a service container so it
+      # can be given arguments — a service container cannot, and anvil would
+      # bind to localhost inside the container and be unreachable.
+      #
+      # The chain tests deploy an actual ERC-20 and broadcast real transactions.
+      # A mocked provider would only prove the mock agrees with our assumptions,
+      # which is exactly the thing worth doubting in code that moves money. If
+      # this step fails the tests skip rather than fail the build.
+      - name: Start a local EVM node
+        continue-on-error: true
+        run: |
+          docker run -d --name anvil -p 8545:8545 \
+            --entrypoint anvil ghcr.io/foundry-rs/foundry:latest \
+            --host 0.0.0.0 --chain-id 31337 --block-time 1
+          for i in $(seq 1 30); do
+            if curl -sf -X POST http://localhost:8545 -H 'Content-Type: application/json' \
+                 -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' >/dev/null; then
+              echo "anvil is up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "anvil did not start — chain tests will skip"; exit 1
+
+      # Fails if the schema and the migration history have drifted apart, which
+      # is how a migration that works locally reaches production and does not.
+      - name: Migrations apply cleanly from empty
+        run: npx prisma migrate deploy
+
+      - name: Schema matches migrations
+        run: npx prisma migrate diff --from-migrations ./prisma/migrations --to-schema ./prisma/schema.prisma --exit-code
+
+      - run: npm run typecheck
+      - run: npx vitest run --reporter=verbose
+      - run: npm run build
+
+  frontend:
+    name: Frontend — typecheck and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build

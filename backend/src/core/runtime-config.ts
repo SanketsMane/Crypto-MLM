@@ -1,0 +1,305 @@
+import { prisma } from './db.js';
+import { env } from '../config/env.js';
+import { badRequest } from './errors.js';
+
+/**
+ * Runtime configuration — the business rules an operator is allowed to tune
+ * without a deploy.
+ *
+ * The `.env` values are the floor: they are what the platform boots with and
+ * what it falls back to when a key has never been overridden. A row in the
+ * `settings` table takes precedence, and THAT is what every call site reads.
+ *
+ * Before this module existed the Settings screen wrote audited rows that
+ * nothing consumed — the rules were read straight from `env` at process start.
+ * Every key below now declares where it is enforced, and `enforcedIn` is
+ * surfaced in the console so an operator can see what a change will affect.
+ *
+ * Reads are cached briefly. A change invalidates the cache immediately, so a
+ * save is visible on the next request rather than up to the TTL later.
+ */
+
+export type SettingType = 'percent' | 'money' | 'int' | 'bool' | 'weekdays' | 'text';
+
+export interface SettingSpec {
+  key: string;
+  group: 'Payouts' | 'Withdrawals' | 'Investments' | 'Compliance' | 'Security' | 'Platform';
+  label: string;
+  help: string;
+  type: SettingType;
+  /**
+   * Whether members and visitors may read this.
+   *
+   * Declared beside the setting rather than kept as a list somewhere else: the
+   * public endpoint is derived from this flag, so a new setting is private
+   * until someone decides otherwise, instead of leaking because a second list
+   * was never updated.
+   */
+  public?: boolean;
+  /** Where a change takes effect. Shown in the console. */
+  enforcedIn: string;
+  min?: number;
+  max?: number;
+}
+
+export const SPECS: SettingSpec[] = [
+  {
+    key: 'DAILY_ROI_PERCENT', group: 'Payouts', type: 'percent', min: 0, max: 100, public: true,
+    label: 'Default daily return',
+    help: 'Applied to new packages that do not set their own rate. Existing packages keep the rate stored on the package.',
+    enforcedIn: 'Package creation',
+  },
+  {
+    key: 'TRADING_DAYS', group: 'Payouts', type: 'weekdays', public: true,
+    label: 'Trading days',
+    help: 'ISO weekdays that accrue the daily trade bonus. 1 = Monday … 7 = Sunday. Weekends never accrue by default.',
+    enforcedIn: 'Daily ROI job',
+  },
+  {
+    key: 'CAP_PASSIVE_PERCENT', group: 'Payouts', type: 'percent', min: 100, max: 1000, public: true,
+    label: 'Passive earnings ceiling',
+    help: 'Baseline ceiling as a percent of capital. A package may set its own ceiling, which wins for that package.',
+    enforcedIn: 'Package purchase',
+  },
+  {
+    key: 'CAP_ACTIVE_PERCENT', group: 'Payouts', type: 'percent', min: 100, max: 1000, public: true,
+    label: 'Active affiliate ceiling',
+    help: 'Ceiling for ACTIVE affiliates. The difference against the passive ceiling is added on top of the package ceiling.',
+    enforcedIn: 'Package purchase',
+  },
+
+  {
+    key: 'WITHDRAW_FEE_PERCENT', group: 'Withdrawals', type: 'percent', min: 0, max: 50, public: true,
+    label: 'Withdrawal fee',
+    help: 'Deducted from the requested amount. The member receives the net.',
+    enforcedIn: 'Withdrawal request',
+  },
+  {
+    key: 'WITHDRAW_MIN', group: 'Withdrawals', type: 'money', min: 0, public: true,
+    label: 'Minimum withdrawal',
+    help: 'Requests below this are rejected before any balance moves.',
+    enforcedIn: 'Withdrawal request',
+  },
+  {
+    key: 'WITHDRAW_MAX', group: 'Withdrawals', type: 'money', min: 1, public: true,
+    label: 'Maximum withdrawal',
+    help: 'Per-request ceiling.',
+    enforcedIn: 'Withdrawal request',
+  },
+  {
+    key: 'WITHDRAW_SLA_HOURS', group: 'Withdrawals', type: 'int', min: 1, max: 720, public: true,
+    label: 'Processing SLA',
+    help: 'Hours an operator has to process a request before it is flagged overdue.',
+    enforcedIn: 'Withdrawal request · Payouts queue',
+  },
+  {
+    key: 'WITHDRAWALS_OPEN', group: 'Withdrawals', type: 'bool', public: true,
+    label: 'Withdrawals open',
+    help: 'Turn off to stop accepting new withdrawal requests. Requests already in the queue are unaffected.',
+    enforcedIn: 'Withdrawal request',
+  },
+
+  {
+    key: 'MIN_INVESTMENT', group: 'Investments', type: 'money', min: 1, public: true,
+    label: 'Minimum investment',
+    help: 'Smallest price a package may be published at. Checked when a package is created or edited.',
+    enforcedIn: 'Package create / edit',
+  },
+
+  {
+    key: 'TAX_WITHHOLDING_PERCENT', group: 'Compliance', type: 'percent', min: 0, max: 50, public: true,
+    label: 'Withholding tax',
+    help: 'Deducted from every payout after the platform fee, and reported to the member in their annual summary. Set to 0 when the operator does not withhold — which is the default, because guessing a jurisdiction is worse than not deducting.',
+    enforcedIn: 'Withdrawal request',
+  },
+
+  {
+    key: 'KYC_REQUIRED_FOR_WITHDRAWAL', group: 'Compliance', type: 'bool', public: true,
+    label: 'Require verified identity to withdraw',
+    help: 'When on, a member must have an approved KYC submission before any withdrawal is accepted. Requests already in the queue are unaffected.',
+    enforcedIn: 'Withdrawal request',
+  },
+  {
+    key: 'KYC_REQUIRED_ABOVE', group: 'Compliance', type: 'money', min: 0, public: true,
+    label: 'Verification threshold',
+    help: 'Withdrawals at or below this amount skip the verification check. Set to 0 to require verification for every withdrawal.',
+    enforcedIn: 'Withdrawal request',
+  },
+
+  {
+    key: 'ADMIN_IDLE_TIMEOUT_MINUTES', group: 'Security', type: 'int', min: 0, max: 480,
+    label: 'Console idle timeout',
+    help: 'Signs an operator out after this many minutes without activity. A console left open on an unattended machine is one of the easiest ways in. Set to 0 to disable.',
+    enforcedIn: 'Admin console',
+  },
+  {
+    key: 'ADMIN_IP_ALLOWLIST', group: 'Security', type: 'text',
+    label: 'Console IP allowlist',
+    help: 'Comma-separated IPv4/IPv6 addresses or CIDR ranges. When set, the admin console only accepts requests from these. Leave empty to allow any address. Get this wrong and you lock yourself out — your current address is shown below the field.',
+    enforcedIn: 'Admin console',
+  },
+
+  {
+    key: 'MAINTENANCE_MODE', group: 'Platform', type: 'bool', public: true,
+    label: 'Maintenance mode',
+    help: 'Closes the member app while you work. Operators keep full access, background jobs keep running, and nothing already in flight is lost — members see a notice instead of a broken screen.',
+    enforcedIn: 'Every member request',
+  },
+  {
+    key: 'MAINTENANCE_MESSAGE', group: 'Platform', type: 'text', public: true,
+    label: 'Maintenance notice',
+    help: 'What members are shown while maintenance mode is on.',
+    enforcedIn: 'Every member request',
+  },
+
+  {
+    key: 'REGISTRATION_OPEN', group: 'Platform', type: 'bool', public: true,
+    label: 'Registration open',
+    help: 'Turn off to stop new sign-ups. Existing members can still sign in.',
+    enforcedIn: 'Customer registration',
+  },
+];
+
+export const SPEC_BY_KEY = new Map(SPECS.map((s) => [s.key, s]));
+
+/** Boot defaults, from `.env` (itself defaulted in config/env.ts). */
+export const DEFAULTS: Record<string, string> = {
+  DAILY_ROI_PERCENT: String(env.DAILY_ROI_PERCENT),
+  TRADING_DAYS: env.TRADING_DAYS,
+  CAP_PASSIVE_PERCENT: String(env.CAP_PASSIVE_PERCENT),
+  CAP_ACTIVE_PERCENT: String(env.CAP_ACTIVE_PERCENT),
+  WITHDRAW_FEE_PERCENT: String(env.WITHDRAW_FEE_PERCENT),
+  WITHDRAW_MIN: String(env.WITHDRAW_MIN),
+  WITHDRAW_MAX: String(env.WITHDRAW_MAX),
+  WITHDRAW_SLA_HOURS: '48',
+  MIN_INVESTMENT: '50',
+  TAX_WITHHOLDING_PERCENT: '0',
+  KYC_REQUIRED_FOR_WITHDRAWAL: 'true',
+  KYC_REQUIRED_ABOVE: '0',
+  ADMIN_IDLE_TIMEOUT_MINUTES: '30',
+  ADMIN_IP_ALLOWLIST: '',
+  MAINTENANCE_MODE: 'false',
+  MAINTENANCE_MESSAGE: 'We are carrying out scheduled maintenance and will be back shortly. Your balances and investments are unaffected.',
+  REGISTRATION_OPEN: 'true',
+  WITHDRAWALS_OPEN: 'true',
+};
+
+export interface RuntimeConfig {
+  dailyRoiPercent: number;
+  tradingDays: number[];
+  capPassivePercent: number;
+  capActivePercent: number;
+  withdrawFeePercent: number;
+  withdrawMin: number;
+  withdrawMax: number;
+  withdrawSlaHours: number;
+  minInvestment: number;
+  taxWithholdingPercent: number;
+  kycRequiredForWithdrawal: boolean;
+  kycRequiredAbove: number;
+  adminIdleTimeoutMinutes: number;
+  adminIpAllowlist: string[];
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  registrationOpen: boolean;
+  withdrawalsOpen: boolean;
+}
+
+/**
+ * Validate a value against its spec. Rejecting bad input here is what keeps a
+ * typo out of the money math — a fee of "banana" must never reach a payout.
+ */
+export function parseSetting(key: string, raw: string): string {
+  const spec = SPEC_BY_KEY.get(key);
+  if (!spec) throw badRequest(`Unknown setting: ${key}`);
+  const value = raw.trim();
+
+  switch (spec.type) {
+    case 'bool': {
+      const v = value.toLowerCase();
+      if (v !== 'true' && v !== 'false') throw badRequest(`${spec.label} must be true or false`);
+      return v;
+    }
+    case 'weekdays': {
+      const days = value.split(',').map((d) => Number(d.trim()));
+      if (!days.length || days.some((d) => !Number.isInteger(d) || d < 1 || d > 7)) {
+        throw badRequest(`${spec.label} must be ISO weekday numbers 1–7, comma separated`);
+      }
+      return [...new Set(days)].sort().join(',');
+    }
+    case 'int': {
+      const n = Number(value);
+      if (!Number.isInteger(n)) throw badRequest(`${spec.label} must be a whole number`);
+      if (spec.min !== undefined && n < spec.min) throw badRequest(`${spec.label} cannot be below ${spec.min}`);
+      if (spec.max !== undefined && n > spec.max) throw badRequest(`${spec.label} cannot be above ${spec.max}`);
+      return String(n);
+    }
+    case 'text': {
+      if (value.length > 500) throw badRequest(`${spec.label} cannot be longer than 500 characters`);
+      return value;
+    }
+    case 'percent':
+    case 'money': {
+      const n = Number(value);
+      if (!Number.isFinite(n)) throw badRequest(`${spec.label} must be a number`);
+      if (spec.min !== undefined && n < spec.min) throw badRequest(`${spec.label} cannot be below ${spec.min}`);
+      if (spec.max !== undefined && n > spec.max) throw badRequest(`${spec.label} cannot be above ${spec.max}`);
+      return String(n);
+    }
+  }
+}
+
+interface Cached { at: number; value: RuntimeConfig }
+let cache: Cached | null = null;
+const TTL_MS = 15_000;
+
+/** Drop the cache so the next read reflects a change immediately. */
+export const invalidateConfig = () => { cache = null; };
+
+function build(stored: Record<string, string>): RuntimeConfig {
+  const v = (k: string) => stored[k] ?? DEFAULTS[k]!;
+  const num = (k: string) => Number(v(k));
+  const bool = (k: string) => v(k) === 'true';
+
+  const cfg: RuntimeConfig = {
+    dailyRoiPercent: num('DAILY_ROI_PERCENT'),
+    tradingDays: v('TRADING_DAYS').split(',').map((d) => Number(d.trim())).filter((d) => d >= 1 && d <= 7),
+    capPassivePercent: num('CAP_PASSIVE_PERCENT'),
+    capActivePercent: num('CAP_ACTIVE_PERCENT'),
+    withdrawFeePercent: num('WITHDRAW_FEE_PERCENT'),
+    withdrawMin: num('WITHDRAW_MIN'),
+    withdrawMax: num('WITHDRAW_MAX'),
+    withdrawSlaHours: num('WITHDRAW_SLA_HOURS'),
+    minInvestment: num('MIN_INVESTMENT'),
+    taxWithholdingPercent: num('TAX_WITHHOLDING_PERCENT'),
+    kycRequiredForWithdrawal: bool('KYC_REQUIRED_FOR_WITHDRAWAL'),
+    kycRequiredAbove: num('KYC_REQUIRED_ABOVE'),
+    adminIdleTimeoutMinutes: num('ADMIN_IDLE_TIMEOUT_MINUTES'),
+    adminIpAllowlist: v('ADMIN_IP_ALLOWLIST').split(',').map((x) => x.trim()).filter(Boolean),
+    maintenanceMode: bool('MAINTENANCE_MODE'),
+    maintenanceMessage: v('MAINTENANCE_MESSAGE'),
+    registrationOpen: bool('REGISTRATION_OPEN'),
+    withdrawalsOpen: bool('WITHDRAWALS_OPEN'),
+  };
+
+  // A corrupt row must never silently disable payouts.
+  if (!cfg.tradingDays.length) cfg.tradingDays = env.tradingDays;
+  return cfg;
+}
+
+/** The live rules. Cheap to call — cached, and invalidated on every change. */
+export async function config(): Promise<RuntimeConfig> {
+  if (cache && Date.now() - cache.at < TTL_MS) return cache.value;
+
+  let stored: Record<string, string> = {};
+  try {
+    const rows = await prisma.setting.findMany();
+    stored = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  } catch {
+    // Never let a settings read take the platform down — fall back to boot values.
+  }
+
+  const value = build(stored);
+  cache = { at: Date.now(), value };
+  return value;
+}

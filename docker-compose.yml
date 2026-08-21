@@ -1,0 +1,35 @@
+name: fortunex
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: fortunex-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fortunex
+      POSTGRES_PASSWORD: fortunex
+      POSTGRES_DB: fortunex
+    ports:
+      - "5440:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fortunex -d fortunex"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: fortunex-redis
+    restart: unless-stopped
+    ports:
+      - "6390:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

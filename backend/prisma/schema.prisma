@@ -1,0 +1,1607 @@
+// FortuneX — data model
+// Design notes (carried over from the Nishue audit):
+//  * LedgerEntry is APPEND-ONLY and is the source of truth for money.
+//  * WalletAccount.balance is a materialised cache, only ever mutated with
+//    an atomic `balance = balance + ?` inside a transaction (never read-modify-write).
+//  * Every payout carries a unique `reference` so a retried job cannot double-credit.
+//  * All money is Decimal(38,8): headroom for $20M+ team volume and 8dp crypto.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Prisma 7: the connection URL lives in prisma.config.ts, not here.
+}
+
+// ─────────────────────────── enums ───────────────────────────
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BLOCKED
+}
+
+/// Drives the earnings ceiling: PASSIVE = 250%, ACTIVE = 300% (FortuneX p18)
+enum AffiliateMode {
+  PASSIVE
+  ACTIVE
+}
+
+enum WalletType {
+  MAIN
+  FUND
+  DIGITAL
+}
+
+enum LedgerDirection {
+  CREDIT
+  DEBIT
+}
+
+enum LedgerCategory {
+  DEPOSIT
+  INVESTMENT
+  DAILY_ROI
+  DIRECT_BONUS
+  GENERATION_BONUS
+  RANK_BONUS
+  ROAMING_CLUB
+  REWARD_CARD
+  LOTTERY_PRIZE
+  WITHDRAWAL
+  FEE
+  REFUND
+  ADJUSTMENT
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+enum TxStatus {
+  PENDING
+  APPROVED
+  PROCESSED
+  REJECTED
+  FAILED
+}
+
+enum InvestmentStatus {
+  ACTIVE
+  CAPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum CommissionKind {
+  DIRECT
+  GENERATION
+}
+
+enum RoamingTrack {
+  AFFILIATE
+  SELF_CAPITALIST
+}
+
+enum TicketStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+}
+
+// ─────────────────────────── identity ───────────────────────────
+
+model User {
+  id           String  @id @default(cuid())
+  userCode     String  @unique                 // public referral code, e.g. FX7Q2M4A
+  email        String  @unique
+  phone        String?
+  passwordHash String
+  firstName    String
+  lastName     String?
+
+  status        UserStatus    @default(ACTIVE)
+  affiliateMode AffiliateMode @default(PASSIVE)
+
+  // ── genealogy ──
+  sponsorId String?
+  sponsor   User?   @relation("Sponsorship", fields: [sponsorId], references: [id], onDelete: SetNull)
+  referrals User[]  @relation("Sponsorship")
+
+  /// Dot-separated ancestor ids, nearest-last, excluding self: "id1.id2.id3".
+  /// Lets a 30-level upline walk resolve in ONE query instead of 30.
+  path  String @default("")
+  depth Int    @default(0)
+
+  // ── denormalised counters (maintained incrementally) ──
+  directCount       Int @default(0)
+  activeDirectCount Int @default(0)
+
+  totalInvested Decimal @default(0) @db.Decimal(38, 8)
+  totalEarned   Decimal @default(0) @db.Decimal(38, 8)
+
+  walletAddress String? // BEP-20 payout address
+
+  currentRankId String?
+  currentRank   RankDefinition? @relation(fields: [currentRankId], references: [id], onDelete: SetNull)
+
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  wallets           WalletAccount[]
+  ledgerEntries     LedgerEntry[]
+  investments       Investment[]
+  roiAccruals       RoiAccrual[]
+  deposits          Deposit[]
+  withdrawals       Withdrawal[]
+  earnedCommissions Commission[]      @relation("CommissionEarner")
+  sourceCommissions Commission[]      @relation("CommissionSource")
+  rankAchievements  RankAchievement[]
+  roamingAwards     RoamingClubAward[]
+  teamVolume        TeamVolume?
+  tickets           SupportTicket[]
+  kycSubmissions    KycSubmission[]
+
+  @@index([sponsorId])
+  @@index([path])
+  @@index([status])
+  @@index([simulationRunId])
+  @@map("users")
+
+  /// Per-account brute-force defence. IP rate limiting does not help when the
+  /// attempts arrive from a botnet, so the account itself counts and locks.
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+
+  /// Two-factor authentication (TOTP). The secret is encrypted at rest, so a
+  /// database leak does not let anyone generate valid codes.
+  twoFactorSecret     String?
+  twoFactorEnabledAt  DateTime?
+
+  activityLogs   ActivityLog[]
+  otpChallenges  OtpChallenge[]
+  recoveryCodes  TwoFactorRecoveryCode[]
+  depositAddress DepositAddress?
+  consents ConsentRecord[]
+  rewardCards RewardCard[]
+  lotteryTickets LotteryTicket[]
+
+  /// Set when this member was created by a simulation run.
+  ///
+  /// Real members always have this null. Every report that would otherwise
+  /// count modelled members alongside real ones filters on it, and erasing a
+  /// run deletes exactly the rows carrying its id.
+  simulationRunId String?
+  simulationRun   SimulationRun? @relation(fields: [simulationRunId], references: [id], onDelete: Cascade)
+}
+
+model AdminUser {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  passwordHash String
+  name         String
+  isActive     Boolean @default(true)
+
+  roleId String
+  role   AdminRole @relation(fields: [roleId], references: [id])
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@map("admin_users")
+
+  /// Per-account brute-force defence. IP rate limiting does not help when the
+  /// attempts arrive from a botnet, so the account itself counts and locks.
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+
+  /// An admin console is the highest-value target here, so 2FA matters more on
+  /// this side than on the member side.
+  twoFactorSecret    String?
+  twoFactorEnabledAt DateTime?
+}
+
+// ─────────────────────────── money ───────────────────────────
+
+model WalletAccount {
+  id      String     @id @default(cuid())
+  userId  String
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type    WalletType
+  balance Decimal    @default(0) @db.Decimal(38, 8)
+  locked  Decimal    @default(0) @db.Decimal(38, 8)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries LedgerEntry[]
+
+  @@unique([userId, type])
+  @@map("wallet_accounts")
+}
+
+/// APPEND-ONLY. Never updated, never deleted. The audit trail of every cent.
+model LedgerEntry {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletId String
+  wallet   WalletAccount @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  direction LedgerDirection
+  category  LedgerCategory
+  amount    Decimal         @db.Decimal(38, 8)
+  /// Wallet balance immediately after this entry was applied.
+  balanceAfter Decimal      @db.Decimal(38, 8)
+
+  /// Idempotency key. A retried job reusing this reference is rejected by the
+  /// unique index rather than double-crediting.
+  reference   String  @unique
+  description String?
+  /// Human-verifiable basis, e.g. {"base":"100.00","rate":"0.5"}
+  meta        Json?
+
+  sourceType String?
+  sourceId   String?
+
+  status    TxStatus @default(PROCESSED)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([category])
+  @@index([sourceType, sourceId])
+  @@map("ledger_entries")
+}
+
+// ─────────────────────────── investment ───────────────────────────
+
+/// The ten FortuneX tiers (Doc/FortuneX.pdf p12).
+model PackagePlan {
+  id              String  @id @default(cuid())
+  name            String
+  amount          Decimal @db.Decimal(38, 8)
+  dailyRoiPercent Decimal @db.Decimal(10, 4)
+  /// Earnings ceiling as a percent of capital for this tier.
+  capPercent      Decimal @default(250) @db.Decimal(10, 4)
+  sortOrder       Int     @default(0)
+  isActive        Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  investments Investment[]
+
+  @@map("package_plans")
+}
+
+model Investment {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packageId String
+  package   PackagePlan @relation(fields: [packageId], references: [id])
+
+  amount          Decimal @db.Decimal(38, 8)
+  dailyRoiPercent Decimal @db.Decimal(10, 4)
+  /// amount * capPercent — the hard ceiling on everything this investment can pay out.
+  capLimit        Decimal @db.Decimal(38, 8)
+  totalEarned     Decimal @default(0) @db.Decimal(38, 8)
+
+  status InvestmentStatus @default(ACTIVE)
+
+  startedAt       DateTime  @default(now())
+  lastAccrualDate DateTime?
+  cappedAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accruals    RoiAccrual[]
+  commissions Commission[]
+
+  @@index([userId, status])
+  @@index([status, lastAccrualDate])
+  @@map("investments")
+}
+
+/// One row per investment per trading day. Unique constraint makes the daily
+/// ROI job safely re-runnable.
+model RoiAccrual {
+  id           String     @id @default(cuid())
+  investmentId String
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Trading date (UTC midnight). Weekends are never accrued — FortuneX p10/p18.
+  accrualDate DateTime @db.Date
+  baseAmount  Decimal  @db.Decimal(38, 8)
+  ratePercent Decimal  @db.Decimal(10, 4)
+  amount      Decimal  @db.Decimal(38, 8)
+  /// Amount actually paid after the cap was applied (may be less than `amount`).
+  paidAmount  Decimal  @db.Decimal(38, 8)
+
+  createdAt DateTime @default(now())
+
+  @@unique([investmentId, accrualDate])
+  @@index([userId, accrualDate])
+  @@map("roi_accruals")
+}
+
+// ─────────────────────────── compensation ───────────────────────────
+
+/// Level configuration for both bonus streams.
+/// DIRECT     — 3 levels: 4% / 0.5% / 0.5%            (FortuneX p11)
+/// GENERATION — 30 levels with qualification criteria (FortuneX p13)
+model CommissionRule {
+  id    String         @id @default(cuid())
+  kind  CommissionKind
+  level Int
+
+  percent Decimal @db.Decimal(10, 4)
+
+  /// Qualification: minimum direct referrals to unlock this level.
+  requiredDirects    Int     @default(0)
+  /// Qualification: minimum team business volume to unlock this level.
+  requiredTeamVolume Decimal @default(0) @db.Decimal(38, 8)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([kind, level])
+  @@map("commission_rules")
+}
+
+model Commission {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation("CommissionEarner", fields: [userId], references: [id], onDelete: Cascade)
+
+  fromUserId String
+  fromUser   User   @relation("CommissionSource", fields: [fromUserId], references: [id], onDelete: Cascade)
+
+  investmentId String?
+  investment   Investment? @relation(fields: [investmentId], references: [id], onDelete: SetNull)
+
+  kind    CommissionKind
+  level   Int
+  percent Decimal @db.Decimal(10, 4)
+
+  baseAmount Decimal @db.Decimal(38, 8)
+  amount     Decimal @db.Decimal(38, 8)
+  /// After cap clamping. Zero when the earner was already capped out.
+  paidAmount Decimal @db.Decimal(38, 8)
+
+  reference String   @unique
+  status    TxStatus @default(PROCESSED)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([fromUserId])
+  @@map("commissions")
+}
+
+/// Ten ranks, Starter → Legend (FortuneX p14).
+model RankDefinition {
+  id    String @id @default(cuid())
+  code  String @unique
+  name  String
+  level Int    @unique
+
+  selfCapital  Decimal @db.Decimal(38, 8)
+  teamBusiness Decimal @db.Decimal(38, 8)
+  reward       Decimal @db.Decimal(38, 8)
+
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  achievements RankAchievement[]
+  users        User[]
+
+  @@map("rank_definitions")
+}
+
+model RankAchievement {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rankId String
+  rank   RankDefinition @relation(fields: [rankId], references: [id], onDelete: Cascade)
+
+  teamBusinessAtAchievement Decimal @db.Decimal(38, 8)
+  powerLegVolume            Decimal @db.Decimal(38, 8)
+  otherLegsVolume           Decimal @db.Decimal(38, 8)
+
+  rewardAmount Decimal   @db.Decimal(38, 8)
+  rewardPaidAt DateTime?
+  reference    String    @unique
+
+  achievedAt DateTime @default(now())
+
+  @@unique([userId, rankId])
+  @@map("rank_achievements")
+}
+
+/// Rolling team statistics, maintained incrementally rather than recomputed.
+/// powerLeg / otherLegs implement the 50:50 rule (FortuneX p15).
+model TeamVolume {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  directBusiness   Decimal @default(0) @db.Decimal(38, 8)
+  totalTeamBusiness Decimal @default(0) @db.Decimal(38, 8)
+  powerLegVolume   Decimal @default(0) @db.Decimal(38, 8)
+  otherLegsVolume  Decimal @default(0) @db.Decimal(38, 8)
+  teamSize         Int     @default(0)
+
+  recalculatedAt DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("team_volumes")
+}
+
+/// Roaming Club — two independent qualification tracks (FortuneX p16/p17).
+model RoamingClubTier {
+  id          String       @id @default(cuid())
+  track       RoamingTrack
+  destination String
+  selfRequirement Decimal  @db.Decimal(38, 8)
+  teamRequirement Decimal  @default(0) @db.Decimal(38, 8)
+  sortOrder   Int          @default(0)
+  isActive    Boolean      @default(true)
+
+  createdAt DateTime @default(now())
+
+  awards RoamingClubAward[]
+
+  @@unique([track, destination])
+  @@map("roaming_club_tiers")
+}
+
+model RoamingClubAward {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tierId String
+  tier   RoamingClubTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+
+  status     TxStatus @default(APPROVED)
+  achievedAt DateTime @default(now())
+  fulfilledAt DateTime?
+  notes      String?
+
+  @@unique([userId, tierId])
+  @@map("roaming_club_awards")
+}
+
+// ─────────────────────────── cash in / out ───────────────────────────
+
+model Deposit {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount    Decimal  @db.Decimal(38, 8)
+  network   String   @default("BEP20")
+  txHash    String?  @unique
+  reference String   @unique
+  status    TxStatus @default(PENDING)
+
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, status])
+  @@map("deposits")
+}
+
+/// 5% fee, $10 min, $5,000 max, 48-hour SLA — FortuneX p18.
+model Withdrawal {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount     Decimal @db.Decimal(38, 8)
+  feePercent Decimal @db.Decimal(10, 4)
+  fee        Decimal @db.Decimal(38, 8)
+
+  /// Withholding, applied to the amount after the platform fee. Zero when the
+  /// operator has not configured a rate — which is the default, because tax is
+  /// a jurisdiction decision and guessing one is worse than not deducting.
+  taxPercent Decimal @default(0) @db.Decimal(10, 4)
+  tax        Decimal @default(0) @db.Decimal(38, 8)
+
+  /// What actually reaches the member: amount − fee − tax.
+  netAmount  Decimal @db.Decimal(38, 8)
+
+  walletAddress String
+  network       String   @default("BEP20")
+  txHash        String?
+  reference     String   @unique
+  status        TxStatus @default(PENDING)
+
+  /// requestedAt + 48h. Drives the ageing report.
+  slaDueAt    DateTime
+  processedAt DateTime?
+  rejectReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([status, slaDueAt])
+  @@map("withdrawals")
+}
+
+// ─────────────────────────── support & settings ───────────────────────────
+
+model SupportTicket {
+  id      String       @id @default(cuid())
+  userId  String
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject String
+  status  TicketStatus @default(OPEN)
+
+  /// Sorting a queue by age alone treats "cannot withdraw" the same as "how do
+  /// I change my name". Members set this; operators can override it.
+  priority TicketPriority @default(NORMAL)
+  /// Routes the ticket and tells the reader what they are opening.
+  category TicketCategory @default(OTHER)
+  /// The operator who owns it, so two people do not answer the same ticket.
+  assignedTo String?
+  /// Stamped on the first staff reply — the number a support desk is judged on.
+  firstReplyAt DateTime?
+  closedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages TicketMessage[]
+
+  @@index([userId, status])
+  @@map("support_tickets")
+}
+
+model TicketMessage {
+  id       String        @id @default(cuid())
+  ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId String
+
+  body     String
+  isStaff  Boolean  @default(false)
+  authorId String?
+  createdAt DateTime @default(now())
+
+  /// A screenshot answers in one image what a paragraph of description cannot.
+  attachments TicketAttachment[]
+
+  @@index([ticketId])
+  @@map("ticket_messages")
+}
+
+/// A file attached to a ticket message.
+///
+/// Stored through the same document store as KYC documents — same size and
+/// type limits, same on-disk layout, one place to secure rather than two.
+model TicketAttachment {
+  id        String        @id @default(cuid())
+  messageId String
+  message   TicketMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  fileName   String
+  storageKey String
+  mimeType   String
+  sizeBytes  Int
+  createdAt  DateTime @default(now())
+
+  @@index([messageId])
+  @@map("ticket_attachments")
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  /// Reserved for money that has not arrived.
+  URGENT
+}
+
+enum TicketCategory {
+  DEPOSIT
+  WITHDRAWAL
+  ACCOUNT
+  VERIFICATION
+  EARNINGS
+  TECHNICAL
+  OTHER
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ─────────────────────────── admin operations ───────────────────────────
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum KycDocumentType {
+  ID_FRONT
+  ID_BACK
+  PROOF_OF_ADDRESS
+  SELFIE
+}
+
+/// Identity verification. One submission per attempt; a rejected member may
+/// submit again, so history is preserved rather than overwritten.
+model KycSubmission {
+  id     String    @id @default(cuid())
+  userId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status KycStatus @default(PENDING)
+
+  fullName    String
+  documentNo  String
+  countryCode String
+  dateOfBirth DateTime?
+
+  /// Set on decision. reviewedBy is an AdminUser id, kept as a plain column so
+  /// deleting an admin never erases who made a compliance decision.
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  rejectionReason String?
+
+  documents KycDocument[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@map("kyc_submissions")
+}
+
+/// A stored file belonging to a submission. `storageKey` is opaque to the
+/// database — the storage driver decides what it means (a path today, an object
+/// key if this moves to S3), so the schema does not need to change with it.
+model KycDocument {
+  id           String          @id @default(cuid())
+  submissionId String
+  submission   KycSubmission   @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  type         KycDocumentType
+  storageKey   String
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime        @default(now())
+
+  @@index([submissionId])
+  @@map("kyc_documents")
+}
+
+/// A message from the public contact form. Stored rather than only emailed,
+/// so an enquiry cannot be lost to a bounced notification, and so the operator
+/// who answers it can be recorded.
+model ContactMessage {
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  phone   String?
+  subject String
+  message String
+
+  /// Set once an operator has dealt with it.
+  handledAt DateTime?
+  handledBy String?
+
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([handledAt, createdAt])
+  @@map("contact_messages")
+}
+
+enum AuditAction {
+  LOGIN
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  CREDIT
+  DEBIT
+  STATUS_CHANGE
+  SETTING_CHANGE
+}
+
+/// Append-only record of every mutating admin action.
+/// Nothing an operator does to a customer account should be untraceable.
+model AuditLog {
+  id      String @id @default(cuid())
+  adminId String
+  admin   AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  action     AuditAction
+  entityType String
+  entityId   String?
+  summary    String
+
+  /// Snapshot of what changed, for disputes.
+  before Json?
+  after  Json?
+
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([adminId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+
+// ─────────────────────────── access control ───────────────────────────
+
+/// Roles are data, not an enum. New admin levels are created in the console
+/// without a deploy, and each carries its own permission set.
+model AdminRole {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+
+  /// Seniority. Lower is more senior; an operator may only manage roles with a
+  /// strictly higher level than their own, so nobody can escalate sideways.
+  level Int @default(100)
+
+  /// System roles cannot be deleted or have their slug changed.
+  isSystem Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  permissions RolePermission[]
+  admins      AdminUser[]
+
+  @@map("admin_roles")
+}
+
+/// One row per capability the console can gate on.
+model Permission {
+  id          String  @id @default(cuid())
+  key         String  @unique
+  group       String
+  label       String
+  description String?
+
+  roles RolePermission[]
+
+  @@index([group])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       AdminRole  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+/// Request-level replay protection for money-mutating endpoints.
+///
+/// The ledger already refuses a replayed *payout* (unique `reference`), but a
+/// replayed *request* is a different failure: a double-clicked Invest button
+/// generates two distinct intents, each with its own reference, and both are
+/// perfectly valid to the ledger. This table is what makes the intent unique.
+///
+/// Scoped per actor so one caller's key can never collide with another's, and
+/// hashed against the request body so a client reusing a key for a different
+/// payload is caught rather than served the wrong cached response.
+///
+/// The actor is a member or an admin — the two live in separate tables, so the
+/// reference is deliberately untyped rather than a foreign key to one of them.
+/// Rows are short-lived (24h TTL, purged on the maintenance schedule), so there
+/// is nothing here worth cascading.
+model IdempotencyKey {
+  id          String            @id @default(cuid())
+  actorType   ActorType
+  actorId     String
+  key         String
+  endpoint    String
+  requestHash String
+  status      IdempotencyStatus @default(IN_FLIGHT)
+  statusCode  Int?
+  response    Json?
+  createdAt   DateTime          @default(now())
+  expiresAt   DateTime
+
+  @@unique([actorType, actorId, key])
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+}
+
+enum ActorType {
+  USER
+  ADMIN
+}
+
+enum IdempotencyStatus {
+  IN_FLIGHT
+  COMPLETED
+}
+
+/// A refresh-token session.
+///
+/// Refresh tokens used to be bare JWTs: stateless, unrevocable, and valid for
+/// 30 days. A stolen one could be replayed for a month, blocking an account did
+/// nothing to it, and there was no way to see or end a session.
+///
+/// Now each refresh token is a random secret whose SHA-256 is stored here — the
+/// token itself is never persisted, so a database leak does not yield working
+/// credentials. Refreshing *rotates*: the presented token is retired and a new
+/// one is issued into the same `familyId`.
+///
+/// That rotation is what makes theft detectable. A legitimate client always
+/// holds the newest token in its family, so presenting an already-retired one
+/// means two parties hold tokens from the same chain. The whole family is then
+/// revoked, which logs out the thief and the victim together and forces a fresh
+/// sign-in — the only safe response, since we cannot tell which is which.
+model Session {
+  id            String    @id @default(cuid())
+  actorType     ActorType
+  actorId       String
+  familyId      String
+  tokenHash     String    @unique
+  userAgent     String?
+  ip            String?
+  createdAt     DateTime  @default(now())
+  lastUsedAt    DateTime?
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  revokedReason String?
+
+  /// Set when a support operator opened this session to see what the member
+  /// sees. Such a session is read-only — money-moving routes refuse it.
+  impersonatedBy String?
+
+  @@index([actorType, actorId])
+  @@index([familyId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// What a member did, in their own words.
+///
+/// The AuditLog above records what *operators* do. Nothing recorded what
+/// members do, which is the wrong half to be missing when someone disputes a
+/// withdrawal or reports their account taken over: the questions are "was that
+/// me?" and "when did the payout address change?", and neither could be
+/// answered.
+///
+/// So this is the member-facing trail, and deliberately a separate table rather
+/// than a column on AuditLog — the two have different readers. Operators read
+/// AuditLog to hold each other accountable; members read this to recognise
+/// their own activity, so every row has to make sense to a non-technical person
+/// reading it in their security settings.
+model ActivityLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  event   ActivityEvent
+  summary String
+  /// Anything worth showing alongside the line — an amount, a masked address.
+  meta    Json?
+
+  ip        String?
+  userAgent String?
+  /// Set when an operator acted on the member's behalf, so it is never unclear
+  /// whether the member did this themselves.
+  actorAdminId String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([event, createdAt])
+  @@map("activity_logs")
+}
+
+enum ActivityEvent {
+  SIGNED_IN
+  SIGN_IN_FAILED
+  SIGNED_OUT
+  SESSION_REVOKED
+  PASSWORD_CHANGED
+  EMAIL_VERIFIED
+  PROFILE_UPDATED
+  PAYOUT_ADDRESS_CHANGED
+  TWO_FACTOR_ENABLED
+  TWO_FACTOR_DISABLED
+  TWO_FACTOR_RECOVERY_USED
+  KYC_SUBMITTED
+  KYC_APPROVED
+  KYC_REJECTED
+  DEPOSIT_CREATED
+  DEPOSIT_CONFIRMED
+  INVESTMENT_PURCHASED
+  WITHDRAWAL_REQUESTED
+  WITHDRAWAL_APPROVED
+  WITHDRAWAL_REJECTED
+  WALLET_TRANSFER
+  ACCOUNT_STATUS_CHANGED
+  BALANCE_ADJUSTED
+}
+
+/// A one-time code sent out of band.
+///
+/// Used for email verification, password reset, and confirming a withdrawal.
+/// Only the hash is stored, for the same reason refresh tokens are hashed: a
+/// database leak must not hand someone a working code. Attempts are counted so
+/// a six-digit code cannot simply be guessed.
+model OtpChallenge {
+  id        String   @id @default(cuid())
+  purpose   OtpPurpose
+  /// Member or admin, or neither: a password reset is requested before anyone
+  /// has proved who they are.
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Where the code was sent — kept so a reset can identify the account.
+  email     String
+  codeHash  String
+  /// Bound to the request that started the flow, so a code cannot be lifted
+  /// from one member's email and completed by another.
+  challengeId String @unique
+
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+
+  /// Carried through to the action the code authorises — a withdrawal id, a
+  /// pending email address.
+  payload Json?
+
+  @@index([email, purpose])
+  @@index([expiresAt])
+  @@map("otp_challenges")
+}
+
+enum OtpPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  WITHDRAWAL_CONFIRMATION
+  EMAIL_CHANGE
+}
+
+/// An email we tried to send.
+///
+/// Delivery is the part of a fintech that fails silently: a member never gets
+/// their withdrawal code, support has no way to see whether it was sent, and
+/// the logs have long rotated. Every send is recorded with its outcome, so
+/// "did they receive it" is answerable.
+model EmailLog {
+  id        String      @id @default(cuid())
+  to        String
+  subject   String
+  template  String
+  status    EmailStatus @default(QUEUED)
+  error     String?
+  /// Provider message id, for tracing into the mail server's own logs.
+  messageId String?
+  sentAt    DateTime?
+  createdAt DateTime    @default(now())
+
+  @@index([to, createdAt])
+  @@index([status])
+  @@map("email_logs")
+}
+
+enum EmailStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+/// A recovery code for two-factor authentication.
+///
+/// Stored hashed and single-use. Losing the authenticator app is far more
+/// common than losing the password, so without these every lost phone becomes a
+/// support ticket that ends in an operator disabling 2FA — which is a social
+/// engineering route straight past it.
+model TwoFactorRecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("two_factor_recovery_codes")
+}
+
+/// A member's own on-chain deposit address.
+///
+/// One address per member, derived deterministically from the platform's
+/// extended public key at a fixed index. Derivation from an *xpub* means the
+/// process that hands out addresses never holds a private key — it can watch
+/// for incoming funds but cannot move any, which is the property that makes it
+/// safe to run on an internet-facing box.
+///
+/// Per-member addresses are what make a deposit attributable. A single shared
+/// address forces every member to quote a transaction hash and an operator to
+/// match it by hand, which is exactly the manual step this removes.
+model DepositAddress {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  address String @unique
+  /// BIP-44 index. Unique so two members can never share an address.
+  derivationIndex Int    @unique
+  network         String @default("BEP20")
+
+  createdAt DateTime @default(now())
+
+  @@map("deposit_addresses")
+}
+
+/// How far the chain watcher has read.
+///
+/// Kept in the database rather than in memory so a restart resumes where it
+/// stopped instead of rescanning from genesis or, far worse, skipping the
+/// blocks it was in the middle of.
+model ChainCursor {
+  id        String   @id
+  lastBlock BigInt
+  updatedAt DateTime @updatedAt
+
+  @@map("chain_cursors")
+}
+
+/// A token transfer the watcher has seen.
+///
+/// Written the moment a transfer is observed, before it has enough
+/// confirmations to credit, so a reorg or a restart cannot lose it. The unique
+/// (txHash, logIndex) is what makes crediting idempotent: the watcher re-reads
+/// overlapping ranges by design, and the same transfer must never be credited
+/// twice however many times it is seen.
+model OnChainTransfer {
+  id       String @id @default(cuid())
+  txHash   String
+  logIndex Int
+
+  blockNumber BigInt
+  fromAddress String
+  toAddress   String
+  amount      Decimal @db.Decimal(38, 8)
+
+  status    TransferStatus @default(SEEN)
+  /// Set once the transfer has been credited to a member.
+  depositId String?
+  userId    String?
+  note      String?
+
+  seenAt      DateTime  @default(now())
+  creditedAt  DateTime?
+
+  @@unique([txHash, logIndex])
+  @@index([status])
+  @@index([toAddress])
+  @@map("onchain_transfers")
+}
+
+enum TransferStatus {
+  /// Observed, waiting for enough confirmations.
+  SEEN
+  /// Credited to a member's Fund wallet.
+  CREDITED
+  /// Sent to an address we know but cannot attribute, or below the minimum.
+  IGNORED
+}
+
+/// An outbound on-chain payment for an approved withdrawal.
+///
+/// Separate from Withdrawal because the two fail differently. A withdrawal is
+/// an accounting fact — the member's balance moved when they asked. Broadcasting
+/// is a network operation that can time out, get stuck behind gas, or succeed
+/// after we stopped waiting for it. Conflating them is how a platform pays
+/// twice: a retry of an "unknown" send has no way to tell whether the first one
+/// landed.
+///
+/// The unique withdrawalId is the guard. One withdrawal can only ever have one
+/// payout row, so a retry updates that row rather than broadcasting again.
+model ChainPayout {
+  id           String @id @default(cuid())
+  withdrawalId String @unique
+
+  toAddress String
+  amount    Decimal @db.Decimal(38, 8)
+  network   String  @default("BEP20")
+
+  status   PayoutStatus @default(QUEUED)
+  txHash   String?      @unique
+  /// The signer's nonce. Reusing it deliberately is how a stuck transaction is
+  /// replaced rather than duplicated.
+  nonce    Int?
+  gasUsed  String?
+  attempts Int          @default(0)
+  error    String?
+
+  broadcastAt DateTime?
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@map("chain_payouts")
+}
+
+enum PayoutStatus {
+  /// Approved, not yet broadcast.
+  QUEUED
+  /// Broadcast, waiting for confirmations.
+  BROADCAST
+  CONFIRMED
+  /// Broadcast and mined, but the transaction reverted.
+  REVERTED
+  /// Could not be broadcast. Needs an operator.
+  FAILED
+}
+
+/// A thing that happened which someone should know about.
+///
+/// One row per *event*, fanned out to recipients below. A withdrawal landing in
+/// the queue is one notification seen by every operator who can approve it, not
+/// one notification per operator — so the event, its wording and its link are
+/// stored once and cannot drift between readers.
+///
+/// `dedupeKey` is the guard that makes this safe to call from anywhere. Money
+/// paths retry, jobs overlap, and webhooks arrive twice; a notification layer
+/// that duplicates under those conditions trains people to ignore it.
+model Notification {
+  id String @id @default(cuid())
+
+  /// From the catalogue in modules/notification/catalogue.ts. Deliberately a
+  /// string rather than a database enum: adding a notification type is a
+  /// product change that should not need a migration, and the catalogue is
+  /// where the type is actually enforced.
+  type     String
+  category NotificationCategory
+  severity NotificationSeverity @default(INFO)
+
+  title String
+  body  String
+  /// Where clicking it takes you. A notification you cannot act on is noise.
+  link  String?
+  meta  Json?
+
+  /// Unique per real-world event, so the same event never notifies twice.
+  dedupeKey String? @unique
+
+  createdAt DateTime  @default(now())
+  /// For time-bound notices; the maintenance job clears them once past.
+  expiresAt DateTime?
+
+  recipients NotificationRecipient[]
+
+  @@index([type, createdAt])
+  @@map("notifications")
+}
+
+/// One person's copy of a notification.
+///
+/// Read state lives here rather than on the notification because an operator
+/// alert has many readers, and one of them reading it must not mark it read for
+/// everyone else.
+///
+/// Recipients are resolved when the notification is created rather than when it
+/// is read. An operator who joins tomorrow does not inherit a backlog of alerts
+/// about things that were handled before they arrived.
+model NotificationRecipient {
+  id             String       @id @default(cuid())
+  notificationId String
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  actorType ActorType
+  actorId   String
+
+  readAt     DateTime?
+  /// Dismissed from the list without being deleted, so the record survives.
+  archivedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([notificationId, actorType, actorId])
+  @@index([actorType, actorId, readAt])
+  @@index([actorType, actorId, archivedAt, createdAt])
+  @@map("notification_recipients")
+}
+
+/// Per-person delivery choices, by category.
+///
+/// Absent rows mean "on" — a member who has never opened the settings still
+/// gets told their withdrawal was sent. Only an explicit opt-out silences a
+/// category, and the security category cannot be silenced at all: being told
+/// your payout address changed is not a preference.
+model NotificationPreference {
+  id        String    @id @default(cuid())
+  actorType ActorType
+  actorId   String
+
+  category NotificationCategory
+  inApp    Boolean @default(true)
+  email    Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([actorType, actorId, category])
+  @@map("notification_preferences")
+}
+
+enum NotificationCategory {
+  /// Deposits, withdrawals, transfers, adjustments.
+  MONEY
+  /// ROI, commissions, caps, ranks, rewards.
+  EARNINGS
+  /// Referrals and downline activity.
+  NETWORK
+  /// Sign-ins, passwords, 2FA, payout addresses. Cannot be turned off.
+  SECURITY
+  /// KYC and anything a regulator would care about.
+  COMPLIANCE
+  /// Tickets and replies.
+  SUPPORT
+  /// Operator queues — pending approvals, SLA breaches, stuck payouts.
+  OPERATIONS
+  /// Platform health and configuration.
+  SYSTEM
+}
+
+enum NotificationSeverity {
+  INFO
+  SUCCESS
+  WARNING
+  CRITICAL
+}
+
+/// A message from the operator to members.
+///
+/// Distinct from a notification: a notification is generated by something that
+/// happened to one person, an announcement is written by a human for an
+/// audience. Keeping them apart means an operator can review and edit what they
+/// are about to send to everyone before it goes, which is not a thing you can
+/// do with an event.
+model Announcement {
+  id      String  @id @default(cuid())
+  title   String
+  body    String
+  /// Sets the tone of the banner members see.
+  severity NotificationSeverity @default(INFO)
+
+  /// Draft until published; published until it expires or is withdrawn.
+  status AnnouncementStatus @default(DRAFT)
+  /// Optional link — "read more", "see the new plan".
+  link   String?
+
+  /// Who it reaches. Null means every member.
+  audience AnnouncementAudience @default(ALL)
+
+  /// Shown as a dismissible banner as well as a notification.
+  pinned Boolean @default(false)
+
+  publishedAt DateTime?
+  expiresAt   DateTime?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  /// How many members it was delivered to, recorded at publish time.
+  deliveredTo Int @default(0)
+
+  dismissals AnnouncementDismissal[]
+
+  @@index([status, publishedAt])
+  @@map("announcements")
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+  WITHDRAWN
+}
+
+enum AnnouncementAudience {
+  ALL
+  /// Members with at least one active package.
+  INVESTED
+  /// Members who have never invested.
+  NOT_INVESTED
+}
+
+/// A member dismissing a pinned banner.
+///
+/// Per-member, because one person clearing a banner must not clear it for
+/// everyone — the same reason notification read state is per-recipient.
+model AnnouncementDismissal {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  dismissedAt    DateTime     @default(now())
+
+  @@unique([announcementId, userId])
+  @@map("announcement_dismissals")
+}
+
+/// A member accepting a version of the terms.
+///
+/// Recorded as an event rather than a boolean on the user, because "did they
+/// agree?" is the wrong question — the answerable one is "which version did
+/// they agree to, and when?". A platform that changes its withdrawal terms and
+/// cannot show what a member accepted at signup has no record worth having.
+model ConsentRecord {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  document ConsentDocument
+  /// The published version accepted, e.g. "2026-08-01".
+  version  String
+
+  ip        String?
+  userAgent String?
+  acceptedAt DateTime @default(now())
+
+  @@unique([userId, document, version])
+  @@index([userId])
+  @@map("consent_records")
+}
+
+enum ConsentDocument {
+  TERMS
+  PRIVACY
+  RISK_DISCLOSURE
+}
+
+/// A milestone that unlocks a scratch card.
+///
+/// Operator-defined rather than hard-coded, for the same reason packages and
+/// commission rules are: the economics of a bonus programme get tuned, and
+/// tuning them should not need a deploy.
+model RewardTier {
+  id   String @id @default(cuid())
+  name String
+
+  /// Cumulative investment that unlocks a card at this tier.
+  threshold Decimal @db.Decimal(38, 8)
+  /// Paid as a percentage of the member's total invested, so a bigger investor
+  /// gets a proportionally bigger card rather than a flat amount that means
+  /// nothing to them.
+  bonusPercent Decimal @db.Decimal(10, 4)
+  /// Hard ceiling on one card, so a percentage cannot run away on a large book.
+  maxBonus     Decimal @db.Decimal(38, 8)
+
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cards RewardCard[]
+
+  @@map("reward_tiers")
+}
+
+/// One member's card at one tier.
+///
+/// Created the moment the threshold is crossed, and stays UNCLAIMED until the
+/// member scratches it. The amount is fixed at unlock time rather than at claim
+/// time — a member should get what the card said when they earned it, not what
+/// the operator changed the tier to afterwards.
+model RewardCard {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tierId String
+  tier   RewardTier @relation(fields: [tierId], references: [id])
+
+  amount Decimal          @db.Decimal(38, 8)
+  status RewardCardStatus @default(UNCLAIMED)
+
+  /// The investment total that unlocked it, kept so a member can see why.
+  unlockedAt   DateTime @default(now())
+  unlockedAtVolume Decimal @db.Decimal(38, 8)
+  claimedAt    DateTime?
+  /// Ledger reference of the payout, so the card and the money are linked.
+  reference    String?  @unique
+
+  /// One card per member per tier, forever.
+  @@unique([userId, tierId])
+  @@index([userId, status])
+  @@map("reward_cards")
+}
+
+enum RewardCardStatus {
+  UNCLAIMED
+  CLAIMED
+}
+
+/// A scheduled prize draw.
+///
+/// Modelled as an event with an explicit lifecycle rather than a cron that
+/// picks winners silently. DRAFT lets an operator set the prizes up and check
+/// them; OPEN lets tickets accumulate; DRAWN is final and cannot be re-run.
+///
+/// `seed` is the reason this is trustworthy. It is generated and published as a
+/// hash when the draw opens, revealed when it is drawn, and the winner order is
+/// derived from it deterministically — so anyone can verify afterwards that the
+/// result was fixed before entries closed, and that we did not pick winners
+/// after seeing who entered.
+model LotteryDraw {
+  id    String @id @default(cuid())
+  name  String
+  notes String?
+
+  status LotteryStatus @default(DRAFT)
+
+  /// Cumulative investment that earns one ticket. Tickets are earned, never
+  /// bought — a draw members pay into separately is a different regulated thing.
+  ticketThreshold Decimal @db.Decimal(38, 8)
+  /// Tickets one member may hold, so a single large investor cannot own a draw.
+  maxTicketsPerMember Int @default(50)
+
+  opensAt  DateTime?
+  closesAt DateTime?
+  drawnAt  DateTime?
+
+  /// Published when the draw opens; proves the seed was fixed in advance.
+  seedHash String?
+  /// Revealed after the draw. Null until then, deliberately.
+  seed     String?
+
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prizes  LotteryPrize[]
+  tickets LotteryTicket[]
+
+  @@index([status, drawnAt])
+  @@map("lottery_draws")
+}
+
+enum LotteryStatus {
+  DRAFT
+  OPEN
+  /// Entries closed, not yet drawn.
+  CLOSED
+  DRAWN
+  CANCELLED
+}
+
+/// One prize position in a draw.
+model LotteryPrize {
+  id     String      @id @default(cuid())
+  drawId String
+  draw   LotteryDraw @relation(fields: [drawId], references: [id], onDelete: Cascade)
+
+  /// 1 is first prize. Winners are assigned in this order.
+  position Int
+  label    String
+  amount   Decimal @db.Decimal(38, 8)
+
+  /// Set when the draw runs.
+  winnerTicketId String?       @unique
+  winnerTicket   LotteryTicket? @relation(fields: [winnerTicketId], references: [id])
+  claimedAt      DateTime?
+  /// Ledger reference of the payout, linking prize to money.
+  reference      String?       @unique
+
+  @@unique([drawId, position])
+  @@map("lottery_prizes")
+}
+
+/// A member's entry.
+///
+/// Issued when they cross a threshold, not bought. `number` is human-readable
+/// and unique within the draw, so a winner can be announced by ticket rather
+/// than by exposing a member id.
+model LotteryTicket {
+  id     String      @id @default(cuid())
+  drawId String
+  draw   LotteryDraw @relation(fields: [drawId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  number    String
+  issuedAt  DateTime @default(now())
+  /// The investment total that earned it.
+  issuedAtVolume Decimal @db.Decimal(38, 8)
+
+  wonPrize LotteryPrize?
+
+  @@unique([drawId, number])
+  @@index([drawId, userId])
+  @@map("lottery_tickets")
+}
+
+/// A modelled run of the compensation plan.
+///
+/// The point of this is to answer "what does the plan actually cost us?" before
+/// real money is involved. It does that by driving the REAL engine — the same
+/// ROI job, the same commission walk, the same cap — forward through simulated
+/// time, rather than reimplementing the maths. A model that reimplements the
+/// rules tells you about the model; one that drives the engine tells you about
+/// the platform.
+///
+/// Everything a run creates is tagged with its id, so erasing is exact rather
+/// than a best guess at which members were fake.
+model SimulationRun {
+  id   String @id @default(cuid())
+  name String
+
+  status SimulationStatus @default(DRAFT)
+
+  /// The inputs, kept verbatim so a run can be read back or repeated.
+  params Json
+  /// Seeds the generator, so identical parameters produce identical results —
+  /// which is what makes two scenarios comparable.
+  seed   String
+
+  progress      Int    @default(0)
+  progressLabel String?
+
+  /// Headline figures and the month-by-month series.
+  summary Json?
+  monthly Json?
+
+  memberCount Int    @default(0)
+  error       String?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  erasedAt    DateTime?
+
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members User[]
+
+  @@index([status, createdAt])
+  @@map("simulation_runs")
+}
+
+enum SimulationStatus {
+  DRAFT
+  RUNNING
+  COMPLETE
+  FAILED
+  /// Data removed; the run and its results are kept for reference.
+  ERASED
+}
