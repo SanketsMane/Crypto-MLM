@@ -10,6 +10,7 @@ import * as twoFactor from '../../core/two-factor.js';
 import { CURRENT_VERSIONS } from '../privacy/privacy.service.js';
 import { ensureWallets } from '../../core/ledger.js';
 import { buildPath } from '../../core/tree.js';
+import { findPlacement, place } from '../../core/binary.js';
 import { userCode } from '../../core/reference.js';
 import { badRequest, conflict, notFound, unauthorized } from '../../core/errors.js';
 import { env } from '../../config/env.js';
@@ -55,6 +56,14 @@ export async function register(input: RegisterInput, req?: Request) {
 
     await ensureWallets(created.id, tx);
     await tx.teamVolume.create({ data: { userId: created.id } });
+
+    /* Binary needs a second decision at signup: sponsorship says who
+       introduced you, placement says where you sit for payout. Under unilevel
+       there is nothing to decide, so these columns stay empty. */
+    if (sponsor && (await config()).planStructure === 'BINARY') {
+      const slot = await findPlacement(sponsor.id, tx);
+      if (slot) await place(created.id, slot, tx);
+    }
 
     if (sponsor) {
       await tx.$executeRaw`

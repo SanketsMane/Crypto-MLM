@@ -36,6 +36,38 @@ export interface StoredDocument {
   sizeBytes: number;
 }
 
+/**
+ * What each accepted type actually starts with on disk.
+ *
+ * The declared MIME type comes from the browser, which means it comes from
+ * whoever is uploading. Trusting it stores arbitrary bytes under a name that
+ * says "image" — so the first few bytes are checked against the claim before
+ * anything is written.
+ */
+const MAGIC: Record<string, (b: Buffer) => boolean> = {
+  'image/jpeg': (b) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
+  'image/png':  (b) => b.length > 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  'image/webp': (b) => b.length > 12 && b.subarray(0, 4).toString('ascii') === 'RIFF' && b.subarray(8, 12).toString('ascii') === 'WEBP',
+  'application/pdf': (b) => b.length > 5 && b.subarray(0, 5).toString('ascii') === '%PDF-',
+};
+
+/**
+ * Verify the bytes are what the upload claims they are.
+ *
+ * Separate from `assertAcceptable` because the size/type check can run on
+ * metadata alone, while this needs the payload.
+ */
+export function assertContentMatches(mimeType: string, bytes: Buffer) {
+  const check = MAGIC[mimeType];
+  if (!check) throw badRequest(`Unsupported file type "${mimeType}"`);
+  if (!check(bytes)) {
+    throw badRequest(
+      `That file is not a valid ${ALLOWED[mimeType]?.toUpperCase() ?? mimeType}. `
+      + 'Re-export it and try again.',
+    );
+  }
+}
+
 /** Reject anything that is not a document, before it ever touches the disk. */
 export function assertAcceptable(mimeType: string, sizeBytes: number) {
   if (!ALLOWED[mimeType]) {
@@ -47,6 +79,7 @@ export function assertAcceptable(mimeType: string, sizeBytes: number) {
 
 export async function put(userId: string, mimeType: string, bytes: Buffer): Promise<StoredDocument> {
   assertAcceptable(mimeType, bytes.byteLength);
+  assertContentMatches(mimeType, bytes);
 
   // Partition by user so one member's documents never mix with another's, and
   // randomise the filename so a key cannot be guessed from what is known.

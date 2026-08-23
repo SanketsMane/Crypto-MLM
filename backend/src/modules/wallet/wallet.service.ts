@@ -6,6 +6,7 @@ import { makeReference } from '../../core/reference.js';
 import { getCapState } from '../../core/capping.js';
 import * as activity from '../../core/activity.js';
 import type { Request } from 'express';
+import { badRequest } from '../../core/errors.js';
 
 export async function balances(userId: string) {
   const wallets = await prisma.walletAccount.findMany({ where: { userId }, orderBy: { type: 'asc' } });
@@ -70,6 +71,11 @@ export async function ledger(
 export async function transfer(
   userId: string, from: WalletType, to: WalletType, amount: string, req?: Request,
 ) {
+  /* The console disables this, but the console is not the guard. A wallet
+     moving money to itself nets to nothing and writes two meaningless rows
+     into the member's passbook, so it is refused here where it counts. */
+  if (from === to) throw badRequest('Choose two different wallets');
+
   const result = await transferBetweenWallets({
     userId, from, to,
     amount: money(amount),

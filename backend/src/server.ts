@@ -4,7 +4,11 @@ import { logger } from './core/logger.js';
 import { prisma } from './core/db.js';
 import { flushNotifications } from './core/notify.js';
 import { flushActivity } from './core/activity.js';
+import { flushErrors, installProcessHandlers } from './core/error-reporter.js';
 import { syncPermissions } from './modules/admin/rbac/rbac.service.js';
+
+// Before anything else, so a fault during boot is recorded rather than lost.
+installProcessHandlers();
 
 const app = createApp();
 const server = app.listen(env.PORT, () => {
@@ -36,7 +40,7 @@ const shutdown = async (signal: string) => {
   // hold up a restart, but a member's "your payout address changed" alert
   // disappearing because of a rolling deploy is not acceptable.
   await Promise.race([
-    Promise.all([flushNotifications(), flushActivity()]),
+    Promise.all([flushNotifications(), flushActivity(), flushErrors()]),
     new Promise((r) => setTimeout(r, 5_000)),
   ]);
 

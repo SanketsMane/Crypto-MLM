@@ -1,5 +1,5 @@
 import {
-  ContractFactory, HDNodeWallet, JsonRpcProvider, Mnemonic, Wallet, parseUnits,
+  ContractFactory, HDNodeWallet, JsonRpcProvider, Mnemonic, NonceManager, Wallet, parseUnits,
 } from 'ethers';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ERC20_ABI, ERC20_BYTECODE } from './fixtures/erc20.js';
@@ -26,13 +26,32 @@ const CHAIN_ID = 31337;
  * Probed at module load, not in `beforeAll`: `describe.skipIf` is evaluated
  * when the file is collected, which happens before any hook runs.
  */
-const provider = new JsonRpcProvider(RPC, CHAIN_ID, { staticNetwork: true });
+/**
+ * `cacheTimeout: -1` turns off ethers' response cache.
+ *
+ * It memoises `eth_getTransactionCount` for a moment, which is sensible against
+ * a public RPC and wrong here: these tests send transfers faster than the cache
+ * expires, so the nonce comes back stale and the node rejects the next one as
+ * `nonce too low`.
+ */
+const provider = new JsonRpcProvider(RPC, CHAIN_ID, { staticNetwork: true, cacheTimeout: -1 });
 const available = await provider
   .getBlockNumber()
   .then(() => true)
   .catch(() => false);
 
-let deployer: Wallet;
+let wallet: Wallet;
+/**
+ * Wrapped in a NonceManager.
+ *
+ * These tests send several transfers between mined blocks, and ethers caches
+ * `getTransactionCount` for a moment — so a naive send reuses a nonce and the
+ * node rejects it as `nonce too low`. Tracking the nonce by hand fixed that and
+ * introduced a worse failure: any drift left a gap, anvil held the transaction
+ * in the pool without mining it, and `tx.wait()` hung until the test timed out.
+ * NonceManager is the part of ethers that exists for this.
+ */
+let deployer: NonceManager;
 let tokenAddress: string;
 let xpub: string;
 
@@ -61,10 +80,11 @@ beforeAll(async () => {
   xpub = root.neuter().extendedKey;
 
   // Account 0 index 0 is anvil's first pre-funded account; it deploys and pays.
-  deployer = new Wallet(
+  wallet = new Wallet(
     HDNodeWallet.fromMnemonic(Mnemonic.fromPhrase(MNEMONIC), "m/44'/60'/0'/0/0").privateKey,
     provider,
   );
+  deployer = new NonceManager(wallet);
 
   const factory = new ContractFactory(ERC20_ABI, ERC20_BYTECODE, deployer);
   const token = await factory.deploy(parseUnits('1000000', 18));
@@ -78,7 +98,7 @@ beforeAll(async () => {
   process.env.CHAIN_TOKEN_ADDRESS = tokenAddress;
   process.env.CHAIN_TOKEN_DECIMALS = '18';
   process.env.CHAIN_DEPOSIT_XPUB = xpub;
-  process.env.CHAIN_PAYOUT_KEY = deployer.privateKey;
+  process.env.CHAIN_PAYOUT_KEY = wallet.privateKey;
   process.env.CHAIN_CONFIRMATIONS = '1';
   process.env.CHAIN_SCAN_BATCH = '500';
   process.env.CHAIN_MIN_DEPOSIT = '1';
@@ -86,9 +106,28 @@ beforeAll(async () => {
   await seedPlan();
 }, 120_000);
 
-afterAll(() => {
-  delete process.env.CHAIN_ENABLED;
-  delete process.env.CHAIN_RPC_URL;
+afterAll(async () => {
+  /**
+   * Every variable, and the cached state with them.
+   *
+   * `fileParallelism` is off, so the whole suite shares one process and one
+   * `process.env`. This used to clear two of the nine variables it sets and
+   * leave the memoised chain config alone — which did not matter while these
+   * tests skipped themselves, and broke a dozen unrelated withdrawal tests the
+   * moment a node was actually running: they saw a chain configured and queued
+   * payouts instead of asking for a manual one.
+   */
+  for (const key of [
+    'CHAIN_ENABLED', 'CHAIN_RPC_URL', 'CHAIN_ID',
+    'CHAIN_TOKEN_ADDRESS', 'CHAIN_TOKEN_DECIMALS',
+    'CHAIN_DEPOSIT_XPUB', 'CHAIN_PAYOUT_KEY',
+    'CHAIN_CONFIRMATIONS', 'CHAIN_SCAN_BATCH', 'CHAIN_MIN_DEPOSIT',
+  ]) delete process.env[key];
+
+  const config = await import('../src/core/chain/config.js');
+  const provider_ = await import('../src/core/chain/provider.js');
+  config.__resetChainState();
+  provider_.__resetProvider();
 });
 
 /**
@@ -104,14 +143,27 @@ beforeEach(async () => {
   if (!available) return;
   await resetData();
   scanFrom = await provider.getBlockNumber();
+  deployer.reset();
 });
 
 const sendTokens = async (to: string, amount: string) => {
   const { Contract } = await import('ethers');
   const token = new Contract(tokenAddress, ERC20_ABI, deployer);
-  const tx = await (token as unknown as { transfer: (t: string, v: bigint) => Promise<{ wait: () => Promise<unknown> }> })
-    .transfer(to, parseUnits(amount, 18));
+  const tx = await (token as unknown as {
+    transfer: (t: string, v: bigint) => Promise<{ wait: () => Promise<unknown> }>;
+  }).transfer(to, parseUnits(amount, 18));
   await tx.wait();
+
+  /**
+   * One more block, so the transfer is actually confirmed.
+   *
+   * Anvil mines on demand, so a transfer lands in the head block and nothing
+   * follows it. The watcher only reads up to `head - confirmations`, which is
+   * correct — holding a transfer until it is confirmed is the whole point — so
+   * without this the scan reports "up to date" and sees nothing. A chain that
+   * produces blocks on a timer hides the gap; this one does not.
+   */
+  await provider.send('evm_mine', []);
 };
 
 /** Points the cursor at this test's starting block. */

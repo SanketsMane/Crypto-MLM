@@ -61,6 +61,8 @@ export async function submit(userId: string, input: {
   const decoded = input.documents.map((d) => {
     const bytes = Buffer.from(d.data, 'base64');
     storage.assertAcceptable(d.mimeType, bytes.byteLength);
+    // The declared type comes from the uploader; the bytes have to agree.
+    storage.assertContentMatches(d.mimeType, bytes);
     return { ...d, bytes };
   });
 

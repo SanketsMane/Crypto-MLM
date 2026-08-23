@@ -30,6 +30,8 @@ let cache: { at: number; value: PublicConfig } | null = null;
 export const invalidatePublicConfig = () => { cache = null; };
 
 export interface PublicConfig {
+  /** The genealogy the compensation plan runs on. */
+  planStructure: 'UNILEVEL' | 'BINARY';
   platform: {
     registrationOpen: boolean;
     maintenanceMode: boolean;
@@ -109,6 +111,7 @@ export async function publicConfig(): Promise<PublicConfig> {
   ]);
 
   const value: PublicConfig = {
+    planStructure: cfg.planStructure,
     platform: {
       registrationOpen: cfg.registrationOpen,
       maintenanceMode: cfg.maintenanceMode,

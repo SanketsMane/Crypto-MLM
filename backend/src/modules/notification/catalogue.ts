@@ -47,6 +47,7 @@ export const MEMBER_NOTIFICATIONS = {
   // ── earnings ──
   'earnings.daily':        { category: 'EARNINGS', severity: 'INFO',    link: '/income' },
   'commission.direct':     { category: 'EARNINGS', severity: 'SUCCESS', link: '/income' },
+  'commission.binary':     { category: 'EARNINGS', severity: 'SUCCESS', link: '/income' },
   'investment.capped':     { category: 'EARNINGS', severity: 'WARNING', link: '/packages' },
   'rank.achieved':         { category: 'EARNINGS', severity: 'SUCCESS', link: '/rank' },
   'roaming.qualified':     { category: 'EARNINGS', severity: 'SUCCESS', link: '/roaming-club' },

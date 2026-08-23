@@ -99,6 +99,18 @@ businessGauge(
 );
 
 businessGauge(
+  'fortunex_unresolved_errors',
+  'Distinct faults recorded and not yet marked resolved',
+  () => prisma.errorEvent.count({ where: { resolvedAt: null } }),
+);
+
+businessGauge(
+  'fortunex_errors_last_hour',
+  'Faults seen in the last hour — a rising number is an incident in progress',
+  () => prisma.errorEvent.count({ where: { lastSeenAt: { gte: new Date(Date.now() - 3_600_000) } } }),
+);
+
+businessGauge(
   'fortunex_payouts_stuck',
   'On-chain payouts that failed or reverted and need an operator',
   () => prisma.chainPayout.count({ where: { status: { in: ['FAILED', 'REVERTED'] } } }),

@@ -13,6 +13,7 @@ import income from '../modules/income/income.routes.js';
 import support from '../modules/support/support.routes.js';
 import kyc from '../modules/kyc/kyc.routes.js';
 import contact from '../modules/contact/contact.routes.js';
+import gateway from '../modules/gateway/gateway.routes.js';
 import admin from '../modules/admin/admin.routes.js';
 import { notificationRoutes } from '../modules/notification/notification.routes.js';
 import { searchRoutes } from '../modules/search/search.routes.js';
@@ -50,6 +51,7 @@ router.use('/income', income);
 router.use('/support', support);
 router.use('/kyc', kyc);
 router.use('/contact', contact);
+router.use('/gateway', gateway);
 router.use('/notifications', requireAuth, notificationRoutes());
 router.use('/search', requireAuth, searchRoutes());
 

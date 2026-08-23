@@ -149,23 +149,50 @@ export async function request(userId: string, amount: string, walletAddress: str
   });
 }
 
+/**
+ * Mark a withdrawal paid.
+ *
+ * The status transition is the lock. Reading the row and then updating it lets
+ * two operators who open the queue at the same moment both pass the check and
+ * both succeed — and since approval enqueues an on-chain payout, that is a
+ * double spend, not a duplicate row. Matching on `status: 'PENDING'` inside the
+ * write means the database decides the winner, and exactly one caller sees a
+ * count of 1.
+ */
 export async function approve(id: string, txHash?: string) {
-  const w = await prisma.withdrawal.findUnique({ where: { id } });
-  if (!w) throw notFound('Withdrawal not found');
-  if (w.status !== 'PENDING') throw badRequest('Withdrawal is not pending');
-
-  return prisma.withdrawal.update({
-    where: { id },
+  const claimed = await prisma.withdrawal.updateMany({
+    where: { id, status: 'PENDING' },
     data: { status: 'PROCESSED', txHash, processedAt: new Date() },
   });
+
+  if (claimed.count === 0) {
+    const existing = await prisma.withdrawal.findUnique({ where: { id }, select: { status: true } });
+    if (!existing) throw notFound('Withdrawal not found');
+    throw badRequest(`Withdrawal is not pending (already ${existing.status.toLowerCase()})`);
+  }
+
+  return prisma.withdrawal.findUniqueOrThrow({ where: { id } });
 }
 
-/** Rejection refunds the full amount — fee included. */
+/**
+ * Rejection refunds the full amount — fee included.
+ *
+ * Claimed the same way as `approve`: the transition itself is what stops a
+ * second rejection, so two operators cannot each credit the refund.
+ */
 export async function reject(id: string, reason: string) {
   return prisma.$transaction(async (tx) => {
-    const w = await tx.withdrawal.findUnique({ where: { id } });
-    if (!w) throw notFound('Withdrawal not found');
-    if (w.status !== 'PENDING') throw badRequest('Withdrawal is not pending');
+    const claimed = await tx.withdrawal.updateMany({
+      where: { id, status: 'PENDING' },
+      data: { status: 'REJECTED', rejectReason: reason, processedAt: new Date() },
+    });
+    if (claimed.count === 0) {
+      const existing = await tx.withdrawal.findUnique({ where: { id }, select: { status: true } });
+      if (!existing) throw notFound('Withdrawal not found');
+      throw badRequest(`Withdrawal is not pending (already ${existing.status.toLowerCase()})`);
+    }
+
+    const w = await tx.withdrawal.findUniqueOrThrow({ where: { id } });
 
     await postEntry(tx, {
       userId: w.userId, walletType: 'MAIN', direction: 'CREDIT', category: 'REFUND',
@@ -175,10 +202,7 @@ export async function reject(id: string, reason: string) {
       sourceType: 'withdrawal', sourceId: w.id,
     });
 
-    return tx.withdrawal.update({
-      where: { id },
-      data: { status: 'REJECTED', rejectReason: reason, processedAt: new Date() },
-    });
+    return w;
   });
 }
 

@@ -12,9 +12,18 @@ import { env } from '../config/env.js';
 const isTest = env.NODE_ENV === 'test';
 
 /** Keyed per IP — a global key would let one client lock out everyone. */
+/**
+ * Requests per minute per address.
+ *
+ * Configurable because the right number is deployment-specific: behind a proxy
+ * that NATs an office to one address, 120 is low, and an end-to-end suite
+ * driving a browser trips it in seconds. The default is unchanged.
+ */
+const PER_MINUTE = Number(process.env.RATE_LIMIT_PER_MINUTE) || 120;
+
 export const apiLimiter = rateLimit({
   windowMs: 60_000,
-  limit: 120,
+  limit: PER_MINUTE,
   skip: () => isTest,
   standardHeaders: 'draft-7',
   legacyHeaders: false,

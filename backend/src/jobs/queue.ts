@@ -2,6 +2,7 @@ import { Queue, Worker, type JobsOptions } from 'bullmq';
 import { Redis } from 'ioredis';
 import { env } from '../config/env.js';
 import { logger } from '../core/logger.js';
+import { captureError } from '../core/error-reporter.js';
 import { runDailyRoi } from './daily-roi.job.js';
 import { evaluate as evaluateRank } from '../modules/rank/rank.service.js';
 import { recalculate } from '../modules/team/team.service.js';
@@ -125,6 +126,9 @@ export function startWorker() {
 
   worker.on('failed', (job, err) => {
     logger.error({ job: job?.name, err }, 'job failed');
+    // Filed as a fault too, so a job that fails once a night is visible as one
+    // recurring problem rather than as scattered lines in a week of logs.
+    captureError(err, { source: 'JOB', job: job?.name, route: job?.name });
 
     // A payout run or an ROI run that failed silently is how a platform stops
     // paying people without anyone noticing until they complain.

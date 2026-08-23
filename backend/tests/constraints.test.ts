@@ -143,3 +143,40 @@ describe('catalogue invariants', () => {
     ).rejects.toThrow(violates('package_cap_positive'));
   });
 });
+
+describe('concurrent purchases in one tree', () => {
+  /**
+   * Team volume propagation updates every ancestor's row in one statement.
+   * Postgres locks the matched rows in whatever order the plan produces, so
+   * two buyers in overlapping branches could take the same ancestors in
+   * opposite orders and deadlock.
+   *
+   * This is not a theoretical race. A load run of forty concurrent purchases
+   * lost thirty-four of them to `40P01` before the ordering was fixed — and a
+   * deadlocked purchase is a member charged for a package they did not get.
+   */
+  it('does not deadlock, and every buyer gets their package', async () => {
+    const root = await makeUser();
+    const mid = await makeUser({ sponsorId: root.id });
+
+    const pkg = await plan('110');
+    const price = Number(pkg.amount);
+
+    // Twenty buyers spread across two branches, so their uplines overlap.
+    const buyers = [];
+    for (let i = 0; i < 20; i += 1) {
+      buyers.push(await makeUser({ sponsorId: i % 2 === 0 ? root.id : mid.id, funded: price }));
+    }
+
+    const results = await Promise.allSettled(buyers.map((b) => purchase(b.id, pkg.id)));
+    const failed = results.filter((r) => r.status === 'rejected');
+
+    expect(failed.map((f) => String((f as PromiseRejectedResult).reason))).toEqual([]);
+    expect(await prisma.investment.count({ where: { userId: { in: buyers.map((b) => b.id) } } })).toBe(20);
+
+    // And the volume that reached the root is every one of those purchases,
+    // so no update was silently lost to a retry.
+    const rootVolume = await prisma.teamVolume.findUniqueOrThrow({ where: { userId: root.id } });
+    expect(Number(rootVolume.totalTeamBusiness)).toBe(20 * price);
+  });
+});

@@ -47,6 +47,7 @@ enum LedgerCategory {
   DAILY_ROI
   DIRECT_BONUS
   GENERATION_BONUS
+  BINARY_BONUS
   RANK_BONUS
   ROAMING_CLUB
   REWARD_CARD
@@ -77,6 +78,15 @@ enum InvestmentStatus {
 enum CommissionKind {
   DIRECT
   GENERATION
+  /// Paid on the weaker of two legs. Only ever produced while the platform
+  /// runs the binary plan structure.
+  BINARY
+}
+
+/// Which side of a binary placement a member occupies.
+enum LegPosition {
+  LEFT
+  RIGHT
 }
 
 enum RoamingTrack {
@@ -114,6 +124,20 @@ model User {
   path  String @default("")
   depth Int    @default(0)
 
+  /// ── binary placement ──────────────────────────────────────────────────
+  /// Populated only while the platform runs the binary structure. It is a
+  /// SECOND tree, distinct from sponsorship: who introduced you never changes,
+  /// but where you sit in the payout tree is decided by placement, which is
+  /// what makes spillover possible.
+  placementParentId String?
+  placementParent   User?        @relation("BinaryPlacement", fields: [placementParentId], references: [id], onDelete: SetNull)
+  placementChildren User[]       @relation("BinaryPlacement")
+  legPosition       LegPosition?
+  /// Same materialised-path trick as `path`, over the placement tree.
+  placementPath     String       @default("")
+  placementDepth    Int          @default(0)
+  binaryLeg         BinaryLeg?
+
   // ── denormalised counters (maintained incrementally) ──
   directCount       Int @default(0)
   activeDirectCount Int @default(0)
@@ -147,6 +171,8 @@ model User {
 
   @@index([sponsorId])
   @@index([path])
+  @@index([placementParentId])
+  @@index([placementPath])
   @@index([status])
   @@index([simulationRunId])
   @@map("users")
@@ -389,6 +415,36 @@ model Commission {
   @@map("commissions")
 }
 
+/// A member's two legs under the binary plan.
+///
+/// `leftVolume` / `rightVolume` are the UNMATCHED balances — what has arrived
+/// and not yet been paid on. When both sides hold volume the smaller of the two
+/// is matched, paid, and subtracted from both; whatever is left stays put and
+/// becomes next cycle's carryover. The `*Total` columns never decrease and
+/// exist so the console can show lifetime leg strength without reconstructing
+/// it from the ledger.
+model BinaryLeg {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  leftVolume  Decimal @default(0) @db.Decimal(38, 8)
+  rightVolume Decimal @default(0) @db.Decimal(38, 8)
+
+  leftTotal   Decimal @default(0) @db.Decimal(38, 8)
+  rightTotal  Decimal @default(0) @db.Decimal(38, 8)
+
+  /// Lifetime volume that has been matched and paid on.
+  matchedTotal Decimal @default(0) @db.Decimal(38, 8)
+
+  leftCount  Int @default(0)
+  rightCount Int @default(0)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("binary_legs")
+}
+
 /// Ten ranks, Starter → Legend (FortuneX p14).
 model RankDefinition {
   id    String @id @default(cuid())
@@ -488,8 +544,45 @@ model RoamingClubAward {
 
 // ─────────────────────────── cash in / out ───────────────────────────
 
+/// A callback received from a payment gateway, exactly as it arrived.
+///
+/// Written before anything is acted on and never updated. Two reasons: a
+/// webhook that we processed but that later looks wrong has to be
+/// reconstructable, and replays are detected by looking here rather than by
+/// inferring from the state of the thing the callback was about.
+model GatewayEvent {
+  id       String @id @default(cuid())
+  provider String @default("oxapay")
+  /// `payment` or `payout`.
+  kind     String
+  /// The gateway's own identifier for the invoice or payout.
+  trackId  String
+  status   String
+  /// Whether the signature checked out. Failures are kept — a stream of them
+  /// is the signal that someone is probing the endpoint.
+  verified Boolean
+  /// Whether this callback actually changed anything, or was a duplicate.
+  applied  Boolean @default(false)
+  payload  Json
+  createdAt DateTime @default(now())
+
+  @@index([trackId, status])
+  @@index([createdAt])
+  @@map("gateway_events")
+}
+
 model Deposit {
   id     String @id @default(cuid())
+
+  /// ── payment gateway ──────────────────────────────────────────────────
+  /// Set when the deposit was raised as a gateway invoice rather than
+  /// reported by hand. Unique so a replayed callback cannot create a second
+  /// deposit for the same invoice.
+  gatewayTrackId String? @unique
+  gatewayStatus  String?
+  paymentUrl     String?
+  expiresAt      DateTime?
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -510,6 +603,11 @@ model Deposit {
 /// 5% fee, $10 min, $5,000 max, 48-hour SLA — FortuneX p18.
 model Withdrawal {
   id     String @id @default(cuid())
+
+  /// Set once the payout has been handed to the gateway.
+  gatewayTrackId String? @unique
+  gatewayStatus  String?
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -722,6 +820,10 @@ model ContactMessage {
 
 enum AuditAction {
   LOGIN
+  /// Reading something sensitive enough that the read itself matters —
+  /// identity documents, chiefly. Not every GET; only the ones a regulator
+  /// would ask about.
+  VIEW
   CREATE
   UPDATE
   DELETE
@@ -733,7 +835,8 @@ enum AuditAction {
   SETTING_CHANGE
 }
 
-/// Append-only record of every mutating admin action.
+/// Append-only record of every mutating admin action, plus the handful of
+/// reads that are themselves sensitive (see AuditAction.VIEW).
 /// Nothing an operator does to a customer account should be untraceable.
 model AuditLog {
   id      String @id @default(cuid())
@@ -1604,4 +1707,47 @@ enum SimulationStatus {
   FAILED
   /// Data removed; the run and its results are kept for reference.
   ERASED
+}
+
+/// How an error reached us.
+enum ErrorSource {
+  REQUEST
+  JOB
+  UNCAUGHT
+  UNHANDLED_REJECTION
+}
+
+/// One fault, however many times it has happened.
+///
+/// Grouped by fingerprint rather than stored per occurrence: a failing endpoint
+/// hit a thousand times is one problem, and a table with a thousand rows of it
+/// is a table nobody reads. The count and the last occurrence are what matter.
+model ErrorEvent {
+  id          String      @id @default(cuid())
+  fingerprint String      @unique
+  source      ErrorSource
+  name        String
+  message     String
+  stack       String?
+
+  /// Where it happened, when that is known.
+  route      String?
+  method     String?
+  statusCode Int?
+
+  /// Context from the most recent occurrence, for reproducing it.
+  requestId String?
+  actorType String?
+  actorId   String?
+
+  count       Int      @default(1)
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  resolvedAt DateTime?
+  resolvedBy String?
+
+  @@index([resolvedAt, lastSeenAt])
+  @@index([lastSeenAt])
+  @@map("error_events")
 }

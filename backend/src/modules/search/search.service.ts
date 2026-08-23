@@ -48,6 +48,17 @@ export async function forAdmin(q: string): Promise<Group[]> {
   const contains = { contains: query, mode: 'insensitive' as const };
   const upper = query.toUpperCase();
 
+  /**
+   * References are matched case-insensitively, not uppercased.
+   *
+   * A reference looks like `WDR-cmt5ha…-8S3DTB42`: a lowercase cuid between two
+   * uppercase parts. Uppercasing the query and matching exactly meant that
+   * pasting a whole reference — the one printed on the member's passbook and
+   * quoted in their ticket — matched nothing at all. Only the trailing suffix
+   * ever worked, and nothing said so.
+   */
+  const ref = { contains: query, mode: 'insensitive' as const };
+
   const [members, withdrawals, deposits, tickets, plans] = await Promise.all([
     prisma.user.findMany({
       where: {
@@ -70,7 +81,7 @@ export async function forAdmin(q: string): Promise<Group[]> {
     prisma.withdrawal.findMany({
       where: {
         OR: [
-          { reference: { contains: upper } },
+          { reference: ref },
           { txHash: contains },
           { walletAddress: contains },
           { user: { userCode: { contains: upper } } },
@@ -87,7 +98,7 @@ export async function forAdmin(q: string): Promise<Group[]> {
     prisma.deposit.findMany({
       where: {
         OR: [
-          { reference: { contains: upper } },
+          { reference: ref },
           { txHash: contains },
           { user: { userCode: { contains: upper } } },
         ],
@@ -202,6 +213,8 @@ export async function forMember(userId: string, q: string): Promise<Group[]> {
 
   const lower = query.toLowerCase();
   const upper = query.toUpperCase();
+  // See forAdmin: a reference is mixed case, so it cannot be matched uppercased.
+  const ref = { contains: query, mode: 'insensitive' as const };
 
   const pages = MEMBER_PAGES
     .filter((p) => p.terms.includes(lower) || p.title.toLowerCase().includes(lower))
@@ -219,7 +232,7 @@ export async function forMember(userId: string, q: string): Promise<Group[]> {
 
   const [entries, tickets] = await Promise.all([
     prisma.ledgerEntry.findMany({
-      where: { userId, OR: [{ reference: { contains: upper } }, { description: { contains: query, mode: 'insensitive' } }] },
+      where: { userId, OR: [{ reference: ref }, { description: { contains: query, mode: 'insensitive' } }] },
       take: LIMIT_PER_GROUP,
       orderBy: { createdAt: 'desc' },
       select: { id: true, reference: true, description: true, amount: true, direction: true, category: true },

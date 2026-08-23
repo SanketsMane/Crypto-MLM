@@ -1,6 +1,8 @@
 import type { CommissionKind } from '@prisma/client';
 import { prisma, type Tx } from '../../core/db.js';
 import { getUpline } from '../../core/tree.js';
+import { addVolume, matchLegs, placementUpline } from '../../core/binary.js';
+import { config } from '../../core/runtime-config.js';
 import { notifyMember } from '../../core/notify.js';
 import { postEntry } from '../../core/ledger.js';
 import { consumeAllowance } from '../../core/capping.js';
@@ -130,7 +132,10 @@ async function payOne(
       userId: params.earnerId,
       walletType: 'MAIN',
       direction: 'CREDIT',
-      category: params.kind === 'DIRECT' ? 'DIRECT_BONUS' : 'GENERATION_BONUS',
+      category:
+        params.kind === 'DIRECT' ? 'DIRECT_BONUS'
+        : params.kind === 'BINARY' ? 'BINARY_BONUS'
+        : 'GENERATION_BONUS',
       amount: paid,
       reference: params.reference,
       description: params.description,
@@ -225,6 +230,11 @@ export async function payGenerationBonus(
 ): Promise<PayoutResult[]> {
   if (params.roiAmount.lte(0)) return [];
 
+  /* The two plans are alternatives, not layers. Under binary the network is
+     paid on matched leg volume, so the per-level generation rules stop
+     applying — leaving them on would pay the same network twice. */
+  if ((await config()).planStructure === 'BINARY') return [];
+
   const rules = await loadRules('GENERATION', db);
   const upline = await getUpline(params.earnerFromId, GENERATION_MAX_LEVEL, db);
   const results: PayoutResult[] = [];
@@ -264,4 +274,70 @@ export async function listForUser(userId: string, opts: { kind?: CommissionKind;
     skip: opts.skip ?? 0,
     include: { fromUser: { select: { userCode: true, firstName: true } } },
   });
+}
+
+
+/**
+ * Binary bonus — paid when a package is purchased, to everyone above the buyer
+ * in the PLACEMENT tree whose two legs now pair off.
+ *
+ * The sequence matters. Volume is pushed up first so that every ancestor's legs
+ * are current, then each ancestor is matched in turn: the weaker leg is what
+ * pays, and the stronger leg's surplus stays as carryover. Paying before
+ * propagating would match against stale balances and quietly underpay.
+ *
+ * Returns an empty list unless the platform is actually running the binary
+ * structure, so this is safe to call unconditionally from the purchase path.
+ */
+export async function payBinaryBonus(
+  db: Tx,
+  params: { investmentId: string; buyerId: string; amount: Money },
+): Promise<PayoutResult[]> {
+  const cfg = await config();
+  if (cfg.planStructure !== 'BINARY') return [];
+  if (params.amount.lte(0)) return [];
+
+  await addVolume(params.buyerId, params.amount, db);
+
+  const ancestors = await placementUpline(params.buyerId, db);
+  const results: PayoutResult[] = [];
+
+  for (const earnerId of ancestors) {
+    const match = await matchLegs(earnerId, db);
+    if (!match) continue;
+
+    results.push(
+      await payOne(db, {
+        earnerId,
+        fromUserId: params.buyerId,
+        kind: 'BINARY',
+        // Binary pays on a matched pair, not a level. Depth is recorded so the
+        // ledger still shows where in the tree the pairing happened.
+        level: 0,
+        percent: String(cfg.binaryPercent),
+        baseAmount: match.matched,
+        investmentId: params.investmentId,
+        reference: deterministicReference('BIN', params.investmentId, earnerId),
+        description: `Binary bonus on $${match.matched.toString()} matched`,
+      }),
+    );
+
+    const result = results.at(-1);
+    if (result && result.paid.gt(0)) {
+      notifyMember({
+        userId: earnerId,
+        type: 'commission.binary',
+        dedupeKey: `binary:${params.investmentId}:${earnerId}`,
+        title: `Binary bonus — $${result.paid.toString()}`,
+        body: `Your legs matched $${match.matched.toString()} and paid $${result.paid.toString()}.`,
+        meta: {
+          matched: match.matched.toString(),
+          carriedLeft: match.carriedLeft.toString(),
+          carriedRight: match.carriedRight.toString(),
+        },
+      });
+    }
+  }
+
+  return results;
 }

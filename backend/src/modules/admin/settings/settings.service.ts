@@ -2,6 +2,7 @@ import type { Request } from 'express';
 import { prisma } from '../../../core/db.js';
 import { badRequest } from '../../../core/errors.js';
 import { DEFAULTS, SPECS, SPEC_BY_KEY, invalidateConfig, parseSetting } from '../../../core/runtime-config.js';
+import { planLockState, type PlanLockState } from '../../../core/plan-structure.js';
 import * as audit from '../audit/audit.service.js';
 import { allowed, assertValidRules } from '../../../core/ip-allowlist.js';
 import { invalidatePublicConfig } from '../../config/config.service.js';
@@ -30,10 +31,13 @@ export interface SettingRow {
   enforcedIn: string;
   min?: number;
   max?: number;
+  options?: string[];
+  /** Present only on lockable settings. Null once the door has closed. */
+  lock?: PlanLockState;
 }
 
 export async function all(): Promise<SettingRow[]> {
-  const rows = await prisma.setting.findMany();
+  const [rows, lock] = await Promise.all([prisma.setting.findMany(), planLockState()]);
   const stored = Object.fromEntries(rows.map((r) => [r.key, r.value]));
 
   // Driven by the spec list, not by whatever happens to be in the table, so a
@@ -50,6 +54,8 @@ export async function all(): Promise<SettingRow[]> {
     enforcedIn: spec.enforcedIn,
     ...(spec.min !== undefined ? { min: spec.min } : {}),
     ...(spec.max !== undefined ? { max: spec.max } : {}),
+    ...(spec.options ? { options: spec.options } : {}),
+    ...(spec.lockable ? { lock } : {}),
   }));
 }
 
@@ -61,6 +67,18 @@ export async function get(key: string): Promise<string | undefined> {
 export async function set(adminId: string, key: string, rawValue: string, req?: Request) {
   const spec = SPEC_BY_KEY.get(key);
   if (!spec) throw new Error(`Unknown setting: ${key}`);
+
+  /* The lock lives here, not in the console. A disabled control is a courtesy;
+     this is the thing that actually holds when someone posts to the endpoint
+     directly. Re-saving the value already in force is allowed — that is a
+     no-op, and refusing it would only be confusing. */
+  if (spec.lockable) {
+    const lock = await planLockState();
+    const current = (await prisma.setting.findUnique({ where: { key } }))?.value ?? DEFAULTS[key];
+    if (lock.locked && rawValue.trim().toUpperCase() !== current) {
+      throw badRequest(`${spec.label} is locked. ${lock.reason}`);
+    }
+  }
 
   // Validated against the spec — a typo cannot reach the money math.
   const value = parseSetting(key, rawValue);
@@ -120,6 +138,12 @@ export async function set(adminId: string, key: string, rawValue: string, req?: 
 export async function reset(adminId: string, key: string, req?: Request) {
   const spec = SPEC_BY_KEY.get(key);
   if (!spec) throw new Error(`Unknown setting: ${key}`);
+
+  // Reset is just another way to change the value, so it meets the same lock.
+  if (spec.lockable) {
+    const lock = await planLockState();
+    if (lock.locked) throw badRequest(`${spec.label} is locked. ${lock.reason}`);
+  }
 
   const before = await prisma.setting.findUnique({ where: { key } });
   if (before) await prisma.setting.delete({ where: { key } });

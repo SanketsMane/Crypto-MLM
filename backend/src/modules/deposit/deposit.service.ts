@@ -44,7 +44,15 @@ export async function confirm(depositId: string) {
   return prisma.$transaction(async (tx) => {
     const dep = await tx.deposit.findUnique({ where: { id: depositId } });
     if (!dep) throw notFound('Deposit not found');
+    // Already credited — confirming again is a no-op, not an error, because a
+    // webhook or a retried job is entitled to repeat itself.
     if (dep.status === 'PROCESSED') return dep;
+    /* Anything else is a decision that has already been made. Only PROCESSED is
+       safely repeatable; crediting a deposit an operator rejected would hand a
+       member funds nobody sent, and the old guard let exactly that through. */
+    if (dep.status !== 'PENDING') {
+      throw badRequest(`This deposit was ${dep.status.toLowerCase()} and cannot be credited`);
+    }
 
     await postEntry(tx, {
       userId: dep.userId,

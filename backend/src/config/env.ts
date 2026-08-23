@@ -53,6 +53,18 @@ const schema = z.object({
   /// Everything here is optional and the whole subsystem stays OFF unless it is
   /// configured. That is deliberate: a half-configured chain integration that
   /// starts anyway is how test money becomes real money.
+  /* ── OxaPay payment gateway ──────────────────────────────────────────
+     Two keys, deliberately separate: the merchant key authorises money
+     coming IN, the payout key money going OUT. A compromise of one must not
+     grant the other. */
+  OXAPAY_ENABLED: z.coerce.boolean().default(false),
+  OXAPAY_MERCHANT_KEY: z.string().optional(),
+  OXAPAY_PAYOUT_KEY: z.string().optional(),
+  /** Sandbox raises test invoices that never move real funds. */
+  OXAPAY_SANDBOX: z.coerce.boolean().default(false),
+  /** Public origin OxaPay calls back to. Must be reachable from the internet. */
+  OXAPAY_CALLBACK_BASE: z.string().optional(),
+
   CHAIN_ENABLED: z.coerce.boolean().default(false),
   CHAIN_RPC_URL: z.string().optional(),
   CHAIN_ID: z.coerce.number().default(56),

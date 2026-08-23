@@ -18,6 +18,19 @@ const paramsSchema = z.object({
   avgDirectsPerRecruiter: z.number().min(1).max(40),
   recruiterRate: rate,
   startDate: z.string().min(8),
+
+  packageMode: z.enum(['RANGE', 'SINGLE', 'MIX']),
+  packageIds: z.array(z.string().min(1)).max(40),
+  packageSkew: z.number().min(0.5).max(8),
+
+  reinvestSource: z.enum(['NEW_MONEY', 'BALANCE', 'MIXED']),
+  withdrawShareMin: rate,
+  withdrawShareMax: rate,
+
+  churnRate: rate,
+  sponsorConcentration: rate,
+  growthRate: z.number().min(1).max(3),
+  declineRate: z.number().min(0.01).max(1),
 });
 
 const startSchema = z.object({
@@ -30,6 +43,9 @@ const startSchema = z.object({
 export const defaults = async (_req: Request, res: Response) => {
   res.json({ success: true, data: service.DEFAULT_PARAMS });
 };
+
+export const packages = async (_req: Request, res: Response) =>
+  res.json({ success: true, data: await service.packages() });
 
 export const list = async (_req: Request, res: Response) =>
   res.json({ success: true, data: await service.list() });

@@ -43,6 +43,8 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: 'announcements.send',  group: 'System',    label: 'Send announcements', description: 'Publish to every member — cannot be unsent' },
   { key: 'simulation.run',      group: 'System',    label: 'Dry run', description: 'Model the compensation plan against a synthetic member base, and erase it afterwards' },
   { key: 'platform.maintenance',group: 'System',    label: 'Maintenance mode', description: 'Close the platform to members' },
+  { key: 'errors.view',         group: 'System',    label: 'View faults', description: 'See the errors the platform has thrown, grouped and counted' },
+  { key: 'errors.resolve',      group: 'System',    label: 'Resolve faults', description: 'Mark a fault dealt with — it reopens by itself if it happens again' },
 
   { key: 'settings.view',       group: 'System',    label: 'View settings' },
   { key: 'settings.edit',       group: 'System',    label: 'Edit settings' },

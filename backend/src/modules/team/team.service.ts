@@ -86,12 +86,30 @@ export async function propagateInvestment(db: Tx, buyerId: string, amount: Money
   const ancestors = user.path.split('.').filter(Boolean);
   if (ancestors.length === 0) return;
 
-  // Totals move atomically; leg composition is refreshed separately.
+  /**
+   * Totals move atomically, and the rows are locked in a fixed order.
+   *
+   * This used to be a bare `WHERE "userId" = ANY(...)`. Postgres is free to
+   * lock the matched rows in whatever order the plan yields, so two members
+   * buying at the same time anywhere in overlapping branches could take the
+   * same two ancestors in opposite orders and deadlock. Under load that is not
+   * rare: forty concurrent purchases produced thirty-four `40P01` failures,
+   * every one of them a member seeing "something went wrong" on a payment that
+   * had already left their wallet.
+   *
+   * Selecting `FOR UPDATE` with an `ORDER BY` first means every transaction
+   * acquires these locks in ascending id order, so no cycle can form.
+   */
   await db.$executeRaw`
     UPDATE team_volumes
        SET "totalTeamBusiness" = "totalTeamBusiness" + ${toDb(amount)}::numeric,
            "updatedAt" = now()
-     WHERE "userId" = ANY(${ancestors}::text[])`;
+     WHERE "userId" IN (
+       SELECT "userId" FROM team_volumes
+        WHERE "userId" = ANY(${ancestors}::text[])
+        ORDER BY "userId"
+        FOR UPDATE
+     )`;
 
   const sponsorId = ancestors[ancestors.length - 1];
   if (sponsorId) {

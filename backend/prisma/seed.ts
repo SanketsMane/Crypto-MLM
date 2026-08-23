@@ -138,17 +138,9 @@ async function main() {
     });
   }
 
-  // ── admin ──
-  await prisma.adminUser.upsert({
-    where: { email: 'admin@fortunex.local' },
-    create: {
-      email: 'admin@fortunex.local',
-      passwordHash: await bcrypt.hash('Admin@12345', 12),
-      name: 'Super Admin',
-      role: 'SUPER_ADMIN',
-    },
-    update: {},
-  });
+  // Admin accounts live in seed-rbac.ts — they need a role relation, which
+  // only exists once permissions and roles are seeded. `npm run db:seed` runs
+  // both, in that order.
 
   const counts = {
     packages: await prisma.packagePlan.count(),

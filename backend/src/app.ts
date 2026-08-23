@@ -31,18 +31,40 @@ export function createApp() {
    */
   app.set('trust proxy', env.TRUST_PROXY_HOPS);
 
+  /* No ETags on the API.
+     Express fingerprints every JSON body and answers conditional requests with
+     a 304 and no body. For a per-user authenticated payload that is worse than
+     useless: `/admin/me` revalidates, the client is handed an empty body, and
+     the console ends up with no permission set at all. The bandwidth saved on a
+     few hundred bytes of JSON is not worth a class of bug this quiet. */
+  app.set('etag', false);
+
   app.use(requestContext);
   app.use(helmet());
   // In production only the configured web origin is allowed. In development we
   // also accept other local origins (a second port, a container host) so tooling
   // and preview builds can talk to the API without editing config.
+  /**
+   * Development also trusts the private network.
+   *
+   * The web app derives the API origin from `window.location`, so a phone on
+   * the same wifi asks for `http://192.168.x.x:4000` and sends a matching
+   * Origin header. Allowing only localhost meant every request from a real
+   * device was refused by CORS — which is exactly when you most want to look
+   * at the thing on a real device.
+   *
+   * Ranges only, and only outside production: RFC 1918 plus `.local` for mDNS.
+   * A public origin is still refused in development, and in production the
+   * allowlist remains a single configured URL.
+   */
+  const PRIVATE_ORIGIN =
+    /^https?:\/\/(localhost|127\.0\.0\.1|host\.docker\.internal|[\w-]+\.local|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$/;
+
   app.use(cors({
     credentials: true,
     origin: (origin, cb) => {
       if (!origin || origin === env.WEB_URL) return cb(null, true);
-      if (!env.isProd && /^https?:\/\/(localhost|127\.0\.0\.1|host\.docker\.internal)(:\d+)?$/.test(origin)) {
-        return cb(null, true);
-      }
+      if (!env.isProd && PRIVATE_ORIGIN.test(origin)) return cb(null, true);
       cb(new Error(`Origin not allowed: ${origin}`));
     },
   }));
@@ -56,10 +78,47 @@ export function createApp() {
    * never be reached — the body is already parsed and rejected here. So the
    * exception has to be made at the point the decision is taken.
    */
-  const standardJson = express.json({ limit: '1mb' });
-  const documentJson = express.json({ limit: '40mb' });
+  /**
+   * The exact bytes, kept for signature checks.
+   *
+   * A gateway signs the raw request body. Once `express.json` has parsed and
+   * discarded it, re-serialising `req.body` gives back *a* JSON string but not
+   * necessarily *the* one that was signed — key order, spacing and unicode
+   * escaping are all free to differ, and the HMAC then fails for reasons that
+   * look like a configuration problem. So the buffer is captured on the way
+   * through and handed to the verifier untouched.
+   */
+  const keepRaw = (req: express.Request, _res: express.Response, buf: Buffer) => {
+    if (buf?.length) (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
+  };
+
+  const standardJson = express.json({ limit: '1mb', verify: keepRaw });
+  const documentJson = express.json({ limit: '40mb', verify: keepRaw });
   const isDocumentUpload = (req: express.Request) =>
     req.method === 'POST' && /^\/api\/v1\/kyc\/?$/.test(req.path);
+
+  /**
+   * Authenticated responses must never be cached by anything shared.
+   *
+   * Express adds an ETag to every JSON response and sets no Cache-Control, and
+   * the only `Vary` in play is `Origin` — so nothing downstream knows that the
+   * body depends on who asked. A browser, proxy or CDN is then free to serve
+   * one operator's `/admin/me` (their identity AND their permission set) to the
+   * next one. That is exactly what happened here: a support agent was handed a
+   * super-admin's permissions and the console rendered the full nav for them.
+   *
+   * Anything carrying credentials is marked private and uncacheable, and
+   * `Vary: Authorization` is added so a cache that ignores the first hint still
+   * keys on the token. Unauthenticated endpoints (`/config`) set their own
+   * caching afterwards and are unaffected.
+   */
+  app.use((req, res, next) => {
+    if (req.headers.authorization || req.headers.cookie) {
+      res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+      res.setHeader('Vary', 'Origin, Authorization');
+    }
+    next();
+  });
 
   app.use((req, res, next) => (isDocumentUpload(req) ? documentJson : standardJson)(req, res, next));
   app.use(pinoHttp({

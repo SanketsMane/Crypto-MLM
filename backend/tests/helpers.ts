@@ -39,7 +39,8 @@ export async function resetData() {
       notification_recipients, notifications, notification_preferences, admin_users,
       announcement_dismissals, announcements, ticket_attachments, reward_cards, consent_records,
       lottery_prizes, lottery_tickets, lottery_draws, reward_tiers, simulation_runs,
-      team_volumes, wallet_accounts, audit_logs, users
+      contact_messages, error_events, gateway_events,
+      team_volumes, wallet_accounts, audit_logs, binary_legs, users
     RESTART IDENTITY CASCADE`);
 }
 

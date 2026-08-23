@@ -3,7 +3,7 @@ import { postEntry } from '../../core/ledger.js';
 import { money, percentOf, toDb, type Money } from '../../core/money.js';
 import { makeReference } from '../../core/reference.js';
 import { badRequest, notFound } from '../../core/errors.js';
-import { payDirectBonus } from '../commission/commission.service.js';
+import { payDirectBonus, payBinaryBonus } from '../commission/commission.service.js';
 import { propagateInvestment } from '../team/team.service.js';
 import { evaluate as evaluateRank } from '../rank/rank.service.js';
 import { evaluate as evaluateRoaming } from '../roaming-club/roaming-club.service.js';
@@ -101,6 +101,10 @@ export async function purchase(userId: string, packageId: string, req?: Request)
 
       await propagateInvestment(tx, userId, amount);
       const bonuses = await payDirectBonus(tx, { investmentId: investment.id, buyerId: userId, amount });
+
+      /* No-ops under unilevel — it checks the plan structure itself, so the
+         purchase path reads the same whichever plan is in force. */
+      await payBinaryBonus(tx, { investmentId: investment.id, buyerId: userId, amount });
 
       notifyMember({
         userId,

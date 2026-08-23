@@ -93,7 +93,18 @@ export function chainState(): ChainState {
           tokenDecimals: int('CHAIN_TOKEN_DECIMALS', env.CHAIN_TOKEN_DECIMALS),
           depositXpub: depositXpub ?? null,
           payoutKey: payoutKey ?? null,
-          confirmations: int('CHAIN_CONFIRMATIONS', env.CHAIN_CONFIRMATIONS),
+          /**
+           * Never below one.
+           *
+           * This was read straight from the environment with no floor. At zero
+           * the watcher treats the head block as settled and credits deposits
+           * out of it — and a head block can be reorged away, which means
+           * crediting a member for money that never arrived. A negative value
+           * was worse still: it would scan past the head, for blocks that do
+           * not exist yet. Fifteen is the default and the right number for
+           * BSC; one is the lowest that is merely unwise rather than unsound.
+           */
+          confirmations: Math.max(1, Math.floor(int('CHAIN_CONFIRMATIONS', env.CHAIN_CONFIRMATIONS))),
           scanBatch: int('CHAIN_SCAN_BATCH', env.CHAIN_SCAN_BATCH),
           minDeposit: int('CHAIN_MIN_DEPOSIT', env.CHAIN_MIN_DEPOSIT),
         }

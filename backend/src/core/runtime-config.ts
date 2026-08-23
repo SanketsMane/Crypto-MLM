@@ -1,6 +1,7 @@
 import { prisma } from './db.js';
 import { env } from '../config/env.js';
 import { badRequest } from './errors.js';
+import { PLAN_STRUCTURE_CODES, isPlanStructure, PLAN_STRUCTURES } from './plan-structure.js';
 
 /**
  * Runtime configuration — the business rules an operator is allowed to tune
@@ -19,7 +20,7 @@ import { badRequest } from './errors.js';
  * save is visible on the next request rather than up to the TTL later.
  */
 
-export type SettingType = 'percent' | 'money' | 'int' | 'bool' | 'weekdays' | 'text';
+export type SettingType = 'percent' | 'money' | 'int' | 'bool' | 'weekdays' | 'text' | 'enum';
 
 export interface SettingSpec {
   key: string;
@@ -40,6 +41,16 @@ export interface SettingSpec {
   enforcedIn: string;
   min?: number;
   max?: number;
+  /** Allowed values, for `enum`. */
+  options?: string[];
+  /**
+   * Whether this setting can stop being editable.
+   *
+   * Only the plan structure is lockable today. The lock itself is evaluated
+   * against live data (see `planLockState`) rather than stored, so it cannot
+   * drift out of step with the genealogy it is protecting.
+   */
+  lockable?: boolean;
 }
 
 export const SPECS: SettingSpec[] = [
@@ -65,6 +76,27 @@ export const SPECS: SettingSpec[] = [
     key: 'CAP_ACTIVE_PERCENT', group: 'Payouts', type: 'percent', min: 100, max: 1000, public: true,
     label: 'Active affiliate ceiling',
     help: 'Ceiling for ACTIVE affiliates. The difference against the passive ceiling is added on top of the package ceiling.',
+    enforcedIn: 'Package purchase',
+  },
+
+  {
+    key: 'PLAN_STRUCTURE', group: 'Payouts', type: 'enum', public: true, lockable: true,
+    options: PLAN_STRUCTURE_CODES,
+    label: 'Compensation plan structure',
+    help:
+      'The genealogy the whole plan runs on. Unilevel pays by level down a tree of '
+      + 'unlimited width; binary pays on the weaker of two legs. Can only be set '
+      + 'before the first member joins under a sponsor — after that the tree exists '
+      + 'and changing it would rewrite what people have earned.',
+    enforcedIn: 'Registration and every commission run',
+  },
+
+  {
+    key: 'BINARY_PERCENT', group: 'Payouts', type: 'percent', min: 0, max: 100, public: true,
+    label: 'Binary matching bonus',
+    help:
+      'Percentage of the matched (weaker-leg) volume paid as the binary bonus. '
+      + 'Only used while the plan structure is binary.',
     enforcedIn: 'Package purchase',
   },
 
@@ -164,6 +196,8 @@ export const SPEC_BY_KEY = new Map(SPECS.map((s) => [s.key, s]));
 
 /** Boot defaults, from `.env` (itself defaulted in config/env.ts). */
 export const DEFAULTS: Record<string, string> = {
+  PLAN_STRUCTURE: 'UNILEVEL',
+  BINARY_PERCENT: '10',
   DAILY_ROI_PERCENT: String(env.DAILY_ROI_PERCENT),
   TRADING_DAYS: env.TRADING_DAYS,
   CAP_PASSIVE_PERCENT: String(env.CAP_PASSIVE_PERCENT),
@@ -185,6 +219,8 @@ export const DEFAULTS: Record<string, string> = {
 };
 
 export interface RuntimeConfig {
+  planStructure: 'UNILEVEL' | 'BINARY';
+  binaryPercent: number;
   dailyRoiPercent: number;
   tradingDays: number[];
   capPassivePercent: number;
@@ -234,6 +270,22 @@ export function parseSetting(key: string, raw: string): string {
       if (spec.max !== undefined && n > spec.max) throw badRequest(`${spec.label} cannot be above ${spec.max}`);
       return String(n);
     }
+    case 'enum': {
+      const allowed = spec.options ?? [];
+      const picked = value.toUpperCase();
+      if (!allowed.includes(picked)) {
+        throw badRequest(`${spec.label} must be one of: ${allowed.join(', ')}`);
+      }
+      // A structure the payout engine cannot run must not be selectable, or the
+      // console would promise commissions that never get paid.
+      if (spec.key === 'PLAN_STRUCTURE' && !PLAN_STRUCTURES[picked as 'UNILEVEL' | 'BINARY'].implemented) {
+        throw badRequest(
+          `${PLAN_STRUCTURES[picked as 'UNILEVEL' | 'BINARY'].label} is not available yet — `
+          + 'the payout engine does not implement it.',
+        );
+      }
+      return picked;
+    }
     case 'text': {
       if (value.length > 500) throw badRequest(`${spec.label} cannot be longer than 500 characters`);
       return value;
@@ -262,6 +314,10 @@ function build(stored: Record<string, string>): RuntimeConfig {
   const bool = (k: string) => v(k) === 'true';
 
   const cfg: RuntimeConfig = {
+    // A corrupt or unknown value must never leave the engine guessing which
+    // plan it is paying — fall back to the structure the engine can run.
+    planStructure: isPlanStructure(v('PLAN_STRUCTURE')) ? v('PLAN_STRUCTURE') as 'UNILEVEL' | 'BINARY' : 'UNILEVEL',
+    binaryPercent: num('BINARY_PERCENT'),
     dailyRoiPercent: num('DAILY_ROI_PERCENT'),
     tradingDays: v('TRADING_DAYS').split(',').map((d) => Number(d.trim())).filter((d) => d >= 1 && d <= 7),
     capPassivePercent: num('CAP_PASSIVE_PERCENT'),

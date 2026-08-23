@@ -5,6 +5,7 @@ import { badRequest, notFound } from '../../../core/errors.js';
 import * as audit from '../audit/audit.service.js';
 import * as activity from '../../../core/activity.js';
 import { notifyMember } from '../../../core/notify.js';
+import { buildChecks, worstLevel, type ReviewCheck } from './kyc-checks.js';
 
 /**
  * Compliance review queue.
@@ -81,7 +82,22 @@ export async function detail(id: string) {
     select: { id: true, status: true, rejectionReason: true, createdAt: true, reviewedAt: true },
   });
 
+  const checks = await buildChecks({
+    submissionId: row.id,
+    userId: row.userId,
+    fullName: row.fullName,
+    documentNo: row.documentNo,
+    countryCode: row.countryCode,
+    dateOfBirth: row.dateOfBirth,
+    accountName: [row.user.firstName, row.user.lastName].filter(Boolean).join(' '),
+    accountStatus: row.user.status,
+    documents: row.documents,
+    history,
+  });
+
   return {
+    checks,
+    checkLevel: worstLevel(checks),
     id: row.id, status: row.status,
     fullName: row.fullName, documentNo: row.documentNo,
     countryCode: row.countryCode, dateOfBirth: row.dateOfBirth,
@@ -103,11 +119,44 @@ async function decide(
 ) {
   const row = await prisma.kycSubmission.findUnique({
     where: { id },
-    include: { user: { select: { userCode: true, status: true } } },
+    include: { user: { select: { userCode: true, status: true, firstName: true, lastName: true } } },
   });
   if (!row) throw notFound('Submission not found');
   if (row.status !== 'PENDING') throw badRequest(`This submission was already ${row.status.toLowerCase()}`);
   if (status === 'REJECTED' && !reason?.trim()) throw badRequest('A rejection reason is required');
+
+  /* An approval has to survive the automated checks.
+     A FAIL is not a warning — it is an under-age applicant, a missing document,
+     or an identity already verified on another account. Those are not things a
+     reviewer should be able to wave through with one click, and enforcing it
+     here rather than in the console means it holds for direct API calls too. */
+  let checks: ReviewCheck[] = [];
+  if (status === 'APPROVED') {
+    const history = await prisma.kycSubmission.findMany({
+      where: { userId: row.userId, id: { not: row.id } },
+      select: { status: true },
+    });
+    const docs = await prisma.kycDocument.findMany({ where: { submissionId: id }, select: { type: true } });
+    checks = await buildChecks({
+      submissionId: row.id,
+      userId: row.userId,
+      fullName: row.fullName,
+      documentNo: row.documentNo,
+      countryCode: row.countryCode,
+      dateOfBirth: row.dateOfBirth,
+      accountName: [row.user.firstName, row.user.lastName].filter(Boolean).join(' '),
+      accountStatus: row.user.status,
+      documents: docs,
+      history,
+    });
+    const failed = checks.filter((c) => c.level === 'FAIL');
+    if (failed.length) {
+      throw badRequest(
+        `Cannot approve — ${failed.map((f) => `${f.label.toLowerCase()}: ${f.detail}`).join('; ')}. `
+        + 'Resolve this with the member, or reject the submission.',
+      );
+    }
+  }
 
   const updated = await prisma.$transaction(async (tx) => {
     const sub = await tx.kycSubmission.update({
@@ -133,7 +182,14 @@ async function decide(
     summary: status === 'APPROVED'
       ? `KYC approved for ${row.user.userCode} (${row.fullName})`
       : `KYC rejected for ${row.user.userCode} — ${reason!.trim()}`,
-    before: { status: row.status }, after: { status, reason: reason?.trim() ?? null }, req,
+    before: { status: row.status },
+    after: {
+      status,
+      reason: reason?.trim() ?? null,
+      // What the reviewer was shown, so the decision can be reconstructed later.
+      checks: checks.map((c) => ({ key: c.key, level: c.level, detail: c.detail })),
+    },
+    req,
   });
 
   notifyMember({
@@ -162,9 +218,33 @@ async function decide(
 export const approve = (adminId: string, id: string, req?: Request) => decide(adminId, id, 'APPROVED', undefined, req);
 export const reject = (adminId: string, id: string, reason: string, req?: Request) => decide(adminId, id, 'REJECTED', reason, req);
 
-/** The stored file behind a document id, for the streaming endpoint. */
-export async function document(documentId: string) {
-  const doc = await prisma.kycDocument.findUnique({ where: { id: documentId } });
+/**
+ * The stored file behind a document id, for the streaming endpoint.
+ *
+ * Recorded, not just permission-checked. Reading a member's identity document
+ * is an access event in its own right: an audit that shows who approved a
+ * submission but not who opened the passport answers only half the question.
+ */
+export async function document(documentId: string, adminId: string, req?: Request) {
+  const doc = await prisma.kycDocument.findUnique({
+    where: { id: documentId },
+    include: {
+      submission: {
+        select: { id: true, userId: true, user: { select: { userCode: true } } },
+      },
+    },
+  });
   if (!doc) throw notFound('Document not found');
+
+  await audit.record({
+    adminId,
+    action: 'VIEW',
+    entityType: 'kyc_document',
+    entityId: documentId,
+    summary: `Opened a ${doc.type.replace(/_/g, ' ').toLowerCase()} for ${doc.submission.user.userCode}`,
+    after: { submissionId: doc.submission.id, type: doc.type },
+    req,
+  });
+
   return doc;
 }

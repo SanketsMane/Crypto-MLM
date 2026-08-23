@@ -18,6 +18,7 @@ import * as announcements from '../announcement/announcement.controller.js';
 import * as impersonation from './impersonation/impersonation.controller.js';
 import * as lottery from '../lottery/lottery.controller.js';
 import * as simulation from './simulation/simulation.controller.js';
+import * as errors from './errors/errors.controller.js';
 import * as exporter from './export/export.controller.js';
 import * as jobs from './jobs/jobs.controller.js';
 import { requireAdmin, can } from '../../middleware/admin-auth.js';
@@ -148,9 +149,20 @@ r.post('/draws/:id/run',   can('plan.edit'),   idempotent, asyncHandler(lottery.
  * members into the live database, which is a different kind of authority from
  * editing a package price.
  */
+// ── faults ───────────────────────────────────────────────────────────────────
+// Under the platform permission rather than a new one: whoever watches the
+// queues is who needs to see that the platform is throwing.
+r.get('/errors',              can('errors.view'),    asyncHandler(errors.list));
+r.get('/errors/:id',          can('errors.view'),    asyncHandler(errors.detail));
+r.post('/errors/:id/resolve', can('errors.resolve'), asyncHandler(errors.resolve));
+
 r.get('/simulations',            can('simulation.run'), asyncHandler(simulation.list));
 r.get('/simulations/defaults',   can('simulation.run'), asyncHandler(simulation.defaults));
 r.get('/simulations/footprint',  can('simulation.run'), asyncHandler(simulation.footprint));
+// Under the simulation permission, not plan.view: the picker is part of this
+// tool, and an operator trusted to model the plan should not need the rights
+// to edit it as well.
+r.get('/simulations/packages',   can('simulation.run'), asyncHandler(simulation.packages));
 r.get('/simulations/:id',        can('simulation.run'), asyncHandler(simulation.detail));
 r.post('/simulations',           can('simulation.run'), idempotent, asyncHandler(simulation.start));
 r.delete('/simulations/:id',     can('simulation.run'), asyncHandler(simulation.erase));

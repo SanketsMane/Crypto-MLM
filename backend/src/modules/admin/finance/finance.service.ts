@@ -8,6 +8,8 @@ import * as audit from '../audit/audit.service.js';
 import * as activity from '../../../core/activity.js';
 import { notifyMember } from '../../../core/notify.js';
 import * as payouts from '../../../core/chain/payouts.js';
+import * as gateway from '../../../core/gateway/gateway.service.js';
+import { logger } from '../../../core/logger.js';
 
 // ── deposits ──
 
@@ -43,9 +45,18 @@ export async function confirmDeposit(adminId: string, id: string, req?: Request)
 export async function rejectDeposit(adminId: string, id: string, reason: string, req?: Request) {
   const dep = await prisma.deposit.findUnique({ where: { id } });
   if (!dep) throw notFound('Deposit not found');
-  if (dep.status !== 'PENDING') throw badRequest('Deposit is not pending');
 
-  const updated = await prisma.deposit.update({ where: { id }, data: { status: 'REJECTED' } });
+  /* The transition is the lock — see the note on withdrawal.approve. Reading
+     the status and then writing lets two operators both pass the check. */
+  const claimed = await prisma.deposit.updateMany({
+    where: { id, status: 'PENDING' },
+    data: { status: 'REJECTED' },
+  });
+  if (claimed.count === 0) {
+    const now = await prisma.deposit.findUnique({ where: { id }, select: { status: true } });
+    throw badRequest(`Deposit is not pending (already ${now?.status.toLowerCase() ?? 'gone'})`);
+  }
+  const updated = await prisma.deposit.findUniqueOrThrow({ where: { id } });
   await audit.record({
     adminId, action: 'REJECT', entityType: 'deposit', entityId: id,
     summary: `Deposit ${dep.reference} rejected — ${reason}`,
@@ -107,6 +118,17 @@ export async function approveWithdrawal(adminId: string, id: string, txHash: str
   // payout is queued here and broadcast by the worker, so a slow or unreachable
   // RPC can never hold up an operator's queue.
   const queued = await payouts.enqueue(id);
+
+  /* If the gateway is configured it does the sending; the on-chain worker
+     above stays for self-hosted deployments that sign their own transactions.
+     A gateway failure must not unwind an approval an operator already made —
+     the payout is left handed-over-but-unsent for them to retry, and the
+     failure is logged rather than thrown. */
+  try {
+    await gateway.sendPayout(id);
+  } catch (cause) {
+    logger.error({ cause, withdrawalId: id }, 'gateway payout could not be dispatched — retry from the console');
+  }
 
   notifyMember({
     userId: w.userId,

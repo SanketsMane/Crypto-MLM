@@ -209,3 +209,46 @@ describe('key material at rest', () => {
     expect(() => decrypt(parts.join('.'))).toThrow();
   });
 });
+
+describe('confirmation depth', () => {
+  const withEnv = async (value: string) => {
+    const before = process.env.CHAIN_CONFIRMATIONS;
+    Object.assign(process.env, {
+      CHAIN_ENABLED: 'true',
+      CHAIN_RPC_URL: 'http://127.0.0.1:1',
+      CHAIN_DEPOSIT_XPUB: 'xpub-placeholder',
+      CHAIN_CONFIRMATIONS: value,
+    });
+    const config = await import('../src/core/chain/config.js');
+    config.__resetChainState();
+    const depth = config.chainState().config?.confirmations;
+    config.__resetChainState();
+
+    for (const k of ['CHAIN_ENABLED', 'CHAIN_RPC_URL', 'CHAIN_DEPOSIT_XPUB']) delete process.env[k];
+    if (before === undefined) delete process.env.CHAIN_CONFIRMATIONS;
+    else process.env.CHAIN_CONFIRMATIONS = before;
+    return depth;
+  };
+
+  it('never settles on the head block', async () => {
+    /**
+     * At zero the watcher would treat the chain head as final and credit a
+     * deposit out of it. Heads get reorged; the member would be paid for money
+     * that never arrived, and the ledger entry is append-only.
+     */
+    expect(await withEnv('0')).toBe(1);
+  });
+
+  it('refuses to scan past the head', async () => {
+    // A negative depth reads blocks that do not exist yet.
+    expect(await withEnv('-5')).toBe(1);
+  });
+
+  it('keeps a sensible depth as given', async () => {
+    expect(await withEnv('15')).toBe(15);
+  });
+
+  it('does not accept a fractional block', async () => {
+    expect(await withEnv('3.7')).toBe(3);
+  });
+});

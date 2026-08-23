@@ -32,7 +32,7 @@ export const reject = async (req: Request, res: Response) => {
  * public URL — the permission check on the route is the only way in.
  */
 export const document = async (req: Request, res: Response) => {
-  const doc = await service.document(String(req.params.docId));
+  const doc = await service.document(String(req.params.docId), req.adminId!, req);
   res.setHeader('Content-Type', doc.mimeType);
   res.setHeader('Content-Disposition', 'inline');
   res.setHeader('Cache-Control', 'private, no-store');

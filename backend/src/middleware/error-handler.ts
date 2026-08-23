@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { AppError } from '../core/errors.js';
 import { logger } from '../core/logger.js';
 import { env } from '../config/env.js';
+import { captureRequestError } from '../core/error-reporter.js';
 
 export function notFoundHandler(_req: Request, res: Response) {
   res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Route not found' } });
@@ -53,7 +54,17 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
     }
   }
 
+  /**
+   * Only 5xx is filed as a fault.
+   *
+   * Everything above this line is a handled outcome — a validation failure, a
+   * rejected duplicate, an oversized upload. Recording those would fill the
+   * board with members mistyping an address and bury the one row that means
+   * the platform is broken.
+   */
   logger.error({ err }, 'unhandled error');
+  captureRequestError(err, req, 500);
+
   res.status(500).json({
     success: false,
     error: {
