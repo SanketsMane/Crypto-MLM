@@ -7,6 +7,7 @@ import { Laptop, Smartphone, Monitor } from 'lucide-react';
 import { adminGet, adminDelete, adminError } from '@/lib/admin-api';
 import { Panel, Badge, Button, Skeleton } from '@/components/ui/primitives';
 import { ago } from '@/lib/format';
+import { useConfirmOk } from '@/components/ui/confirm';
 
 interface Session {
   id: string; userAgent: string | null; ip: string | null;
@@ -44,6 +45,9 @@ export function ActiveSessions() {
     queryFn: () => adminGet<Session[]>('/admin/sessions'),
   });
 
+  const askConfirm = useConfirmOk();
+
+
   const revoke = useMutation({
     mutationFn: (id: string) => adminDelete(`/admin/sessions/${id}`),
     onSuccess: () => { toast.success('Session ended'); qc.invalidateQueries({ queryKey: ['admin', 'sessions'] }); },
@@ -76,7 +80,14 @@ export function ActiveSessions() {
                   </p>
                 </div>
                 <Button size="sm" variant="outline" loading={revoke.isPending && revoke.variables === s.id}
-                        onClick={() => revoke.mutate(s.id)}>
+                        onClick={async () => {
+                          if (!(await askConfirm({
+                            title: 'End this session?',
+                            body: 'Whoever is signed in on that device is signed out immediately and has to authenticate again.',
+                            confirmLabel: 'End session',
+                          }))) return;
+                          revoke.mutate(s.id);
+                        }}>
                   End
                 </Button>
               </li>

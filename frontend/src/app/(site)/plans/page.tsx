@@ -58,7 +58,7 @@ export default async function PlansPage() {
               { k: 'Processing', v: `${plan.withdraw.slaHours}h`, note: plan.withdraw.network },
             ].map((s) => (
               <Panel key={s.k} className="p-6">
-                <p className="text-[12px] uppercase tracking-[0.1em] text-white/45">{s.k}</p>
+                <p className="text-[12px] uppercase tracking-[0.1em] text-white/60">{s.k}</p>
                 <p className="mt-2 text-[30px] font-semibold tracking-[-0.03em] text-brand-gold tabular-nums">{s.v}</p>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-white/50">{s.note}</p>
               </Panel>
@@ -107,7 +107,7 @@ export default async function PlansPage() {
                     <td className="whitespace-nowrap px-5 py-4 text-[13.5px] tabular-nums text-brand-gold">{usd(r.daily)}</td>
                     <td className="whitespace-nowrap px-5 py-4 text-[13.5px] tabular-nums text-white/70">{usd(r.weekly)}</td>
                     <td className="whitespace-nowrap px-5 py-4 text-[13.5px] tabular-nums text-white/70">{usd(r.ceiling)}</td>
-                    <td className="whitespace-nowrap px-5 py-4 text-[13.5px] tabular-nums text-white/45">{usd(r.ceilingActive)}</td>
+                    <td className="whitespace-nowrap px-5 py-4 text-[13.5px] tabular-nums text-white/60">{usd(r.ceilingActive)}</td>
                     <td className="whitespace-nowrap px-5 py-4 text-right">
                       <Link href="/register"
                             className="inline-flex items-center gap-1.5 rounded-lg border border-white/12 px-3 py-1.5 text-[12.5px] font-medium text-white transition hover:border-brand-gold/45 hover:text-brand-gold">
@@ -120,7 +120,7 @@ export default async function PlansPage() {
             </table>
           </div>
 
-          <p className="mt-4 flex items-start gap-2.5 text-[12.5px] leading-relaxed text-white/45">
+          <p className="mt-4 flex items-start gap-2.5 text-[12.5px] leading-relaxed text-white/60">
             <Info size={15} className="mt-px shrink-0 text-brand-gold/70" />
             The ceiling is the total a tier can ever pay you, across the daily trade bonus and any
             network commissions credited while it is active. When it is reached the tier is marked

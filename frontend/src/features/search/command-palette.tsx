@@ -109,7 +109,7 @@ export function CommandPalette({
 
       <div
         onKeyDown={onKeyDown}
-        className="relative w-full max-w-xl overflow-hidden rounded-[14px] border border-line bg-card shadow-[0_24px_70px_-20px_rgba(7,20,38,0.45)]"
+        className="relative w-full max-w-xl overflow-hidden rounded-[14px] border border-line bg-card shadow-[0_24px_70px_-20px_rgba(0, 0, 0,0.45)]"
       >
         <div className="flex items-center gap-3 border-b border-line px-4">
           <Search size={17} className="shrink-0 text-ink-3" />

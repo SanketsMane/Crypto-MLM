@@ -50,9 +50,12 @@ export function ContactForm() {
     }
   };
 
+  // the trailing two variables keep an autofilled field navy instead of letting
+  // the browser repaint it pale — see the `:-webkit-autofill` block in globals.css
   const field =
     'w-full rounded-[10px] border border-white/12 bg-navy-deep/60 px-3.5 py-3 text-[14px] text-white outline-none ' +
-    'transition placeholder:text-white/28 focus:border-brand-gold/60 focus:ring-4 focus:ring-brand-gold/12';
+    'transition placeholder:text-white/28 focus:border-brand-gold/60 focus:ring-4 focus:ring-brand-gold/12 ' +
+    '[--fx-autofill-bg:var(--color-navy-deep)] [--fx-autofill-fg:#FFFFFF]';
 
   if (status === 'sent') {
     return (
@@ -99,7 +102,7 @@ export function ContactForm() {
                  placeholder="you@example.com" className={field} autoComplete="email" />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-[12.5px] font-medium text-white/70">Phone <span className="text-white/35">(optional)</span></span>
+          <span className="mb-1.5 block text-[12.5px] font-medium text-white/70">Phone <span className="text-white/55">(optional)</span></span>
           <input value={form.phone} onChange={(e) => set('phone', e.target.value)}
                  placeholder="+971 …" className={field} autoComplete="tel" />
         </label>
@@ -117,7 +120,7 @@ export function ContactForm() {
         <textarea rows={5} value={form.message} onChange={(e) => set('message', e.target.value)}
                   placeholder="Tell us what you need. If it concerns an existing account, include your member ID."
                   className={clsx(field, 'resize-none')} />
-        <span className="mt-1.5 block text-[11.5px] text-white/35">
+        <span className="mt-1.5 block text-[11.5px] text-white/55">
           Never send passwords, recovery phrases or private keys — we will never ask for them.
         </span>
       </label>

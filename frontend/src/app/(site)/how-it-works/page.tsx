@@ -82,7 +82,7 @@ export default async function HowItWorksPage() {
                   </div>
                   <div className="sm:col-span-8">
                     <p className="text-[14px] leading-[1.8] text-white/62">{s.body}</p>
-                    <p className="mt-3 flex items-start gap-2 border-l-2 border-brand-gold/35 pl-3 text-[12.5px] leading-relaxed text-white/45">
+                    <p className="mt-3 flex items-start gap-2 border-l-2 border-brand-gold/35 pl-3 text-[12.5px] leading-relaxed text-white/60">
                       {s.note}
                     </p>
                   </div>
@@ -103,7 +103,7 @@ export default async function HowItWorksPage() {
                 title="What a tier actually produces"
                 lead="The arithmetic is deliberately simple, because the plan is. Here is one tier followed through to its ceiling."
               />
-              <p className="mt-6 text-[13px] leading-relaxed text-white/45">
+              <p className="mt-6 text-[13px] leading-relaxed text-white/60">
                 This is arithmetic on the published rates, not a forecast. Accrual stops when the
                 ceiling is reached, and the platform does not promise a timeframe.
               </p>
@@ -120,13 +120,13 @@ export default async function HowItWorksPage() {
                   <div key={r.k} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-4 first:pt-0 last:pb-0">
                     <dt className="text-[13.5px] text-white/62">
                       {r.k}
-                      <span className="mt-0.5 block text-[11.5px] text-white/35">{r.note}</span>
+                      <span className="mt-0.5 block text-[11.5px] text-white/55">{r.note}</span>
                     </dt>
                     <dd className="text-[19px] font-semibold tabular-nums text-white">{r.v}</dd>
                   </div>
                 ))}
               </dl>
-              <p className="mt-6 rounded-xl border border-white/[0.07] bg-navy-deep/60 px-4 py-3 text-[12.5px] leading-relaxed text-white/45">
+              <p className="mt-6 rounded-xl border border-white/[0.07] bg-navy-deep/60 px-4 py-3 text-[12.5px] leading-relaxed text-white/60">
                 Once total earnings from a tier reach its ceiling, that tier is marked capped and
                 stops accruing. Commissions your network would have paid you are limited by the
                 same ceiling, and the platform records the amount the cap withheld rather than

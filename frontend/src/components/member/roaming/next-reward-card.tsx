@@ -48,11 +48,11 @@ export function NextRewardCard({ tier, onView }: { tier: TierView | null; onView
               className="object-cover"
             />
           ) : (
-            <div aria-hidden className="absolute inset-0 bg-[linear-gradient(140deg,#0F223C,#071426)]" />
+            <div aria-hidden className="absolute inset-0 bg-[linear-gradient(140deg,#12121A,#08080E)]" />
           )}
 
           {/* scrim: vertical while stacked, horizontal into the copy on wide */}
-          <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,20,38,0.10),rgba(7,20,38,0.92))] lg:bg-[linear-gradient(90deg,rgba(7,20,38,0.35)_0%,rgba(7,20,38,0.20)_45%,rgba(7,20,38,0.95)_100%)]" />
+          <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0, 0, 0,0.10),rgba(0, 0, 0,0.92))] lg:bg-[linear-gradient(90deg,rgba(0, 0, 0,0.35)_0%,rgba(0, 0, 0,0.20)_45%,rgba(0, 0, 0,0.95)_100%)]" />
 
           <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-navy/70 px-3 py-1 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-brand-gold-hi backdrop-blur-sm">
             <Plane size={11} strokeWidth={2.4} aria-hidden />

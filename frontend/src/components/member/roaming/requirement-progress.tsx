@@ -37,7 +37,7 @@ export function RequirementProgress({
           met ? 'text-good' : dark ? 'text-white/75' : 'text-ink-2',
         )}>
           {met && <Check size={12} strokeWidth={2.6} aria-hidden />}
-          {showActual && <>{usd(have, 0)} <span className={dark ? 'text-white/35' : 'text-ink-3'}>/</span> </>}
+          {showActual && <>{usd(have, 0)} <span className={dark ? 'text-white/55' : 'text-ink-3'}>/</span> </>}
           <span className={clsx('font-medium', !showActual && (dark ? 'text-white' : 'text-ink'))}>
             {usd(need, 0)}
           </span>

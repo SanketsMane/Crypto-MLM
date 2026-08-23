@@ -136,7 +136,7 @@ export function NotificationBell({
           aria-label="Notifications"
           className={clsx(
             'absolute right-0 z-50 mt-2 w-[min(calc(100vw-2rem),380px)] overflow-hidden rounded-[14px]',
-            'border border-line bg-card shadow-[0_18px_50px_-12px_rgba(7,20,38,0.28)]',
+            'border border-line bg-card shadow-[0_18px_50px_-12px_rgba(0, 0, 0,0.28)]',
           )}
         >
           <header className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">

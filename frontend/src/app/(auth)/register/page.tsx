@@ -3,8 +3,7 @@
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ArrowRight, ChevronDown } from 'lucide-react';
-import { clsx } from 'clsx';
+import { ArrowRight } from 'lucide-react';
 import { useRegister } from '@/features/auth/use-auth';
 import { usePlatformConfig } from '@/features/config/use-config';
 import { Field, Notice, PasswordInput, PasswordStrength, SubmitButton, TextInput, scorePassword } from '@/components/auth/fields';
@@ -12,26 +11,34 @@ import { SponsorFeedback, useSponsorCheck } from '@/components/auth/sponsor-chec
 import { apiErrorMessage } from '@/lib/api';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const WALLET_RE = /^0x[a-fA-F0-9]{40}$/;
 
+/**
+ * Registration.
+ *
+ * No payout address here. It is optional on the API and can be set from the
+ * profile later, and asking someone for a wallet before they have an account
+ * is friction at the worst possible moment — so the field is gone rather than
+ * folded away behind a disclosure.
+ *
+ * Paired fields sit two-up so the whole form clears a laptop viewport without
+ * scrolling; the shell caps itself to the viewport height and lets this column
+ * scroll internally on the short screens where that is unavoidable.
+ */
 function RegisterForm() {
   const params = useSearchParams();
   const register = useRegister();
   const cfg = usePlatformConfig();
 
-  /**
-   * Registration can be closed by an operator. Showing the form anyway and
-   * failing on submit wastes someone's time filling it in.
-   */
+  /* Registration can be closed by an operator. Showing the form anyway and
+     failing on submit wastes someone's time filling it in. */
   const closed = cfg.data?.platform.registrationOpen === false;
 
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '',
-    password: '', confirm: '', walletAddress: '',
+    password: '', confirm: '',
     sponsorCode: (params.get('ref') ?? '').toUpperCase(),
   });
   const [accepted, setAccepted] = useState(false);
-  const [showMore, setShowMore] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -47,9 +54,6 @@ function RegisterForm() {
     email: touched.email && !EMAIL_RE.test(form.email.trim()) ? 'Enter a valid email address.' : undefined,
     password: touched.password && form.password.length < 8 ? 'At least 8 characters.' : undefined,
     confirm: touched.confirm && form.confirm !== form.password ? 'These do not match.' : undefined,
-    walletAddress:
-      touched.walletAddress && form.walletAddress && !WALLET_RE.test(form.walletAddress.trim())
-        ? 'That is not a valid BEP-20 address.' : undefined,
   };
 
   const ready =
@@ -57,13 +61,12 @@ function RegisterForm() {
     EMAIL_RE.test(form.email.trim()) &&
     form.password.length >= 8 &&
     form.confirm === form.password &&
-    (!form.walletAddress || WALLET_RE.test(form.walletAddress.trim())) &&
     sponsor.status !== 'missing' &&
     accepted;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched({ firstName: true, email: true, password: true, confirm: true, walletAddress: true });
+    setTouched({ firstName: true, email: true, password: true, confirm: true });
     if (!ready) return;
 
     // Only send what the member actually filled in — empty optional strings
@@ -75,7 +78,6 @@ function RegisterForm() {
     };
     if (form.lastName.trim()) body.lastName = form.lastName.trim();
     if (form.phone.trim()) body.phone = form.phone.trim();
-    if (form.walletAddress.trim()) body.walletAddress = form.walletAddress.trim();
     if (form.sponsorCode.trim()) body.sponsorCode = form.sponsorCode.trim();
 
     register.mutate(body);
@@ -84,14 +86,12 @@ function RegisterForm() {
   if (closed) {
     return (
       <div className="rounded-xl border border-white/10 bg-white/[0.04] p-7 text-center">
-        <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white">
-          Registration is closed
-        </h1>
+        <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white">Registration is closed</h1>
         <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-white/55">
           New sign-ups are paused at the moment. Existing members can still sign in normally.
         </p>
         <Link href="/login"
-              className="mt-5 inline-block rounded-lg bg-brand-gold px-4 py-2.5 text-[14px] font-semibold text-navy transition hover:brightness-105">
+              className="mt-5 inline-block rounded-lg bg-[#D4AF37] px-4 py-2.5 text-[14px] font-semibold text-black transition hover:brightness-105">
           Sign in
         </Link>
       </div>
@@ -100,15 +100,15 @@ function RegisterForm() {
 
   return (
     <>
-      <header className="mb-7">
-        <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-white">Create your account</h1>
-        <p className="mt-1.5 text-[14px] text-white/55">
+      <header className="mb-5">
+        <h1 className="text-[25px] font-semibold tracking-[-0.02em] text-white">Create your account</h1>
+        <p className="mt-1 text-[13.5px] text-white/55">
           Takes a minute. You can fund it and choose a tier straight afterwards.
         </p>
       </header>
 
-      <form onSubmit={submit} noValidate className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <form onSubmit={submit} noValidate className="space-y-3.5">
+        <div className="grid gap-3.5 sm:grid-cols-2">
           <Field label="First name" error={errors.firstName}>
             <TextInput value={form.firstName} onChange={set('firstName')} onBlur={blur('firstName')}
                        autoComplete="given-name" placeholder="Priya" autoFocus invalid={!!errors.firstName} />
@@ -118,69 +118,50 @@ function RegisterForm() {
           </Field>
         </div>
 
-        <Field label="Email address" error={errors.email}
-               hint="Used for sign-in, security alerts and withdrawal confirmations.">
+        <Field label="Email address" error={errors.email}>
           <TextInput type="email" value={form.email} onChange={set('email')} onBlur={blur('email')}
                      autoComplete="email" placeholder="you@example.com" invalid={!!errors.email} />
         </Field>
 
-        <div>
+        <div className="grid gap-3.5 sm:grid-cols-2">
           <Field label="Password" error={errors.password}>
             <PasswordInput value={form.password} onChange={set('password')} onBlur={blur('password')}
-                           autoComplete="new-password" placeholder="At least 8 characters"
+                           autoComplete="new-password" placeholder="8+ characters"
                            invalid={!!errors.password} />
           </Field>
-          <PasswordStrength password={form.password} />
-        </div>
-
-        <Field label="Confirm password" error={errors.confirm}>
-          <PasswordInput value={form.confirm} onChange={set('confirm')} onBlur={blur('confirm')}
-                         autoComplete="new-password" placeholder="Type it again" invalid={!!errors.confirm} />
-        </Field>
-
-        <div>
-          <Field label="Sponsor code" optional
-                 hint={sponsor.status === 'empty' ? 'Places you in the network of the member who invited you. This cannot be changed later.' : undefined}>
-            <TextInput value={form.sponsorCode} onChange={set('sponsorCode')}
-                       placeholder="FX1A2B3C" className="font-mono tracking-wider"
-                       invalid={sponsor.status === 'missing'} />
+          <Field label="Confirm password" error={errors.confirm}>
+            <PasswordInput value={form.confirm} onChange={set('confirm')} onBlur={blur('confirm')}
+                           autoComplete="new-password" placeholder="Type it again" invalid={!!errors.confirm} />
           </Field>
-          <SponsorFeedback state={sponsor} />
         </div>
 
-        {/* Optional details, folded away — asking for a payout address before
-            someone has an account is friction they do not need yet. */}
-        <div className="rounded-[10px] border border-white/[0.07]">
-          <button type="button" onClick={() => setShowMore((v) => !v)}
-                  aria-expanded={showMore}
-                  className="flex w-full items-center justify-between px-3.5 py-3 text-[13px] text-white/60 transition hover:text-white">
-            Add phone and payout address
-            <ChevronDown size={15} className={clsx('transition-transform', showMore && 'rotate-180')} />
-          </button>
-          {showMore && (
-            <div className="space-y-4 border-t border-white/[0.07] p-3.5">
-              <Field label="Phone" optional>
-                <TextInput value={form.phone} onChange={set('phone')} autoComplete="tel" placeholder="+971 …" />
-              </Field>
-              <Field label="USDT payout address" optional error={errors.walletAddress}
-                     hint="BEP-20 only. You can add or change this later in your profile.">
-                <TextInput value={form.walletAddress} onChange={set('walletAddress')} onBlur={blur('walletAddress')}
-                           placeholder="0x…" className="font-mono text-[13px]" invalid={!!errors.walletAddress} />
-              </Field>
-            </div>
-          )}
+        {/* only takes up room once there is something to report on */}
+        <PasswordStrength password={form.password} />
+
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          <div>
+            <Field label="Sponsor code" optional>
+              <TextInput value={form.sponsorCode} onChange={set('sponsorCode')}
+                         placeholder="FX1A2B3C" className="font-mono tracking-wider"
+                         invalid={sponsor.status === 'missing'} />
+            </Field>
+            <SponsorFeedback state={sponsor} />
+          </div>
+          <Field label="Phone" optional>
+            <TextInput value={form.phone} onChange={set('phone')} autoComplete="tel" placeholder="+971 …" />
+          </Field>
         </div>
 
-        <label className="flex cursor-pointer items-start gap-3 pt-1">
+        <label className="flex cursor-pointer items-start gap-2.5 pt-0.5">
           <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)}
                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#D4AF37]" />
-          <span className="text-[12.5px] leading-relaxed text-white/55">
-            I have read the{' '}
-            <Link href="/legal/terms" target="_blank" className="text-brand-gold underline underline-offset-2">terms of service</Link>,{' '}
-            <Link href="/legal/privacy" target="_blank" className="text-brand-gold underline underline-offset-2">privacy policy</Link>{' '}
+          <span className="text-[12px] leading-[1.6] text-white/55">
+            I accept the{' '}
+            <Link href="/legal/terms" target="_blank" className="text-[#D4AF37] underline underline-offset-2">terms</Link>,{' '}
+            <Link href="/legal/privacy" target="_blank" className="text-[#D4AF37] underline underline-offset-2">privacy policy</Link>{' '}
             and{' '}
-            <Link href="/legal/risk-disclosure" target="_blank" className="text-brand-gold underline underline-offset-2">risk disclosure</Link>,
-            and I understand that trading carries risk including loss of capital.
+            <Link href="/legal/risk-disclosure" target="_blank" className="text-[#D4AF37] underline underline-offset-2">risk disclosure</Link>,
+            and understand that trading carries risk including loss of capital.
           </span>
         </label>
 
@@ -191,13 +172,13 @@ function RegisterForm() {
         </SubmitButton>
 
         {!accepted && strength.score >= 2 && (
-          <p className="text-center text-[11.5px] text-white/35">Accept the terms above to continue.</p>
+          <p className="text-center text-[11.5px] text-white/55">Accept the terms above to continue.</p>
         )}
       </form>
 
-      <p className="mt-6 text-center text-[13.5px] text-white/50">
+      <p className="mt-4 text-center text-[13px] text-white/50">
         Already have an account?{' '}
-        <Link href="/login" className="font-medium text-brand-gold transition hover:underline">Sign in</Link>
+        <Link href="/login" className="font-medium text-[#D4AF37] transition hover:underline">Sign in</Link>
       </p>
     </>
   );

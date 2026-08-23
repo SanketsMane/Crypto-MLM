@@ -126,7 +126,7 @@ export default function SupportPage() {
               : undefined}
           />
           <div className="flex flex-wrap items-center gap-2 px-5 pb-3">
-            <Select value={status} onChange={on(setStatus)} className="h-9 text-[12.5px]"
+            <Select label="Filter by ticket status" value={status} onChange={on(setStatus)} className="h-9 text-[12.5px]"
                     options={[{ value: '', label: 'All statuses' },
                               ...['OPEN', 'ANSWERED', 'CLOSED'].map((s) => ({ value: s, label: s }))]} />
             <label className="flex items-center gap-1.5 text-[12.5px] text-ink-2">

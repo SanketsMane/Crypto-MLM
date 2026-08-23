@@ -10,6 +10,7 @@ import { Card, CardHead, PageHeader, Table, Badge, toneFor, Button, Select } fro
 import { ActionDialog } from '@/components/ui/dialog';
 import { Pagination } from '@/components/ui/pagination';
 import { usd, shortDate, num } from '@/lib/format';
+import { useAdmin } from '@/features/admin/use-admin';
 
 interface Row {
   id: string; userCode: string; email: string; amount: string; fee: string; netAmount: string;
@@ -38,6 +39,9 @@ export function WithdrawalsView({ title, subtitle }: { title: string; subtitle: 
     }),
   });
 
+  const { can } = useAdmin();
+
+
   const act = useMoneyMutation({
     mutationFn: ({ id, action, values }: { id: string; action: 'approve' | 'reject'; values: Record<string, string> }, key) =>
       adminPost(`/admin/withdrawals/${id}/${action}`,
@@ -64,7 +68,7 @@ export function WithdrawalsView({ title, subtitle }: { title: string; subtitle: 
                 <input type="checkbox" checked={overdue} onChange={(e) => filter(setOverdue)(e.target.checked)} className="accent-gold" />
                 Past SLA only
               </label>
-              <Select value={status} onChange={filter(setStatus)} className="h-9 text-[12.5px]"
+              <Select label="Filter by withdrawal status" value={status} onChange={filter(setStatus)} className="h-9 text-[12.5px]"
                       options={[{ value: '', label: 'All' }, ...['PENDING','PROCESSED','REJECTED'].map((s) => ({ value: s, label: s }))]} />
             </div>
           } />
@@ -89,8 +93,18 @@ export function WithdrawalsView({ title, subtitle }: { title: string; subtitle: 
             </span>,
             w.status === 'PENDING' ? (
               <div key="i" className="flex gap-2">
-                <Button size="sm" onClick={() => setPending({ row: w, action: 'approve' })}>Approve</Button>
-                <Button size="sm" variant="outline" onClick={() => setPending({ row: w, action: 'reject' })}>Reject</Button>
+                {/* Gated on the same keys the API gates on. A support agent can
+                    read this queue but not decide it, and showing them a button
+                    that 403s is worse than not showing it. */}
+                {can('withdrawals.approve') && (
+                  <Button size="sm" onClick={() => setPending({ row: w, action: 'approve' })}>Approve</Button>
+                )}
+                {can('withdrawals.reject') && (
+                  <Button size="sm" variant="outline" onClick={() => setPending({ row: w, action: 'reject' })}>Reject</Button>
+                )}
+                {!can('withdrawals.approve') && !can('withdrawals.reject') && (
+                  <span className="text-[11.5px] text-ink-3">View only</span>
+                )}
               </div>
             ) : <span key="j" className="text-ink-3">—</span>,
           ])}

@@ -14,7 +14,7 @@ export function TopPlans({ plans, range, onRange, loading }: {
     <Card className="flex h-full flex-col">
       <CardHead
         title="Top Performing Plans"
-        action={<Select value={range} onChange={onRange} className="h-9 min-w-0 shrink text-[12px]"
+        action={<Select label="Choose a time range" value={range} onChange={onRange} className="h-9 min-w-0 shrink text-[12px]"
                         options={[{ value: 'month', label: 'This Month' }, { value: 'all', label: 'All Time' }]} />}
       />
       <div className="flex-1 space-y-4 px-5 pb-3">

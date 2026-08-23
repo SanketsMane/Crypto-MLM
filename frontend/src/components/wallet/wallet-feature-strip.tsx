@@ -37,7 +37,7 @@ export function WalletFeatureStrip() {
               i > 0 ? 'xl:border-l xl:border-[var(--dash-border)] xl:pl-5' : ''
             }`}
           >
-            <span className="grid size-9 shrink-0 place-items-center rounded-[11px] bg-gold/10 text-[var(--color-gold)] ring-1 ring-inset ring-gold-line/25">
+            <span className="grid size-9 shrink-0 place-items-center rounded-[11px] bg-gold/10 text-[var(--color-gold-on-soft)] ring-1 ring-inset ring-gold-line/25">
               <f.icon size={16} strokeWidth={2} />
             </span>
             <div className="min-w-0">

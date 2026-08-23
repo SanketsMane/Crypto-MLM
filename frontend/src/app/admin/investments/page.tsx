@@ -34,7 +34,7 @@ export default function InvestmentsPage() {
         <CardHead title={`${num(data?.total ?? 0)} packages`}
           action={
             <div className="flex flex-wrap items-center gap-2">
-              <Select value={status} onChange={(v) => { setStatus(v); setPage(0); }} className="h-9 text-[12.5px]"
+              <Select label="Filter by investment status" value={status} onChange={(v) => { setStatus(v); setPage(0); }} className="h-9 text-[12.5px]"
                             options={[{ value: '', label: 'All' }, ...['ACTIVE','CAPPED','COMPLETED','CANCELLED'].map((s) => ({ value: s, label: s }))]} />
               <ExportButton resource="investments" filters={{ status: status || undefined }} />
             </div>

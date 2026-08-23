@@ -17,6 +17,8 @@ import { toastError } from '@/lib/toast';
 import { usd, num } from '@/lib/format';
 
 type JoinPattern = 'STEADY' | 'GROWTH' | 'VIRAL' | 'DECLINE';
+type PackageMode = 'RANGE' | 'SINGLE' | 'MIX';
+type ReinvestSource = 'NEW_MONEY' | 'BALANCE' | 'MIXED';
 type Status = 'DRAFT' | 'RUNNING' | 'COMPLETE' | 'FAILED' | 'ERASED';
 
 interface Params {
@@ -25,6 +27,24 @@ interface Params {
   minInvestment: number; maxInvestment: number;
   reinvestRate: number; withdrawRate: number; activeAffiliateRate: number;
   avgDirectsPerRecruiter: number; recruiterRate: number; startDate: string;
+
+  packageMode: PackageMode; packageIds: string[]; packageSkew: number;
+  reinvestSource: ReinvestSource; withdrawShareMin: number; withdrawShareMax: number;
+  churnRate: number; sponsorConcentration: number;
+  growthRate: number; declineRate: number;
+}
+
+interface Package {
+  id: string; name: string; amount: string;
+  dailyRoiPercent: string; capPercent: string;
+}
+
+interface PackageResult {
+  packageId: string; name: string; amount: string;
+  members: number; investments: number;
+  invested: string; paidOut: string; outstandingLiability: string;
+  capped: number; netPosition: string; netPositionWithLiability: string;
+  payoutRatio: number;
 }
 
 interface MonthRow {
@@ -43,7 +63,9 @@ interface Summary {
   memberBalances: string; outstandingLiability: string;
   netPosition: string; netPositionWithLiability: string;
   payoutRatio: number; cappedMembers: number;
-  breakEvenMonth: number | null; runtimeSeconds: number;
+  breakEvenMonth: number | null;
+  byPackage: PackageResult[];
+  runtimeSeconds: number;
 }
 
 interface Run {
@@ -62,9 +84,21 @@ const STATUS_TONE: Record<Status, Tone> = {
 
 const PATTERNS: { value: JoinPattern; label: string; hint: string }[] = [
   { value: 'STEADY',  label: 'Steady',  hint: 'The same intake every month' },
-  { value: 'GROWTH',  label: 'Growth',  hint: 'Compounding 25% a month — the shape an MLM is sold on' },
+  { value: 'GROWTH',  label: 'Growth',  hint: 'Compounding month on month — the shape an MLM is sold on' },
   { value: 'VIRAL',   label: 'Viral',   hint: 'Fast early, flattening as the market thins' },
   { value: 'DECLINE', label: 'Decline', hint: 'Intake falling away, as it does once early members cap out' },
+];
+
+const PACKAGE_MODES: { value: PackageMode; label: string; hint: string }[] = [
+  { value: 'RANGE',  label: 'A price range', hint: 'Every active tier between the two prices below' },
+  { value: 'SINGLE', label: 'One package',   hint: 'Everybody buys the same tier — what that tier costs, on its own' },
+  { value: 'MIX',    label: 'A chosen mix',  hint: 'Only the tiers ticked below' },
+];
+
+const REINVEST_SOURCES: { value: ReinvestSource; label: string; hint: string }[] = [
+  { value: 'NEW_MONEY', label: 'New money',  hint: 'Repeat purchases arrive as fresh capital and count as intake' },
+  { value: 'BALANCE',   label: 'Earnings',   hint: 'Compounded from what members already hold — no new cash, and it stops when a balance will not cover the tier' },
+  { value: 'MIXED',     label: 'Both',       hint: 'A coin flip between fresh capital and compounding' },
 ];
 
 export default function DryRunPage() {
@@ -75,6 +109,11 @@ export default function DryRunPage() {
   const defaults = useQuery<Params>({
     queryKey: ['admin', 'sim', 'defaults'],
     queryFn: () => adminGet('/admin/simulations/defaults'),
+  });
+
+  const packages = useQuery<Package[]>({
+    queryKey: ['admin', 'sim', 'packages'],
+    queryFn: () => adminGet('/admin/simulations/packages'),
   });
 
   const runs = useQuery<Run[]>({
@@ -126,7 +165,12 @@ export default function DryRunPage() {
       )}
 
       <div className="grid gap-4 xl:grid-cols-[400px_1fr]">
-        <NewRunCard defaults={defaults.data} disabled={Boolean(active)} onStarted={refresh} />
+        <NewRunCard
+          defaults={defaults.data}
+          packages={packages.data}
+          disabled={Boolean(active)}
+          onStarted={refresh}
+        />
 
         <div className="space-y-4">
           {runs.isLoading ? (
@@ -240,9 +284,10 @@ export default function DryRunPage() {
 // ── parameters ──────────────────────────────────────────────────────────────
 
 function NewRunCard({
-  defaults, disabled, onStarted,
+  defaults, packages, disabled, onStarted,
 }: {
   defaults: Params | undefined;
+  packages: Package[] | undefined;
   disabled: boolean;
   onStarted: () => void;
 }) {
@@ -277,9 +322,9 @@ function NewRunCard({
    */
   const MULTIPLIER: Record<JoinPattern, (m: number) => number> = {
     STEADY: () => 1,
-    GROWTH: (m) => Math.pow(1.25, m),
+    GROWTH: (m) => Math.pow(form.growthRate, m),
     VIRAL: (m) => 1 + 3 * (1 - Math.exp(-m / 2.5)),
-    DECLINE: (m) => Math.pow(0.8, m),
+    DECLINE: (m) => Math.pow(form.declineRate, m),
   };
 
   const projected = form.initialMembers + Array.from(
@@ -289,6 +334,16 @@ function NewRunCard({
 
   // Roughly a second per member-month of accrual, measured.
   const estimatedMinutes = Math.max(1, Math.round((projected * form.months) / 900));
+
+  /**
+   * Say what is wrong on the button rather than letting the request go and
+   * come back a 400. The server validates this too — it has to — but an
+   * operator should not have to submit to find out they picked no tier.
+   */
+  const blocked =
+    form.packageMode === 'SINGLE' && form.packageIds.length !== 1 ? 'Pick one package'
+    : form.packageMode === 'MIX' && form.packageIds.length === 0 ? 'Pick at least one package'
+    : null;
 
   return (
     <Card>
@@ -314,64 +369,163 @@ function NewRunCard({
           </Field>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <Field label="Members at the start" hint="Already on the platform">
-            <NumberInput value={form.initialMembers} min={0} max={2000} onChange={(v) => set('initialMembers', v)} />
-          </Field>
-          <Field label="Joins in month one">
-            <NumberInput value={form.joinsPerMonth} min={0} max={2000} onChange={(v) => set('joinsPerMonth', v)} />
-          </Field>
-        </div>
-
-        <Field label="How intake changes">
-          <div className="grid grid-cols-2 gap-1.5">
-            {PATTERNS.map((p) => (
-              <button key={p.value} type="button" title={p.hint}
-                      onClick={() => set('joinPattern', p.value)}
-                      className={clsx(
-                        'rounded-[9px] border px-2 py-2 text-[12px] font-medium transition',
-                        form.joinPattern === p.value
-                          ? 'border-violet bg-violet text-white'
-                          : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink',
-                      )}>
-                {p.label}
-              </button>
-            ))}
+        {/* ── who joins ── */}
+        <Section title="Who joins">
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="Members at the start" hint="Already on the platform">
+              <NumberInput value={form.initialMembers} min={0} max={2000} onChange={(v) => set('initialMembers', v)} />
+            </Field>
+            <Field label="Joins in month one">
+              <NumberInput value={form.joinsPerMonth} min={0} max={2000} onChange={(v) => set('joinsPerMonth', v)} />
+            </Field>
           </div>
-          <p className="mt-1 text-[11px] leading-relaxed text-ink-3">
-            {PATTERNS.find((p) => p.value === form.joinPattern)?.hint}
-          </p>
-        </Field>
 
-        <div className="grid grid-cols-2 gap-2">
-          <Field label="Smallest package" hint="Tiers are picked in this range">
-            <NumberInput value={form.minInvestment} min={1} onChange={(v) => set('minInvestment', v)} prefix="$" />
+          <Field label="How intake changes">
+            <div className="grid grid-cols-2 gap-1.5">
+              {PATTERNS.map((p) => (
+                <button key={p.value} type="button" title={p.hint}
+                        onClick={() => set('joinPattern', p.value)}
+                        className={clsx(
+                          'rounded-[9px] border px-2 py-2 text-[12px] font-medium transition',
+                          form.joinPattern === p.value
+                            ? 'border-violet bg-violet text-white'
+                            : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink',
+                        )}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-ink-3">
+              {PATTERNS.find((p) => p.value === form.joinPattern)?.hint}
+            </p>
           </Field>
-          <Field label="Largest package">
-            <NumberInput value={form.maxInvestment} min={1} onChange={(v) => set('maxInvestment', v)} prefix="$" />
+
+          {/* Only the rate the chosen pattern actually uses. */}
+          {form.joinPattern === 'GROWTH' && (
+            <Multiplier label="Growth each month" value={form.growthRate} min={1} max={3}
+                        hint="1.25x is +25% a month. Compounding runs get very large very quickly — watch the estimate below."
+                        onChange={(v) => set('growthRate', v)} />
+          )}
+          {form.joinPattern === 'DECLINE' && (
+            <Multiplier label="Decline each month" value={form.declineRate} min={0.05} max={1}
+                        hint="0.8x is -20% a month"
+                        onChange={(v) => set('declineRate', v)} />
+          )}
+
+          <Percent label="Month-to-month swing" value={form.intakeVariance}
+                   hint="How far a month's intake lands either side of plan — real intake is never the same number twice"
+                   onChange={(v) => set('intakeVariance', v)} />
+          <Percent label="Go quiet each year" value={form.churnRate}
+                   hint="Stop buying again and stop introducing anyone. What they hold keeps earning, and they still withdraw"
+                   onChange={(v) => set('churnRate', v)} />
+        </Section>
+
+        {/* ── what they buy ── */}
+        <Section title="What they buy">
+          <Field label="Packages on offer">
+            <div className="space-y-1.5">
+              {PACKAGE_MODES.map((m) => (
+                <button key={m.value} type="button"
+                        onClick={() => set('packageMode', m.value)}
+                        className={clsx(
+                          'flex w-full items-start gap-2 rounded-[9px] border px-2.5 py-2 text-left transition',
+                          form.packageMode === m.value
+                            ? 'border-violet bg-violet/8'
+                            : 'border-line bg-card hover:border-violet/40',
+                        )}>
+                  <span className={clsx(
+                    'mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border',
+                    form.packageMode === m.value ? 'border-violet' : 'border-line',
+                  )}>
+                    {form.packageMode === m.value && <span className="h-1.5 w-1.5 rounded-full bg-violet" />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[12.5px] font-medium text-ink">{m.label}</span>
+                    <span className="block text-[11px] leading-snug text-ink-3">{m.hint}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
           </Field>
-        </div>
 
-        <Percent label="Month-to-month swing" value={form.intakeVariance}
-                 hint="How far a month's intake lands either side of plan — real intake is never the same number twice"
-                 onChange={(v) => set('intakeVariance', v)} />
-        <Percent label="Reinvest each year" value={form.reinvestRate}
-                 hint="Share who buy another package"
-                 onChange={(v) => set('reinvestRate', v)} />
-        <Percent label="Withdraw each year" value={form.withdrawRate}
-                 hint="Share who take money out rather than leaving it"
-                 onChange={(v) => set('withdrawRate', v)} />
-        <Percent label="On the higher ceiling" value={form.activeAffiliateRate}
-                 hint="Active affiliates earn to 300% rather than 250%"
-                 onChange={(v) => set('activeAffiliateRate', v)} />
-        <Percent label="Who recruit at all" value={form.recruiterRate}
-                 hint="Most members never introduce anyone"
-                 onChange={(v) => set('recruiterRate', v)} />
+          {form.packageMode === 'RANGE' ? (
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Smallest package" hint="Tiers are picked in this range">
+                <NumberInput value={form.minInvestment} min={1} onChange={(v) => set('minInvestment', v)} prefix="$" />
+              </Field>
+              <Field label="Largest package">
+                <NumberInput value={form.maxInvestment} min={1} onChange={(v) => set('maxInvestment', v)} prefix="$" />
+              </Field>
+            </div>
+          ) : (
+            <PackagePicker
+              packages={packages}
+              single={form.packageMode === 'SINGLE'}
+              selected={form.packageIds}
+              onChange={(ids) => set('packageIds', ids)}
+            />
+          )}
 
-        <Field label="Directs per recruiter" hint="Average, for those who do recruit">
-          <NumberInput value={form.avgDirectsPerRecruiter} min={1} max={40}
-                       onChange={(v) => set('avgDirectsPerRecruiter', v)} />
-        </Field>
+          {/* With one tier there is nothing left to bias. */}
+          {!(form.packageMode === 'SINGLE') && (
+            <Multiplier label="Bias toward cheaper tiers" value={form.packageSkew} min={1} max={6} step={0.5}
+                        hint="1.0x spreads members evenly across the tiers. Higher piles them at the bottom, which is where a real member base sits — and it matters, because the ladder spans three orders of magnitude"
+                        onChange={(v) => set('packageSkew', v)} />
+          )}
+        </Section>
+
+        {/* ── what they do with the money ── */}
+        <Section title="What they do with the money">
+          <Percent label="Reinvest each year" value={form.reinvestRate}
+                   hint="Share who buy another package"
+                   onChange={(v) => set('reinvestRate', v)} />
+
+          <Field label="Paid for out of">
+            <div className="grid grid-cols-3 gap-1.5">
+              {REINVEST_SOURCES.map((o) => (
+                <button key={o.value} type="button" title={o.hint}
+                        onClick={() => set('reinvestSource', o.value)}
+                        className={clsx(
+                          'rounded-[9px] border px-2 py-2 text-[12px] font-medium transition',
+                          form.reinvestSource === o.value
+                            ? 'border-violet bg-violet text-white'
+                            : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink',
+                        )}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-ink-3">
+              {REINVEST_SOURCES.find((o) => o.value === form.reinvestSource)?.hint}
+            </p>
+          </Field>
+
+          <Percent label="Withdraw each year" value={form.withdrawRate}
+                   hint="Share who take money out rather than leaving it"
+                   onChange={(v) => set('withdrawRate', v)} />
+          <Band label="How much they take" min={form.withdrawShareMin} max={form.withdrawShareMax}
+                hint="Share of an available balance a withdrawing member actually moves"
+                onChange={(lo, hi) => setForm({ ...form, withdrawShareMin: lo, withdrawShareMax: hi })} />
+
+          <Percent label="On the higher ceiling" value={form.activeAffiliateRate}
+                   hint="Active affiliates earn to 300% rather than 250%"
+                   onChange={(v) => set('activeAffiliateRate', v)} />
+        </Section>
+
+        {/* ── how the tree grows ── */}
+        <Section title="How the tree grows">
+          <Percent label="Who recruit at all" value={form.recruiterRate}
+                   hint="Most members never introduce anyone"
+                   onChange={(v) => set('recruiterRate', v)} />
+          <Percent label="Recruiting concentration" value={form.sponsorConcentration}
+                   hint="Low spreads introductions around and the tree grows in chains, so the generation bonus reaches further. High piles them onto a few big recruiters — wide, shallow, and paid mostly as direct bonus"
+                   onChange={(v) => set('sponsorConcentration', v)} />
+
+          <Field label="Directs per recruiter" hint="Average, for those who do recruit">
+            <NumberInput value={form.avgDirectsPerRecruiter} min={1} max={40}
+                         onChange={(v) => set('avgDirectsPerRecruiter', v)} />
+          </Field>
+        </Section>
 
         <Field label="Seed" hint="Same seed and parameters gives the same result">
           <input value={seed} onChange={(e) => setSeed(e.target.value)}
@@ -395,11 +549,153 @@ function NewRunCard({
           </p>
         </div>
 
-        <Button type="submit" className="w-full" loading={start.isPending} disabled={disabled}>
-          <Play size={14} /> {disabled ? 'A run is already going' : 'Start the run'}
+        <Button type="submit" className="w-full" loading={start.isPending} disabled={disabled || Boolean(blocked)}>
+          <Play size={14} /> {disabled ? 'A run is already going' : blocked ?? 'Start the run'}
         </Button>
       </form>
     </Card>
+  );
+}
+
+/** A titled group, so a form this long stays readable. */
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <fieldset className="space-y-3 rounded-[10px] border border-line px-3 pb-3 pt-2">
+      <legend className="px-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-ink-3">
+        {title}
+      </legend>
+      {children}
+    </fieldset>
+  );
+}
+
+/**
+ * The tier picker.
+ *
+ * Prices and daily rates are shown because the choice is meaningless without
+ * them — the ladder runs from $110 to $104,300, and which one is being costed
+ * is the whole point of running a single tier.
+ */
+function PackagePicker({
+  packages, single, selected, onChange,
+}: {
+  packages: Package[] | undefined;
+  single: boolean;
+  selected: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  if (!packages) return <Skeleton className="h-40" />;
+  if (!packages.length) {
+    return (
+      <p className="rounded-[9px] border border-warn/30 bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-ink">
+        No package is on sale. Add one on the Plans screen before modelling a tier.
+      </p>
+    );
+  }
+
+  const toggle = (id: string) => {
+    if (single) return onChange([id]);
+    onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+  };
+
+  return (
+    <div className="space-y-1">
+      <div className="max-h-64 space-y-1 overflow-y-auto rounded-[9px] border border-line p-1">
+        {packages.map((p) => {
+          const on = selected.includes(p.id);
+          return (
+            <button key={p.id} type="button" onClick={() => toggle(p.id)}
+                    className={clsx(
+                      'flex w-full items-center gap-2.5 rounded-[7px] px-2 py-1.5 text-left transition',
+                      on ? 'bg-violet/10' : 'hover:bg-canvas',
+                    )}>
+              <span className={clsx(
+                'grid h-3.5 w-3.5 shrink-0 place-items-center border',
+                single ? 'rounded-full' : 'rounded-[4px]',
+                on ? 'border-violet bg-violet' : 'border-line',
+              )}>
+                {on && <span className={clsx('bg-white', single ? 'h-1.5 w-1.5 rounded-full' : 'h-1 w-1.5 rounded-[1px]')} />}
+              </span>
+              {/* Name and price on one line, terms beneath. Side by side they
+                  fought for a 400px column and the name — the thing actually
+                  being chosen — was the half that got truncated. */}
+              <span className="min-w-0 flex-1">
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className="min-w-0 truncate text-[12.5px] text-ink">{p.name}</span>
+                  <span className="shrink-0 tabular-nums text-[12.5px] font-semibold text-ink">
+                    {usd(Number(p.amount))}
+                  </span>
+                </span>
+                <span className="block tabular-nums text-[11px] text-ink-3">
+                  {Number(p.dailyRoiPercent)}%/day · {Number(p.capPercent)}% ceiling
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-[11px] text-ink-3">
+        {single
+          ? 'Everybody buys this one, so the result is that tier costed on its own.'
+          : `${selected.length} of ${packages.length} selected.`}
+      </p>
+    </div>
+  );
+}
+
+/** A multiplier, shown as "1.25x" because that is how the plan talks about it. */
+function Multiplier({
+  label, hint, value, min, max, step = 0.05, onChange,
+}: {
+  label: string; hint: string; value: number; min: number; max: number;
+  step?: number; onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-baseline justify-between gap-2">
+        <span className="text-[12px] font-medium text-ink-2">{label}</span>
+        <span className="text-[12px] font-semibold tabular-nums text-ink">{value.toFixed(2)}x</span>
+      </div>
+      <input
+        type="range" min={min} max={max} step={step} value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-line accent-violet"
+      />
+      <p className="mt-0.5 text-[11px] leading-relaxed text-ink-3">{hint}</p>
+    </div>
+  );
+}
+
+/** Two ends of a range that must not cross. */
+function Band({
+  label, hint, min, max, onChange,
+}: {
+  label: string; hint: string; min: number; max: number;
+  onChange: (lo: number, hi: number) => void;
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-baseline justify-between gap-2">
+        <span className="text-[12px] font-medium text-ink-2">{label}</span>
+        <span className="text-[12px] font-semibold tabular-nums text-ink">
+          {Math.round(min * 100)}–{Math.round(max * 100)}%
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {/* Clamped against each other, so the band can never invert. */}
+        <input
+          type="range" min={1} max={100} value={Math.round(min * 100)}
+          onChange={(e) => onChange(Math.min(Number(e.target.value), max * 100) / 100, max)}
+          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-line accent-violet"
+        />
+        <input
+          type="range" min={1} max={100} value={Math.round(max * 100)}
+          onChange={(e) => onChange(min, Math.max(Number(e.target.value), min * 100) / 100)}
+          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-line accent-violet"
+        />
+      </div>
+      <p className="mt-0.5 text-[11px] leading-relaxed text-ink-3">{hint}</p>
+    </div>
   );
 }
 
@@ -487,6 +783,48 @@ function Results({ run }: { run: Run }) {
             {s.breakEvenMonth
               ? ` Month ${s.breakEvenMonth} is where the running total first goes negative.`
               : ' The month-by-month figures stay positive because the ceiling has not been reached yet — the shortfall arrives later.'}
+          </p>
+        </div>
+      )}
+
+      {/* Per tier. With one package selected this is the whole answer; with
+          several it is where the cost of the ladder becomes visible. */}
+      {s.byPackage?.length > 0 && (
+        <div className="mt-4 min-w-0">
+          <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-ink-3">
+            By package
+          </h3>
+          <div className="overflow-x-auto">
+            <Table
+              head={['Package', 'Price', 'Members', 'Bought', 'Ticket value', 'Paid out', 'Still owed', 'Capped', 'Net incl. owed', 'Ratio']}
+              rows={s.byPackage.map((b) => [
+                <span key="n" className="whitespace-nowrap font-medium">{b.name}</span>,
+                <span key="a" className="tabular-nums text-ink-2">{usd(Number(b.amount))}</span>,
+                <span key="m" className="tabular-nums">{num(b.members)}</span>,
+                <span key="i" className="tabular-nums text-ink-2">{num(b.investments)}</span>,
+                <span key="v" className="tabular-nums text-good">{usd(Number(b.invested))}</span>,
+                <span key="p" className="tabular-nums text-warn">{usd(Number(b.paidOut))}</span>,
+                <span key="o" className="tabular-nums text-ink-3">{usd(Number(b.outstandingLiability))}</span>,
+                <span key="c" className="tabular-nums text-ink-2">{num(b.capped)}</span>,
+                <span key="net" className={clsx(
+                  'tabular-nums font-medium',
+                  Number(b.netPositionWithLiability) < 0 ? 'text-bad' : 'text-good',
+                )}>
+                  {usd(Number(b.netPositionWithLiability))}
+                </span>,
+                <span key="r" className="tabular-nums text-ink-2">{b.payoutRatio}x</span>,
+              ])}
+            />
+          </div>
+          <p className="mt-1.5 text-[11px] leading-relaxed text-ink-3">
+            Ticket value is what members committed to each tier — it exceeds capital in wherever a
+            package was compounded out of earnings rather than bought with new money. Paid out counts
+            the daily returns <em>and</em> the commissions those holders earned, because both draw
+            down the same ceiling. <strong className="font-medium text-ink-2">Net incl. owed is
+            negative on every tier by construction:</strong> a ceiling above 100% commits the
+            platform to paying out more than the tier ever took in. What the run tells you is the
+            timing, how far the ceiling has been reached, and how much the 300% active-affiliate
+            share costs over the 250% one.
           </p>
         </div>
       )}

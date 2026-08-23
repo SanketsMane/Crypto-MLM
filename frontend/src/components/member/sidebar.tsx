@@ -40,11 +40,11 @@ export function MemberSidebar({ collapsed, mobileOpen, onCloseMobile }: {
         </div>
 
         <div className="relative min-h-0 flex-1">
-          <nav className={clsx('h-full overflow-y-auto pb-4', collapsed ? 'px-2' : 'px-3')}>
+          <nav className={clsx('nav-scroll h-full overflow-y-auto pb-4', collapsed ? 'px-2' : 'px-3')}>
           {MEMBER_NAV.map((group) => (
             <div key={group.heading} className="mb-3">
               {!collapsed && (
-                <p className="px-3 pb-1.5 text-[9px] font-medium uppercase tracking-[0.15em] text-white/35">
+                <p className="px-3 pb-1.5 text-[9px] font-medium uppercase tracking-[0.15em] text-white/55">
                   {group.heading}
                 </p>
               )}
@@ -77,17 +77,56 @@ export function MemberSidebar({ collapsed, mobileOpen, onCloseMobile }: {
                 className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-sidebar to-transparent" />
         </div>
 
+        {/* ── promo ──
+            Moved here from the operations console, where it did not belong:
+            an operator has no plan to upgrade. This is the audience the card
+            was written for. */}
         {!collapsed && (
-          <div className="hidden shrink-0 px-3 pb-4 [@media(min-height:1000px)]:block">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-navy-card to-navy-deep p-4 ring-1 ring-gold-line/45">
-              <p className="text-[15px] font-bold leading-tight text-white">Grow your team</p>
-              <p className="mt-1.5 max-w-[86%] text-[11.5px] leading-[1.5] text-white/55">
-                Invite members and earn on every level.
-              </p>
-              <Link href="/team"
-                    className="mt-3.5 inline-flex items-center gap-1.5 rounded-lg bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-3 py-2 text-[12px] font-semibold text-navy transition hover:brightness-110">
-                Invite now <ArrowRight size={13} />
-              </Link>
+          <div className="shrink-0 px-3 pb-4">
+            <div
+              className={clsx(
+                'group relative isolate flex w-full flex-col overflow-hidden rounded-2xl',
+                'bg-navy-card p-3.5 ring-1 ring-gold-line/45 sm:p-4',
+                'min-h-[190px] sm:min-h-[210px] [@media(max-height:760px)]:min-h-[148px]',
+                'shadow-[0_12px_28px_-14px_rgba(0,0,0,0.85)]',
+              )}
+            >
+              {/* background artwork */}
+              <Image
+                src="/brand/sidebar-promo.png"
+                alt=""
+                aria-hidden
+                fill
+                sizes="248px"
+                className="-z-10 select-none object-cover object-[62%_100%] transition-transform duration-500 group-hover:scale-[1.06]"
+              />
+
+              {/* legibility overlay — dark where the copy sits, clear over the artwork */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(0, 0, 0,0.94)_0%,rgba(0, 0, 0,0.86)_38%,rgba(0, 0, 0,0.45)_72%,rgba(0, 0, 0,0.12)_100%)]"
+              />
+
+              <div className="relative">
+                <p className="text-[14px] font-bold leading-tight text-white sm:text-[15px]">
+                  Trade. Invest. Earn.
+                </p>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-white/60 sm:text-[11.5px] [@media(max-height:760px)]:hidden">
+                  Empower your network and grow your wealth with smart trading.
+                </p>
+                {/* The one thing that could not carry across unchanged: the
+                    console version pointed at /admin/plans, which a member
+                    cannot reach. For them, upgrading a plan means buying a
+                    package. */}
+                <Link
+                  href="/packages"
+                  onClick={onCloseMobile}
+                  className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-3 py-2 text-[11.5px] font-semibold text-navy shadow-[0_6px_16px_-6px_rgba(212,175,55,0.65)] transition hover:brightness-110 sm:text-[12px]"
+                >
+                  Upgrade Your Plan
+                  <ArrowRight size={13} className="shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </Link>
+              </div>
             </div>
           </div>
         )}

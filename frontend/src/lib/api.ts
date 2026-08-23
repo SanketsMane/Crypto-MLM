@@ -125,7 +125,11 @@ export async function getBlob(url: string): Promise<Blob> {
   return data;
 }
 
-export const apiErrorMessage = (e: unknown): string => {
-  const err = e as AxiosError<{ error?: { message?: string } }>;
-  return err.response?.data?.error?.message ?? err.message ?? 'Something went wrong';
-};
+/**
+ * Re-exported so existing imports keep working.
+ *
+ * The implementation moved to `lib/errors`, which distinguishes a transport
+ * failure from a refusal — this used to hand back raw axios text like
+ * "Network Error" on a withdrawal screen.
+ */
+export { apiErrorMessage } from './errors';

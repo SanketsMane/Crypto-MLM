@@ -123,12 +123,16 @@ export default async function HomePage() {
         <Container>
           <dl className="grid grid-cols-2 gap-px lg:grid-cols-4">
             {NUMBERS(plan).map((n) => (
-              <div key={n.label} className="px-1 py-7 sm:px-5 lg:py-9">
-                <dd className="text-[30px] font-semibold tracking-[-0.03em] text-brand-gold tabular-nums sm:text-[38px]">
+              /* A `dl` may group with `div`, but each group may hold only
+                 `dt` and `dd` — the `p` made this an invalid list, and the
+                 term has to precede its description in the DOM. Reordered
+                 with flex so the figure still reads first on screen. */
+              <div key={n.label} className="flex flex-col px-1 py-7 sm:px-5 lg:py-9">
+                <dt className="order-2 mt-1.5 text-[13.5px] font-medium text-white">{n.label}</dt>
+                <dd className="order-1 text-[30px] font-semibold tracking-[-0.03em] text-brand-gold tabular-nums sm:text-[38px]">
                   {n.value}
                 </dd>
-                <dt className="mt-1.5 text-[13.5px] font-medium text-white">{n.label}</dt>
-                <p className="mt-0.5 text-[12px] text-white/45">{n.sub}</p>
+                <dd className="order-3 mt-0.5 text-[12px] text-white/60">{n.sub}</dd>
               </div>
             ))}
           </dl>
@@ -218,7 +222,7 @@ export default async function HomePage() {
                     Most chosen
                   </span>
                 )}
-                <p className="text-[12px] uppercase tracking-[0.1em] text-white/45">
+                <p className="text-[12px] uppercase tracking-[0.1em] text-white/60">
                   Tier {plan.packages.indexOf(amount) + 1}
                 </p>
                 <p className="mt-2 text-[32px] font-semibold tracking-[-0.03em] text-white tabular-nums">
@@ -267,7 +271,7 @@ export default async function HomePage() {
                 <div className="mt-5 grid grid-cols-3 gap-3">
                   {plan.directBonus.map((d) => (
                     <div key={d.level} className="rounded-xl border border-white/[0.07] bg-navy-deep/60 px-4 py-3.5 text-center">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-white/45">Level {d.level}</p>
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-white/60">Level {d.level}</p>
                       <p className="mt-1 text-[21px] font-semibold text-brand-gold tabular-nums">{d.percent}%</p>
                     </div>
                   ))}
@@ -285,7 +289,7 @@ export default async function HomePage() {
                     <li key={b.levels} className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] odd:bg-white/[0.03]">
                       <span className="w-[72px] shrink-0 tabular-nums text-white/70">Level {b.levels}</span>
                       <span className="w-14 shrink-0 font-semibold tabular-nums text-brand-gold">{b.percent}%</span>
-                      <span className="text-[12px] text-white/40">
+                      <span className="text-[12px] text-white/58">
                         {b.directs === 0 ? 'No qualification' : `${b.directs} active directs · ${planMoney(b.volume)} team volume`}
                       </span>
                     </li>

@@ -1,0 +1,155 @@
+/* ── FortuneX replica — scoped theme ──────────────────────────────────────
+   Everything here hangs off [data-home], so this palette never leaks into the
+   FortuneX console or marketing site. The original is a Bootstrap template;
+   this is a re-implementation of its look in our own CSS, not its stylesheet.
+
+   Palette lifted from the live site: orange #D4AF37 carries brand and CTA,
+   lime #C7F801 belongs to the illustrations, peach #F0DCB0 to display
+   headings, and everything sits on near-black.                            */
+
+[data-home] {
+  --home-bg:        #000000;
+  --home-surface:   #0B0B12;
+  --home-raised:    #12121A;
+  --home-line:      rgba(255, 255, 255, 0.09);
+  --home-line-lit:  rgba(212, 175, 55, 0.45);
+
+  --home-gold:    #D4AF37;
+  --home-gold-hi: #E5C158;
+  --home-lime:      #C7F801;
+  --home-lime-dim:  #BCE70C;
+  --home-display:     #F0DCB0;
+  --home-cream:     #F7EAD2;
+
+  --home-text:      #FFFFFF;
+  --home-text-2:    rgba(255, 255, 255, 0.72);
+  --home-text-3:    #C2C2C4;
+
+  background: var(--home-bg);
+  color: var(--home-text);
+  font-family: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── motion ───────────────────────────────────────────────────────────────
+   The original drives its reveals with WOW.js + animate.css. We do the same
+   job with one IntersectionObserver and these two keyframes — no library,
+   and nothing animates until it is actually on screen. */
+
+[data-home] [data-reveal] {
+  opacity: 0;
+  transform: translate3d(var(--reveal-x, 0), var(--reveal-y, 26px), 0) scale(var(--reveal-s, 1));
+  transition:
+    opacity 720ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
+    transform 720ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+[data-home] [data-reveal][data-shown] {
+  opacity: 1;
+  transform: translate3d(0, 0, 1);
+}
+
+/* the angled currency band scrolls forever; duplicated track, so the reset
+   at -50% lands on an identical frame and reads as seamless */
+@keyframes home-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.home-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: home-marquee var(--marquee-duration, 38s) linear infinite;
+}
+[data-home] .home-marquee:hover .home-marquee-track { animation-play-state: paused; }
+
+/* the hero's floating coin badges */
+@keyframes home-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -14px, 0); }
+}
+.home-float { animation: home-float var(--float-duration, 5s) ease-in-out infinite; }
+
+/* a slow pulse behind the hero art */
+@keyframes home-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 0.85; transform: scale(1.06); }
+}
+.home-glow { animation: home-glow 7s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-home] [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .home-marquee-track, .home-float, .home-glow { animation: none; }
+}
+
+/* ── intro overlay ────────────────────────────────────────────────────────
+   Shown once per session on the marketing pages.
+
+   Hidden by default. It only appears when the pre-paint script has decided it
+   should (see lib/intro-splash.ts), which keeps a returning visitor from ever
+   seeing a frame of it. `pointer-events: none` throughout, so the page beneath
+   is live from the very first frame — this is decoration over a working site,
+   never a gate in front of one.
+
+   The exit is an animation rather than a JS timer on purpose: if hydration is
+   slow, or fails outright, the overlay still leaves. */
+
+.fx-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  /* flex rather than grid: two grid rows in a full-height box each take a
+     share of the height and drift apart, instead of sitting together. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  background: var(--home-bg, #000);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.fx-intro__mark {
+  position: relative;
+  width: min(268px, 62vw);
+  height: min(80px, 19vw);
+}
+
+.fx-intro__rule {
+  position: relative;
+  width: min(132px, 32vw);
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.fx-intro__rule::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  width: 34%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--home-gold, #D4AF37), transparent);
+  animation: fx-intro-sweep 1.05s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* 2s fully opaque, then a 0.6s fade — the 77% stop is where those meet. */
+html[data-intro] .fx-intro {
+  animation: fx-intro-out 2.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fx-intro-sweep {
+  from { transform: translateX(-120%); }
+  to   { transform: translateX(420%); }
+}
+@keyframes fx-intro-out {
+  0%        { opacity: 1; visibility: visible; }
+  77%       { opacity: 1; visibility: visible; }
+  100%      { opacity: 0; visibility: hidden; }
+}
+
+/* belt and braces — the init script already opts out, this covers the case
+   where the preference changes after the attribute was set */
+@media (prefers-reduced-motion: reduce) {
+  html[data-intro] .fx-intro { animation: none; opacity: 0; visibility: hidden; }
+}

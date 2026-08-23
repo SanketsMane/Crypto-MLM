@@ -34,7 +34,7 @@ export function InvestmentOverview({ data, range, onRange, loading }: {
       <CardHead
         title="Investment Overview"
         action={
-          <Select value={range} onChange={onRange} className="h-9 text-[12.5px]"
+          <Select label="Choose a time range" value={range} onChange={onRange} className="h-9 text-[12.5px]"
                   options={[
                     { value: '7', label: 'This Week' },
                     { value: '30', label: 'Last 30 Days' },

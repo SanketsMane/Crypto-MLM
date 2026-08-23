@@ -71,21 +71,21 @@ export default function AuditPage() {
           title={`${num(data?.total ?? 0)} recorded actions`}
           action={
             <div className="flex flex-wrap items-center gap-2">
-              <Select value={within} onChange={on(setWithin)} className="h-9 text-[12.5px]"
+              <Select label="Filter by time period" value={within} onChange={on(setWithin)} className="h-9 text-[12.5px]"
                       options={[
                         { value: '', label: 'All time' },
                         { value: '1', label: 'Today' },
                         { value: '7', label: 'Last 7 days' },
                         { value: '30', label: 'Last 30 days' },
                       ]} />
-              <Select value={action} onChange={on(setAction)} className="h-9 text-[12.5px]"
+              <Select label="Filter by action" value={action} onChange={on(setAction)} className="h-9 text-[12.5px]"
                       options={[{ value: '', label: 'All actions' }, ...ACTIONS.map((a) => ({ value: a, label: titleCase(a) }))]} />
               {/* the entity and operator lists come from what has actually been
                   recorded, so they never offer a filter that returns nothing */}
-              <Select value={entityType} onChange={on(setEntityType)} className="h-9 text-[12.5px]"
+              <Select label="Filter by entity type" value={entityType} onChange={on(setEntityType)} className="h-9 text-[12.5px]"
                       options={[{ value: '', label: 'All entities' },
                                 ...(facets.data?.entityTypes ?? []).map((e) => ({ value: e.value, label: `${titleCase(e.value)} (${e.count})` }))]} />
-              <Select value={adminId} onChange={on(setAdminId)} className="h-9 text-[12.5px]"
+              <Select label="Filter by operator" value={adminId} onChange={on(setAdminId)} className="h-9 text-[12.5px]"
                       options={[{ value: '', label: 'All operators' },
                                 ...(facets.data?.admins ?? []).map((a) => ({ value: a.id, label: `${a.name} (${a.count})` }))]} />
               <label className="relative flex items-center">

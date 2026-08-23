@@ -1,7 +1,7 @@
 'use client';
 
 import { toast as sonner } from 'sonner';
-import { apiErrorMessage } from './api';
+import { toFriendlyError } from './errors';
 
 /**
  * Toast helpers.
@@ -32,8 +32,33 @@ const ERROR_MS = 8_000;
  * `context` is optional and only worth passing when the screen alone does not
  * make it obvious which action failed.
  */
-export const toastError = (error: unknown, context?: string) =>
-  sonner.error(apiErrorMessage(error), { description: context, duration: ERROR_MS });
+export const toastError = (
+  error: unknown,
+  context?: string,
+  /**
+   * Collapses repeats onto one toast.
+   *
+   * A dashboard mounts a dozen queries against the same API; when it is down
+   * they all fail within a few hundred milliseconds. Without this the member
+   * gets a dozen stacked toasts saying the same thing, which reads as twelve
+   * problems rather than one.
+   */
+  dedupeKey?: string,
+) => {
+  const f = toFriendlyError(error);
+
+  // Offline collapses to a single toast whatever failed, and stays up: it is
+  // a condition, not an event, and it clears when the connection returns.
+  const id = f.offline ? 'offline' : dedupeKey;
+
+  // The caller's context only earns the description line when the error has
+  // nothing more specific to say. A request id beats "Could not save".
+  return sonner.error(f.message, {
+    description: f.detail ?? context,
+    duration: f.offline ? Infinity : ERROR_MS,
+    id,
+  });
+};
 
 /** Reports a money action, which stays up longer than a routine confirmation. */
 export const toastMoney = (message: string, description?: string) =>

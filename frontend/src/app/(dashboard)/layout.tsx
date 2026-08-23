@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
+import { isAuthFailure } from '@/lib/errors';
+import { ErrorState } from '@/components/ui/error-state';
 import { MemberSidebar } from '@/components/member/sidebar';
 import { MemberHeader } from '@/components/member/top-header';
 import { MEMBER_PAGE } from '@/components/member/nav-config';
 import { PageHeader } from '@/components/ui/primitives';
 import { get } from '@/lib/api';
 import { useMe } from '@/features/auth/use-auth';
+import { Splash } from '@/components/ui/splash';
 import { AnnouncementBanners } from '@/features/announcements/banner';
 import { SupportViewBar } from '@/features/support-view/support-view';
 
@@ -20,27 +23,45 @@ const SELF_HEADED = new Set(['/dashboard', '/roaming-club', '/wallet']);
 export default function MemberLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isError, isLoading } = useMe();
+  const { isError, isLoading, error, refetch } = useMe();
+  // Only a refused credential ends the session. A network failure means we do
+  // not know, and the honest response is to say so rather than to sign them out.
+  const signedOut = isError && isAuthFailure(error);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const { data } = useQuery({
     queryKey: ['member', 'dashboard'],
     queryFn: () => get<Head>('/customer/dashboard'),
-    enabled: !isError,
+    enabled: !signedOut,
   });
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
-  useEffect(() => { if (isError) router.replace('/login'); }, [isError, router]);
+  useEffect(() => { if (signedOut) router.replace('/login'); }, [signedOut, router]);
 
   if (isLoading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-canvas">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-violet" />
+      <Splash />
+    );
+  }
+  if (signedOut) return null;
+
+  /**
+   * Reachable, but not loadable.
+   *
+   * The member stays where they are, with a way to retry — losing a session to
+   * a five-second outage is a far worse outcome than a screen that says it
+   * could not load.
+   */
+  if (isError) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-canvas p-6">
+        <div className="w-full max-w-lg">
+          <ErrorState error={error} retry={() => void refetch()} title="Could not load your account" full />
+        </div>
       </div>
     );
   }
-  if (isError) return null;
 
   const page = MEMBER_PAGE[pathname];
 

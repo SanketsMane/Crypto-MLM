@@ -34,7 +34,7 @@ export function WalletSummaryCard({ type, balance, locked }: {
             one to a screen reader. */}
         <span
           aria-hidden
-          className="grid size-8 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-white/45"
+          className="grid size-8 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-white/60"
         >
           <ArrowUpRight size={15} strokeWidth={2.2} />
         </span>

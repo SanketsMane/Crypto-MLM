@@ -10,6 +10,7 @@ import { useMoneyMutation } from '@/lib/money-mutation';
 import { Card, CardHead, PageHeader, Badge, Button, Skeleton, controlCls, type Tone } from '@/components/ui/primitives';
 import { toastError } from '@/lib/toast';
 import { usd } from '@/lib/format';
+import { useConfirmOk } from '@/components/ui/confirm';
 
 type Status = 'DRAFT' | 'OPEN' | 'CLOSED' | 'DRAWN' | 'CANCELLED';
 
@@ -40,6 +41,9 @@ export default function DrawsAdminPage() {
 
   const list = useQuery<Draw[]>({ queryKey: ['admin', 'draws'], queryFn: () => adminGet('/admin/draws') });
   const refresh = () => qc.invalidateQueries({ queryKey: ['admin', 'draws'] });
+
+  const askConfirm = useConfirmOk();
+
 
   const save = useMutation({
     mutationFn: () => adminPost('/admin/draws', {
@@ -220,22 +224,63 @@ export default function DrawsAdminPage() {
 
                       <div className="flex shrink-0 flex-wrap gap-1.5">
                         {d.status === 'DRAFT' && (
-                          <Button loading={open.isPending} onClick={() => open.mutate(d.id)}>
+                          <Button
+                            loading={open.isPending}
+                            onClick={async () => {
+                              if (!(await askConfirm({
+                                title: `Open "${d.name}" for entries?`,
+                                body: 'Members can start earning tickets immediately once this is open.',
+                                confirmLabel: 'Open draw',
+                                tone: 'primary',
+                              }))) return;
+                              open.mutate(d.id);
+                            }}
+                          >
                             Open entries
                           </Button>
                         )}
                         {d.status === 'OPEN' && (
                           <>
-                            <Button variant="outline" onClick={() => close.mutate(d.id)}>
+                            <Button
+                              variant="outline"
+                              onClick={async () => {
+                                if (!(await askConfirm({
+                                  title: `Close "${d.name}" to new entries?`,
+                                  body: 'No further tickets are issued after this. Members already holding tickets keep them.',
+                                  confirmLabel: 'Close draw',
+                                }))) return;
+                                close.mutate(d.id);
+                              }}
+                            >
                               <Lock size={13} /> Close entries
                             </Button>
-                            <Button loading={run.isPending} onClick={() => run.mutate(d.id)}>
+                            <Button
+                              loading={run.isPending}
+                              onClick={async () => {
+                                if (!(await askConfirm({
+                                  title: `Draw the winners for "${d.name}"?`,
+                                  body: 'Winners are selected and prizes are credited to their wallets. A draw cannot be re-run or reversed.',
+                                  confirmLabel: 'Draw winners and pay prizes',
+                                }))) return;
+                                run.mutate(d.id);
+                              }}
+                            >
                               <Play size={13} /> Run draw
                             </Button>
                           </>
                         )}
                         {d.status === 'CLOSED' && (
-                          <Button loading={run.isPending} onClick={() => run.mutate(d.id)}>
+                          <Button
+                              loading={run.isPending}
+                              onClick={async () => {
+                                if (!(await askConfirm({
+                                  title: `Draw the winners for "${d.name}"?`,
+                                  body: 'Winners are selected and prizes are credited to their wallets. A draw cannot be re-run or reversed.',
+                                  confirmLabel: 'Draw winners and pay prizes',
+                                }))) return;
+                                run.mutate(d.id);
+                              }}
+                            >
                             <Play size={13} /> Run draw
                           </Button>
                         )}

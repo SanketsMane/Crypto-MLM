@@ -41,10 +41,10 @@ export function DestinationCard({ tier, onView }: { tier: TierView; onView: (t: 
             )}
           />
         ) : (
-          <div aria-hidden className="absolute inset-0 bg-[linear-gradient(140deg,#0F223C,#071426)]" />
+          <div aria-hidden className="absolute inset-0 bg-[linear-gradient(140deg,#12121A,#08080E)]" />
         )}
 
-        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,20,38,0.05),rgba(7,20,38,0.95))]" />
+        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0, 0, 0,0.05),rgba(0, 0, 0,0.95))]" />
         {!qualified && <div aria-hidden className="absolute inset-0 bg-navy/14" />}
 
         <span className="absolute left-3 top-3 grid h-8 w-8 place-items-center rounded-[9px] border border-white/15 bg-navy/55 text-brand-gold-hi backdrop-blur-sm">

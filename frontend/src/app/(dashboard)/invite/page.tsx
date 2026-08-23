@@ -218,7 +218,7 @@ function QrCard({ link, code }: { link: string; code: string }) {
       await QRCode.toCanvas(canvas.current, link, {
         width: 240,
         margin: 2,
-        color: { dark: '#071426', light: '#FFFFFF' },
+        color: { dark: '#08080E', light: '#FFFFFF' },
         errorCorrectionLevel: 'M',
       });
       setReady(true);

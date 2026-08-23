@@ -11,7 +11,9 @@ import { Card, CardHead, PageHeader, Badge, Button, Select, Skeleton, controlCls
 import { ActionDialog } from '@/components/ui/dialog';
 import { Pagination } from '@/components/ui/pagination';
 import { DocumentViewer } from '@/components/admin/document-viewer';
+import { KycChecks, type ReviewCheck, type CheckLevel } from '@/components/admin/kyc-checks';
 import { usd, num, shortDate, ago } from '@/lib/format';
+import { useAdmin } from '@/features/admin/use-admin';
 
 interface Row {
   id: string; status: string; fullName: string; documentNo: string; countryCode: string;
@@ -29,6 +31,8 @@ interface Detail {
   };
   documents: Doc[];
   history: { id: string; status: string; rejectionReason: string | null; createdAt: string; reviewedAt: string | null }[];
+  checks: ReviewCheck[];
+  checkLevel: CheckLevel;
 }
 
 const tone = (s: string): Tone => (s === 'APPROVED' ? 'good' : s === 'REJECTED' ? 'bad' : 'warn');
@@ -47,6 +51,9 @@ export default function KycPage() {
   const [decision, setDecision] = useState<'approve' | 'reject' | null>(null);
 
   const on = <T,>(fn: (v: T) => void) => (v: T) => { fn(v); setPage(0); };
+
+  const { can } = useAdmin();
+
 
   const list = useQuery({
     queryKey: ['admin', 'kyc', status, q, page, size],
@@ -91,7 +98,7 @@ export default function KycPage() {
               : undefined}
           />
           <div className="flex flex-wrap items-center gap-2 px-5 pb-3">
-            <Select value={status} onChange={on(setStatus)} className="h-9 text-[12.5px]"
+            <Select label="Filter by verification status" value={status} onChange={on(setStatus)} className="h-9 text-[12.5px]"
                     options={[{ value: '', label: 'All' },
                               ...['PENDING', 'APPROVED', 'REJECTED'].map((s) => ({ value: s, label: s }))]} />
             <label className="relative flex flex-1 items-center">
@@ -144,8 +151,19 @@ export default function KycPage() {
                     <Badge tone={tone(d.status)}>{d.status}</Badge>
                     {d.status === 'PENDING' && (
                       <>
-                        <Button size="sm" variant="outline" onClick={() => setDecision('reject')}>Reject</Button>
-                        <Button size="sm" onClick={() => setDecision('approve')}><ShieldCheck size={14} /> Approve</Button>
+                        {can('kyc.review') && (
+                          <Button size="sm" variant="outline" onClick={() => setDecision('reject')}>Reject</Button>
+                        )}
+                        {can('kyc.review') && (
+                        <Button
+                          size="sm"
+                          disabled={d.checkLevel === 'FAIL'}
+                          title={d.checkLevel === 'FAIL' ? 'A verification check is failing' : undefined}
+                          onClick={() => setDecision('approve')}
+                        >
+                          <ShieldCheck size={14} /> Approve
+                        </Button>
+                        )}
                       </>
                     )}
                   </div>
@@ -154,9 +172,13 @@ export default function KycPage() {
 
               <dl className="grid grid-cols-2 gap-px border-y border-line bg-line sm:grid-cols-4">
                 {[
-                  { k: 'Member', v: d.user.userCode },
+                  { k: 'Account name', v: d.user.name || '—' },
+                  { k: 'Name on document', v: d.fullName },
+                  { k: 'Date of birth', v: d.dateOfBirth ? shortDate(d.dateOfBirth) : 'Not supplied' },
                   { k: 'Document no.', v: d.documentNo },
                   { k: 'Country', v: d.countryCode },
+                  { k: 'Member', v: d.user.userCode },
+                  { k: 'Email', v: d.user.email },
                   { k: 'Invested', v: usd(d.user.totalInvested) },
                 ].map((s) => (
                   <div key={s.k} className="bg-card px-4 py-2.5">
@@ -174,6 +196,8 @@ export default function KycPage() {
                   {d.rejectionReason && <> — {d.rejectionReason}</>}
                 </p>
               )}
+
+              <KycChecks checks={d.checks} />
 
               <div className="grid gap-3 p-5 sm:grid-cols-2">
                 {d.documents.map((doc) => (

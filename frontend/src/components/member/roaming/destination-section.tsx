@@ -87,11 +87,11 @@ export function DestinationSection({ tiers, onView }: { tiers: TierView[]; onVie
           <div className="flex w-full gap-2.5 sm:w-auto">
             <label className="flex-1 sm:flex-none">
               <span className="sr-only">Filter destinations by status</span>
-              <Select value={status} onChange={(v) => setStatus(v as StatusFilter)} options={STATUS} className="w-full" />
+              <Select label="Filter by status" value={status} onChange={(v) => setStatus(v as StatusFilter)} options={STATUS} className="w-full" />
             </label>
             <label className="flex-1 sm:flex-none">
               <span className="sr-only">Sort destinations</span>
-              <Select value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT} className="w-full" />
+              <Select label="Sort destinations" value={sort} onChange={(v) => setSort(v as SortKey)} options={SORT} className="w-full" />
             </label>
           </div>
         </div>

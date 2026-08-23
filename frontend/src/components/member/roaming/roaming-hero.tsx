@@ -30,7 +30,7 @@ export function RoamingHero() {
       {/* readability scrim — the gradient the brief specifies, deepened below sm */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#071426_0%,rgba(7,20,38,0.93)_36%,rgba(7,20,38,0.60)_70%,rgba(7,20,38,0.24)_100%)] sm:bg-[linear-gradient(90deg,#071426_0%,rgba(7,20,38,0.92)_38%,rgba(7,20,38,0.45)_75%,rgba(7,20,38,0.15)_100%)]"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#08080E_0%,rgba(0, 0, 0,0.93)_36%,rgba(0, 0, 0,0.60)_70%,rgba(0, 0, 0,0.24)_100%)] sm:bg-[linear-gradient(90deg,#08080E_0%,rgba(0, 0, 0,0.92)_38%,rgba(0, 0, 0,0.45)_75%,rgba(0, 0, 0,0.15)_100%)]"
       />
       {/* on mobile the art sits behind the copy, so add a vertical wash too */}
       <div

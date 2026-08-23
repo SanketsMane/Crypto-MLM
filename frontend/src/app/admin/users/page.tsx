@@ -93,7 +93,7 @@ export default function UsersPage() {
           title={`${num(data?.total ?? 0)} members`}
           action={
             <div className="flex flex-wrap items-center gap-2">
-              <Select value={status} onChange={(v) => { setStatus(v); setPage(0); }} className="h-9 text-[12.5px]"
+              <Select label="Filter by member status" value={status} onChange={(v) => { setStatus(v); setPage(0); }} className="h-9 text-[12.5px]"
                       options={[{ value: '', label: 'All statuses' }, ...['ACTIVE','PENDING','SUSPENDED','BLOCKED'].map((s) => ({ value: s, label: s }))]} />
               <label className="relative flex items-center">
                 <Search size={15} className="pointer-events-none absolute left-3 text-ink-3" />

@@ -64,7 +64,7 @@ export default function NetworkPage() {
           title="Genealogy browser"
           action={
             <div className="flex flex-wrap items-center gap-2">
-              <Select value={depth} onChange={setDepth} className="h-9 text-[12.5px]"
+              <Select label="How many levels to show" value={depth} onChange={setDepth} className="h-9 text-[12.5px]"
                       options={[1, 2, 3, 4, 5].map((d) => ({ value: String(d), label: `${d} level${d === 1 ? '' : 's'} deep` }))} />
               <form onSubmit={(e) => { e.preventDefault(); setSubmitted(query.trim().toUpperCase()); }}
                     className="relative flex items-center">

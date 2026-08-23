@@ -66,9 +66,9 @@ export default function PassbookPage() {
           title={`${num(data?.total ?? 0)} entries`}
           action={
             <div className="flex flex-wrap items-center gap-2">
-              <Select value={wallet} onChange={setWallet} className="h-9 text-[12.5px]"
+              <Select label="Filter by wallet" value={wallet} onChange={setWallet} className="h-9 text-[12.5px]"
                       options={[{ value: '', label: 'All wallets' }, ...['MAIN','FUND','DIGITAL'].map((w) => ({ value: w, label: titleCase(w) }))]} />
-              <Select value={category} onChange={setCategory} className="h-9 text-[12.5px]"
+              <Select label="Filter by transaction type" value={category} onChange={setCategory} className="h-9 text-[12.5px]"
                       options={[{ value: '', label: 'All types' }, ...CATEGORIES.map((c) => ({ value: c, label: titleCase(c) }))]} />
               <Button size="sm" variant="outline" onClick={exportCsv} disabled={!data?.entries.length}>
                 <Download size={14} /> CSV

@@ -117,7 +117,7 @@ export function SiteFooter() {
             print tucked behind a link. */}
         <div className="rounded-2xl border border-white/[0.07] bg-navy-card/50 px-5 py-4 sm:px-6">
           <h2 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-white/80">Risk disclosure</h2>
-          <p className="mt-2 text-[12.5px] leading-[1.7] text-white/45">
+          <p className="mt-2 text-[12.5px] leading-[1.7] text-white/60">
             Trading and digital-asset products carry risk, including the loss of the capital you
             commit. Returns described on this site are the terms of the published compensation
             plan, not a guarantee of profit, and past performance never predicts future results.
@@ -131,7 +131,7 @@ export function SiteFooter() {
 
         {/* ── legal strip ── */}
         <div className="flex flex-col gap-3 border-t border-white/[0.06] py-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[12.5px] text-white/40">
+          <p className="text-[12.5px] text-white/58">
             © {year} FortuneX. All rights reserved.
           </p>
           <ul className="flex flex-wrap gap-x-5 gap-y-2">
@@ -142,7 +142,7 @@ export function SiteFooter() {
               { href: '/legal/aml-kyc', label: 'AML & KYC' },
             ].map((l) => (
               <li key={l.href}>
-                <Link href={l.href} className="text-[12.5px] text-white/40 transition hover:text-white">{l.label}</Link>
+                <Link href={l.href} className="text-[12.5px] text-white/58 transition hover:text-white">{l.label}</Link>
               </li>
             ))}
           </ul>

@@ -51,7 +51,7 @@ export function SponsorFeedback({ state }: { state: SponsorState }) {
 
   if (state.status === 'checking') {
     return (
-      <span className="mt-2 flex items-center gap-1.5 text-[11.5px] text-white/40">
+      <span className="mt-2 flex items-center gap-1.5 text-[11.5px] text-white/58">
         <Loader2 size={12} className="animate-spin" /> Checking that code…
       </span>
     );
@@ -70,7 +70,7 @@ export function SponsorFeedback({ state }: { state: SponsorState }) {
       <CheckCircle2 size={13} className="shrink-0 text-good" />
       {/* one flex item, or the container's gap opens up around the possessive */}
       <span>Joining <strong className="font-semibold">{state.name}</strong>&apos;s team</span>
-      <span className="ml-auto flex items-center gap-1 font-mono text-[11px] text-white/45">
+      <span className="ml-auto flex items-center gap-1 font-mono text-[11px] text-white/60">
         <UserPlus size={11} /> {state.userCode}
       </span>
     </span>

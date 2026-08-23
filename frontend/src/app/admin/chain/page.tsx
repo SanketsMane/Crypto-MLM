@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/primitives';
 import { toastError } from '@/lib/toast';
 import { usd } from '@/lib/format';
+import { useConfirmOk } from '@/components/ui/confirm';
 
 interface Overview {
   watcher: {
@@ -57,6 +58,9 @@ export default function ChainPage() {
   });
 
   const refresh = () => qc.invalidateQueries({ queryKey: ['admin', 'chain'] });
+
+  const askConfirm = useConfirmOk();
+
 
   const scan = useMoneyMutation({
     mutationFn: (_: void, key) => adminPost<{ credited: number; fromBlock: number; toBlock: number; skipped: boolean }>(
@@ -137,7 +141,14 @@ export default function ChainPage() {
             <Button variant="outline" loading={scan.isPending} onClick={() => scan.mutate()}>
               <RefreshCw size={14} /> Scan now
             </Button>
-            <Button loading={process.isPending} onClick={() => process.mutate()}>
+            <Button loading={process.isPending} onClick={async () => {
+              if (!(await askConfirm({
+                title: 'Process on-chain payouts?',
+                body: 'Queued payouts are signed and broadcast to the network. A broadcast transaction cannot be recalled.',
+                confirmLabel: 'Process payouts',
+              }))) return;
+              process.mutate();
+            }}>
               <PlayCircle size={14} /> Run payout queue
             </Button>
           </div>

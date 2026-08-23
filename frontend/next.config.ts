@@ -18,6 +18,27 @@ const nextConfig: NextConfig = {
    * reconnaissance for anyone scanning.
    */
   poweredByHeader: false,
+
+  /**
+   * Devices on the local network may request dev assets.
+   *
+   * Next blocks cross-origin requests to dev-only assets by default, so opening
+   * the site from a phone on the same wifi loaded the HTML and then 403'd every
+   * script — a black page with no error to explain it.
+   *
+   * Private ranges only, and this key has no effect outside `next dev`.
+   *
+   * Written as dot-segment globs rather than CIDR: Next matches these against
+   * the request's *hostname*, segment by segment, so `192.168.0.0/16` is read
+   * as a literal name and never matches anything. An IPv4 address is
+   * dot-separated, which is why `192.168.*.*` works where the CIDR did not.
+   */
+  allowedDevOrigins: [
+    '*.local',
+    '10.*.*.*',
+    '172.*.*.*',
+    '192.168.*.*',
+  ],
 };
 
 export default nextConfig;

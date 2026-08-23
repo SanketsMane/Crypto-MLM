@@ -55,7 +55,7 @@ export function TravelProgress({ stops, next }: { stops: JourneyStop[]; next: Ti
 
       {/* the rail keeps its shape on every screen; below ~600px it scrolls
           inside the card rather than squeezing the stops together */}
-      <div className="overflow-x-auto px-5 pb-5">
+      <div className="fx-scrollbar-hide overflow-x-auto px-5 pb-5">
         <div className="min-w-[600px]">
           <div className="mb-2.5 flex items-center justify-between text-[9.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
             <span>Start</span>

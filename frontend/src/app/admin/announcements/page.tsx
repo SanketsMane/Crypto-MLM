@@ -9,6 +9,7 @@ import { adminGet, adminPost, adminDelete } from '@/lib/admin-api';
 import { useMoneyMutation } from '@/lib/money-mutation';
 import { Card, CardHead, PageHeader, Badge, Button, Skeleton, controlCls } from '@/components/ui/primitives';
 import { toastError } from '@/lib/toast';
+import { useConfirmOk } from '@/components/ui/confirm';
 
 type Severity = 'INFO' | 'SUCCESS' | 'WARNING' | 'CRITICAL';
 type Audience = 'ALL' | 'INVESTED' | 'NOT_INVESTED';
@@ -57,6 +58,8 @@ export default function AnnouncementsPage() {
 
   // Sending reaches everyone at once and cannot be undone, so it carries an
   // idempotency key like any other irreversible action.
+  const askConfirm = useConfirmOk();
+
   const publish = useMoneyMutation({
     mutationFn: (id: string, key) => adminPost<{ deliveredTo: number }>(`/admin/announcements/${id}/publish`, {}, key),
     onSuccess: (d) => { refresh(); toast.success(`Sent to ${d.deliveredTo} member${d.deliveredTo === 1 ? '' : 's'}`); },
@@ -216,10 +219,31 @@ export default function AnnouncementsPage() {
                             audience: a.audience, link: a.link ?? '', pinned: a.pinned,
                             expiresAt: a.expiresAt ? a.expiresAt.slice(0, 16) : '',
                           })}>Edit</Button>
-                          <Button loading={publish.isPending} onClick={() => publish.mutate(a.id)}>
+                          <Button
+                            loading={publish.isPending}
+                            onClick={async () => {
+                              // Publishing fans out to every active member. There is no unsend.
+                              if (!(await askConfirm({
+                                title: `Publish "${a.title}"?`,
+                                body: 'This delivers the announcement to every active member immediately. It cannot be unsent — withdrawing it later only stops new members seeing it.',
+                                confirmLabel: 'Publish to all members',
+                                tone: 'primary',
+                              }))) return;
+                              publish.mutate(a.id);
+                            }}
+                          >
                             <Send size={13} /> Send
                           </Button>
-                          <button type="button" onClick={() => remove.mutate(a.id)}
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!(await askConfirm({
+                                title: `Delete "${a.title}"?`,
+                                body: 'The draft is removed permanently. This cannot be undone.',
+                                confirmLabel: 'Delete announcement',
+                              }))) return;
+                              remove.mutate(a.id);
+                            }}
                             aria-label="Delete draft" title="Delete draft"
                             className="grid h-9 w-9 place-items-center rounded-[9px] border border-line text-ink-3 transition hover:border-bad/40 hover:text-bad">
                             <Trash2 size={14} />
@@ -227,7 +251,17 @@ export default function AnnouncementsPage() {
                         </>
                       )}
                       {a.status === 'PUBLISHED' && (
-                        <Button variant="outline" onClick={() => withdraw.mutate(a.id)}>
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                              if (!(await askConfirm({
+                                title: `Withdraw "${a.title}"?`,
+                                body: 'Members who have already seen it keep it in their notifications — this only stops it being shown again.',
+                                confirmLabel: 'Withdraw',
+                              }))) return;
+                              withdraw.mutate(a.id);
+                            }}
+                          >
                           <Undo2 size={13} /> Withdraw
                         </Button>
                       )}

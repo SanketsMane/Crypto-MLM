@@ -34,16 +34,16 @@
   --color-line-soft:   #F1F3F7;
 
   /* sidebar — deliberately navy in both themes */
-  --color-sidebar:      #071426;
-  --color-sidebar-line: #17293F;
+  --color-sidebar:      #08080E;
+  --color-sidebar-line: #1E1E26;
 
   /* ── brand ────────────────────────────────────────────────────────────
      Navy is a fixed brand constant (promo artwork, sidebar, gold-on-navy);
      it does not move between themes.                                       */
-  --color-navy:        #071426;
-  --color-navy-deep:   #04101F;
-  --color-navy-card:   #0B1B32;
-  --color-navy-soft:   #10243D;
+  --color-navy:        #08080E;
+  --color-navy-deep:   #000000;
+  --color-navy-card:   #0B0B12;
+  --color-navy-soft:   #12121A;
 
   /* metallic gold, never bright yellow — light runs a deeper, less
      luminous step so it holds contrast against white                       */
@@ -166,23 +166,23 @@
    declaration list between a selector and a media query, and the no-JS
    path is worth the repetition.                                          */
 :root[data-theme="dark"] {
-  --color-canvas:      #071426;
-  --color-canvas-2:    #04101F;
-  --color-card:        #0B1B32;
-  --color-card-2:      #0F223C;
-  --color-line:        #1D3047;
-  --color-line-strong: #2A4260;
-  --color-line-soft:   #142338;
+  --color-canvas:      #000000;
+  --color-canvas-2:    #08080E;
+  --color-card:        #0B0B12;
+  --color-card-2:      #12121A;
+  --color-line:        #1E1E26;
+  --color-line-strong: #2C2C36;
+  --color-line-soft:   #141419;
 
-  --color-sidebar:      #061223;
-  --color-sidebar-line: #14263B;
+  --color-sidebar:      #08080E;
+  --color-sidebar-line: #1E1E26;
 
   --color-gold:        #D4AF37;
   --color-gold-hi:     #E5C158;
   --color-gold-dark:   #B8860B;
   --color-gold-hover:  #E5C158;
   --color-gold-soft:   rgba(212, 175, 55, 0.12);
-  --color-gold-on:     #071426;
+  --color-gold-on:     #08080E;
   --color-gold-on-soft:#E5C158;
 
   --color-violet:      #6046E8;
@@ -211,22 +211,22 @@
   --color-ink-3:       #667085;
   --color-ink-4:       #5A6980;
 
-  --color-field:       #071426;
-  --color-field-line:  #1D3047;
+  --color-field:       #08080E;
+  --color-field-line:  #1E1E26;
   --color-field-ph:    #667085;
 
-  --color-thead:       #0F223C;
-  --color-row-hover:   #10243D;
+  --color-thead:       #12121A;
+  --color-row-hover:   #12121A;
 
   --color-chart-1:     #D4AF37;
   --color-chart-2:     #6046E8;
   --color-chart-3:     #3B82F6;
-  --color-chart-grid:  #1D3047;
+  --color-chart-grid:  #1E1E26;
   --color-chart-axis:  #98A2B3;
 
   --plan-bg:
     radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.08), transparent 42%),
-    linear-gradient(145deg, #0F223C 0%, #0B1B32 55%, #071426 100%);
+    linear-gradient(145deg, #12121A 0%, #0B0B12 55%, #08080E 100%);
   --plan-border:       rgba(212, 175, 55, 0.28);
   --plan-border-hover: rgba(212, 175, 55, 0.65);
   --plan-shadow:       0 12px 40px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -236,7 +236,7 @@
   --dash-border:        rgba(255, 255, 255, 0.09);
   --dash-shadow:        0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 30px rgba(0, 0, 0, 0.28);
   --dash-shadow-hover:  0 2px 6px rgba(0, 0, 0, 0.38), 0 16px 44px rgba(0, 0, 0, 0.42);
-  --dash-well:          #0B1B32;
+  --dash-well:          #0B0B12;
 
   --shadow-card:       0 2px 8px rgba(0, 0, 0, 0.28);
   --shadow-raise:      0 10px 26px -12px rgba(0, 0, 0, 0.55);
@@ -249,23 +249,23 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
-    --color-canvas:      #071426;
-    --color-canvas-2:    #04101F;
-    --color-card:        #0B1B32;
-    --color-card-2:      #0F223C;
-    --color-line:        #1D3047;
-    --color-line-strong: #2A4260;
-    --color-line-soft:   #142338;
+    --color-canvas:      #000000;
+    --color-canvas-2:    #08080E;
+    --color-card:        #0B0B12;
+    --color-card-2:      #12121A;
+    --color-line:        #1E1E26;
+    --color-line-strong: #2C2C36;
+    --color-line-soft:   #141419;
 
-    --color-sidebar:      #061223;
-    --color-sidebar-line: #14263B;
+    --color-sidebar:      #08080E;
+    --color-sidebar-line: #1E1E26;
 
     --color-gold:        #D4AF37;
     --color-gold-hi:     #E5C158;
     --color-gold-dark:   #B8860B;
     --color-gold-hover:  #E5C158;
     --color-gold-soft:   rgba(212, 175, 55, 0.12);
-    --color-gold-on:     #071426;
+    --color-gold-on:     #08080E;
     --color-gold-on-soft:#E5C158;
 
     --color-violet:      #6046E8;
@@ -294,22 +294,22 @@
     --color-ink-3:       #667085;
     --color-ink-4:       #5A6980;
 
-    --color-field:       #071426;
-    --color-field-line:  #1D3047;
+    --color-field:       #08080E;
+    --color-field-line:  #1E1E26;
     --color-field-ph:    #667085;
 
-    --color-thead:       #0F223C;
-    --color-row-hover:   #10243D;
+    --color-thead:       #12121A;
+    --color-row-hover:   #12121A;
 
     --color-chart-1:     #D4AF37;
     --color-chart-2:     #6046E8;
     --color-chart-3:     #3B82F6;
-    --color-chart-grid:  #1D3047;
+    --color-chart-grid:  #1E1E26;
     --color-chart-axis:  #98A2B3;
 
     --plan-bg:
       radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.08), transparent 42%),
-      linear-gradient(145deg, #0F223C 0%, #0B1B32 55%, #071426 100%);
+      linear-gradient(145deg, #12121A 0%, #0B0B12 55%, #08080E 100%);
     --plan-border:       rgba(212, 175, 55, 0.28);
     --plan-border-hover: rgba(212, 175, 55, 0.65);
     --plan-shadow:       0 12px 40px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -319,7 +319,7 @@
     --dash-border:        rgba(255, 255, 255, 0.09);
     --dash-shadow:        0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 30px rgba(0, 0, 0, 0.28);
     --dash-shadow-hover:  0 2px 6px rgba(0, 0, 0, 0.38), 0 16px 44px rgba(0, 0, 0, 0.42);
-    --dash-well:          #0B1B32;
+    --dash-well:          #0B0B12;
 
     --shadow-card:       0 2px 8px rgba(0, 0, 0, 0.28);
     --shadow-raise:      0 10px 26px -12px rgba(0, 0, 0, 0.55);
@@ -384,14 +384,102 @@ html.theme-switching *::after {
 }
 .fx-stop-pulse { animation: fx-stop-pulse 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 
+/* Splash — an indeterminate sweep under the wordmark while the session
+   resolves. Transform-only, so it never touches layout, and it stops entirely
+   for anyone who has asked for reduced motion. */
+@keyframes fx-splash-sweep {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(420%); }
+}
+.fx-splash-sweep { animation: fx-splash-sweep 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .fx-splash-sweep { animation: none; width: 100%; opacity: 0.6; }
+}
+
 /* native controls (date pickers, dropdown lists, scrollbars) follow suit */
 input, select, textarea, button { color-scheme: inherit; }
+
+/* ── autofilled fields ────────────────────────────────────────────────────
+   Chrome and Safari repaint an autofilled field with their own background and
+   text colour, and that paint outranks any ordinary `background-color` rule.
+   On the dark sign-in panel it turned the box pale lavender, which left the
+   white reveal-eye and caret invisible against it.
+
+   There is no property that opts out, so the field is repainted instead: an
+   inset shadow tall enough to cover the box, plus `-webkit-text-fill-color`
+   for the glyphs, which is the one colour the autofill paint honours. The
+   ring shadow is carried through so a focused field keeps its focus ring, and
+   the absurd transition delay stops the browser fading its own colour back in
+   on re-fill. Colours come from the two variables below, so a field only has
+   to say what it looks like — the console's themed inputs get the right thing
+   by default, and the fixed-navy auth inputs override them. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--fx-autofill-fg, var(--color-ink));
+  caret-color: var(--fx-autofill-fg, var(--color-ink));
+  -webkit-box-shadow:
+    0 0 0 1000px var(--fx-autofill-bg, var(--color-field)) inset,
+    var(--tw-ring-shadow, 0 0 #0000);
+  box-shadow:
+    0 0 0 1000px var(--fx-autofill-bg, var(--color-field)) inset,
+    var(--tw-ring-shadow, 0 0 #0000);
+  border-radius: inherit;
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+
+/* Scroll without the bar.
+   For containers that scroll only on short screens or narrow viewports, where
+   a permanent 10px track is louder than the thing it is scrolling. The element
+   still scrolls by wheel, trackpad, touch and keyboard — only the chrome goes.
+   Use sparingly: on anything that scrolls routinely the bar is the affordance
+   telling someone there is more. */
+.fx-scrollbar-hide {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* legacy Edge */
+}
+.fx-scrollbar-hide::-webkit-scrollbar { width: 0; height: 0; }
 
 /* recessive scrollbars — the data should be the loudest thing on screen */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-ink-3); background-clip: content-box; }
+
+/* ── sidebar navigation scrollbar ──────────────────────────────────────────
+   Present but invisible until the pointer is over the rail.
+
+   The global rule above sets an explicit `::-webkit-scrollbar` width, and that
+   opts the element out of the platform's overlay scrollbars — so the bar was
+   drawn permanently, in a light `--color-line` grey, down the side of a dark
+   navigation panel. It read as a UI element rather than as a scrollbar, and it
+   never went away.
+
+   The track still reserves its width, so revealing the thumb on hover does not
+   shift the nav items sideways. */
+.nav-scroll {
+  scrollbar-width: thin;                        /* Firefox */
+  scrollbar-color: transparent transparent;
+}
+.nav-scroll:hover,
+.nav-scroll:focus-within {
+  scrollbar-color: rgb(255 255 255 / 0.22) transparent;
+}
+
+.nav-scroll::-webkit-scrollbar { width: 6px; }
+.nav-scroll::-webkit-scrollbar-track { background: transparent; }
+.nav-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  transition: background 180ms ease;
+}
+.nav-scroll:hover::-webkit-scrollbar-thumb,
+.nav-scroll:focus-within::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.22); }
+.nav-scroll::-webkit-scrollbar-thumb:hover { background: rgb(255 255 255 / 0.36); }
 
 /* focus ring — gold on interactive brand controls, purple elsewhere */
 :focus-visible { outline-color: var(--color-gold); }
@@ -594,7 +682,7 @@ input, select, textarea, button { color-scheme: inherit; }
    straight into the artwork); from `sm` up it becomes a diagonal that keeps
    the left clean for text and lets the wallet show through on the right. */
 .balance-panel {
-  background-color: #071426;
+  background-color: #08080E;
   background-image: url('/brand/wallet-bg.webp');
   background-size: cover;
   background-position: right center;
@@ -625,19 +713,19 @@ input, select, textarea, button { color-scheme: inherit; }
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(7, 20, 38, 0.82) 0%,
-    rgba(7, 20, 38, 0.90) 52%,
-    rgba(7, 20, 38, 0.96) 100%
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.90) 52%,
+    rgba(0, 0, 0, 0.96) 100%
   );
 }
 @media (min-width: 640px) {
   .balance-panel::before {
     background: linear-gradient(
       100deg,
-      rgba(7, 20, 38, 0.95) 0%,
-      rgba(7, 20, 38, 0.86) 34%,
-      rgba(7, 20, 38, 0.48) 62%,
-      rgba(7, 20, 38, 0.12) 100%
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(0, 0, 0, 0.86) 34%,
+      rgba(0, 0, 0, 0.48) 62%,
+      rgba(0, 0, 0, 0.12) 100%
     );
   }
 }
@@ -672,8 +760,8 @@ input, select, textarea, button { color-scheme: inherit; }
 
 .wallet-action-gold {
   background: linear-gradient(135deg, #E8C65A 0%, #D9AD32 100%);
-  color: #071426;
-  box-shadow: 0 1px 2px rgba(7, 20, 38, 0.24), 0 8px 20px -10px rgba(217, 173, 50, 0.9);
+  color: #08080E;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24), 0 8px 20px -10px rgba(217, 173, 50, 0.9);
 }
 .wallet-action-ghost {
   background: rgba(255, 255, 255, 0.055);
@@ -686,7 +774,7 @@ input, select, textarea, button { color-scheme: inherit; }
   .wallet-action-gold:hover {
     transform: translateY(-1px);
     filter: brightness(1.05);
-    box-shadow: 0 2px 4px rgba(7, 20, 38, 0.26), 0 12px 26px -10px rgba(217, 173, 50, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.26), 0 12px 26px -10px rgba(217, 173, 50, 1);
   }
   .wallet-action-ghost:hover {
     transform: translateY(-1px);
@@ -710,7 +798,7 @@ input, select, textarea, button { color-scheme: inherit; }
   position: relative;
   isolation: isolate;
   border-radius: 24px;
-  background: linear-gradient(135deg, #0B1D34 0%, #08182C 45%, #061426 100%);
+  background: linear-gradient(135deg, #0B0B12 0%, #08182C 45%, #061426 100%);
   border: 1px solid rgba(148, 163, 184, 0.14);
   box-shadow: var(--dash-shadow);
 }
@@ -739,7 +827,7 @@ input, select, textarea, button { color-scheme: inherit; }
   position: relative;
   isolation: isolate;
   border-radius: 20px;
-  background: linear-gradient(155deg, #10243D 0%, #0B1D34 52%, #071426 100%);
+  background: linear-gradient(155deg, #12121A 0%, #0B0B12 52%, #08080E 100%);
   border: 1px solid rgba(148, 163, 184, 0.14);
   box-shadow: var(--dash-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition:
@@ -775,3 +863,64 @@ input, select, textarea, button { color-scheme: inherit; }
    touching the same property the winner is stylesheet order, not class order.
    This rule is unlayered, so it wins outright. */
 .wallet-select > select { padding-left: 1.95rem; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Plan-structure diagrams.
+
+   Two small looping SVGs that show what each genealogy actually does — width
+   fanning out for unilevel, spillover dropping into the downline for binary.
+   They run only while the card is not the locked/disabled one, and the global
+   prefers-reduced-motion rule at the end of this file flattens them to a
+   static frame for anyone who asks for that.
+   ───────────────────────────────────────────────────────────────────────────*/
+@keyframes fx-node-in {
+  0%, 8%    { opacity: 0; transform: scale(0.4); }
+  18%, 88%  { opacity: 1; transform: scale(1); }
+  100%      { opacity: 0; transform: scale(0.4); }
+}
+@keyframes fx-edge-draw {
+  0%, 8%    { stroke-dashoffset: 40; opacity: 0; }
+  22%, 88%  { stroke-dashoffset: 0; opacity: 1; }
+  100%      { stroke-dashoffset: 40; opacity: 0; }
+}
+/* the third binary recruit: appears at the root, then falls past a full leg */
+@keyframes fx-spill {
+  0%, 30%   { opacity: 0; transform: translate(0, -34px); }
+  42%       { opacity: 1; transform: translate(0, -34px); }
+  62%, 88%  { opacity: 1; transform: translate(0, 0); }
+  100%      { opacity: 0; transform: translate(0, 0); }
+}
+@keyframes fx-weak-leg {
+  0%, 45%   { opacity: 0; }
+  60%, 88%  { opacity: 1; }
+  100%      { opacity: 0; }
+}
+
+.fx-diagram [data-node]  { animation: fx-node-in 6s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.fx-diagram [data-edge]  { stroke-dasharray: 40; animation: fx-edge-draw 6s ease-in-out infinite; }
+.fx-diagram [data-spill] { animation: fx-spill 6s ease-in-out infinite; transform-box: fill-box; }
+.fx-diagram [data-weak]  { animation: fx-weak-leg 6s ease-in-out infinite; }
+
+/* A locked or unavailable card holds one frame — motion implies choice. */
+.fx-diagram-still [data-node],
+.fx-diagram-still [data-edge],
+.fx-diagram-still [data-spill],
+.fx-diagram-still [data-weak] { animation: none; opacity: 1; stroke-dashoffset: 0; }
+
+/* ── status colours as text ───────────────────────────────────────────────
+   The tokens already draw the distinction — `-soft` is the chip background,
+   `-on` is the text that sits on it — but eighty-six places used the base
+   fill colour as text on a white card, where it measures 2.6:1 against a
+   4.5:1 requirement. Green on white at that ratio is unreadable to a good
+   share of people, and on this platform those are figures about their money.
+
+   Overriding the text utilities keeps the vivid base for fills, dots and
+   progress bars — where the bar is 3:1 for non-text — while text picks up the
+   accessible shade everywhere at once. Both themes define `-on`, so this
+   follows the theme rather than pinning a colour.                          */
+@layer utilities {
+  .text-good { color: var(--color-good-on); }
+  .text-bad  { color: var(--color-bad-on); }
+  .text-warn { color: var(--color-warn-on); }
+  .text-info { color: var(--color-info-on); }
+}

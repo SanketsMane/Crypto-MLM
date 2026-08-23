@@ -45,7 +45,7 @@ export function IncomeStreams({ rows, days, onDays, loading }: {
       <CardHead
         title="Payout streams over time"
         action={
-          <Select value={days} onChange={onDays} className="h-9 text-[12.5px]"
+          <Select label="Choose a time range" value={days} onChange={onDays} className="h-9 text-[12.5px]"
                   options={[
                     { value: '14', label: 'Last 14 days' },
                     { value: '30', label: 'Last 30 days' },

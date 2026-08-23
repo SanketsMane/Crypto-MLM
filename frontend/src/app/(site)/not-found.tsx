@@ -44,7 +44,7 @@ export default function NotFound() {
                   <span className="block text-[14.5px] font-medium text-white">{s.label}</span>
                   <span className="block text-[12.5px] text-white/50">{s.note}</span>
                 </span>
-                <ArrowRight size={15} className="shrink-0 text-white/35 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-gold" />
+                <ArrowRight size={15} className="shrink-0 text-white/55 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-gold" />
               </Link>
             </li>
           ))}

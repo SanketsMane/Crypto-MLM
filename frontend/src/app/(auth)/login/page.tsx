@@ -95,8 +95,8 @@ function LoginForm() {
         </Link>
       </p>
 
-      <p className="mt-8 flex items-start gap-2 rounded-[10px] border border-white/[0.07] bg-white/[0.02] px-3.5 py-3 text-[11.5px] leading-relaxed text-white/40">
-        <ShieldCheck size={14} className="mt-px shrink-0 text-white/30" />
+      <p className="mt-8 flex items-start gap-2 rounded-[10px] border border-white/[0.07] bg-white/[0.02] px-3.5 py-3 text-[11.5px] leading-relaxed text-white/58">
+        <ShieldCheck size={14} className="mt-px shrink-0 text-white/55" />
         FortuneX will never ask for your password, a recovery phrase or a one-time code by email,
         chat or phone.
       </p>

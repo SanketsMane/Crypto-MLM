@@ -33,7 +33,7 @@ export default async function RewardsPage() {
                 title="Direct sponsor bonus"
                 lead={`${directTotal}% of every tier purchased in your first three levels, paid at the moment of purchase and split across those levels.`}
               />
-              <p className="mt-6 text-[13px] leading-relaxed text-white/45">
+              <p className="mt-6 text-[13px] leading-relaxed text-white/60">
                 It is paid inside the same transaction that creates the investment — if the
                 purchase does not complete, the commission does not exist.
               </p>
@@ -42,9 +42,9 @@ export default async function RewardsPage() {
               <div className="grid gap-3 sm:grid-cols-3">
                 {plan.directBonus.map((d) => (
                   <Panel key={d.level} className="p-6 text-center">
-                    <p className="text-[11.5px] uppercase tracking-[0.1em] text-white/45">Level {d.level}</p>
+                    <p className="text-[11.5px] uppercase tracking-[0.1em] text-white/60">Level {d.level}</p>
                     <p className="mt-2 text-[34px] font-semibold tracking-[-0.03em] text-brand-gold tabular-nums">{d.percent}%</p>
-                    <p className="mt-1 text-[12px] text-white/45">
+                    <p className="mt-1 text-[12px] text-white/60">
                       {d.level === 1 ? 'Members you introduce' : `Introduced by your level ${d.level - 1}`}
                     </p>
                   </Panel>
@@ -86,10 +86,10 @@ export default async function RewardsPage() {
                     <td className="whitespace-nowrap px-5 py-4 text-[14px] font-medium tabular-nums text-white">Level {b.levels}</td>
                     <td className="whitespace-nowrap px-5 py-4 text-[15px] font-semibold tabular-nums text-brand-gold">{b.percent}%</td>
                     <td className="whitespace-nowrap px-5 py-4 text-[13.5px] tabular-nums text-white/65">
-                      {b.directs === 0 ? <span className="text-white/40">None</span> : b.directs}
+                      {b.directs === 0 ? <span className="text-white/58">None</span> : b.directs}
                     </td>
                     <td className="whitespace-nowrap px-5 py-4 text-[13.5px] tabular-nums text-white/65">
-                      {b.volume === 0 ? <span className="text-white/40">None</span> : planMoney(b.volume)}
+                      {b.volume === 0 ? <span className="text-white/58">None</span> : planMoney(b.volume)}
                     </td>
                   </tr>
                 ))}
@@ -97,7 +97,7 @@ export default async function RewardsPage() {
             </table>
           </div>
 
-          <p className="mt-4 flex items-start gap-2.5 text-[12.5px] leading-relaxed text-white/45">
+          <p className="mt-4 flex items-start gap-2.5 text-[12.5px] leading-relaxed text-white/60">
             <Users size={15} className="mt-px shrink-0 text-brand-gold/70" />
             Qualification is checked when the bonus is paid, not when you joined. If your active
             directs fall below a band&apos;s requirement, that band stops paying until it is met
@@ -130,7 +130,7 @@ export default async function RewardsPage() {
                   <tr key={r.name} className="border-t border-white/[0.06] transition-colors hover:bg-white/[0.03]">
                     <td className="whitespace-nowrap px-5 py-4">
                       <span className="flex items-center gap-2.5 text-[14px] font-medium text-white">
-                        <Trophy size={14} className={i >= 7 ? 'text-brand-gold' : 'text-white/30'} />
+                        <Trophy size={14} className={i >= 7 ? 'text-brand-gold' : 'text-white/55'} />
                         {r.name}
                       </span>
                     </td>
@@ -192,7 +192,7 @@ export default async function RewardsPage() {
             </Panel>
           </div>
 
-          <p className="mt-4 text-[12.5px] leading-relaxed text-white/45">
+          <p className="mt-4 text-[12.5px] leading-relaxed text-white/60">
             Qualification is evaluated automatically as your figures change. A qualified award is
             fulfilled by the operations team, and the arrangements are recorded against the award
             so both sides can see what was booked.

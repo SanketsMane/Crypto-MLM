@@ -10,11 +10,15 @@ import { adminGet, adminPut, adminDelete, adminError } from '@/lib/admin-api';
 import { NotificationPreferences } from '@/features/notifications/notification-preferences';
 import { adminTransport } from '@/features/notifications/transports';
 import { Card, CardHead, PageHeader, Badge, Button, Skeleton } from '@/components/ui/primitives';
+import { PlanStructureCard, type PlanStructureInfo, type PlanLock } from '@/components/admin/plan-structure-card';
+import { useConfirmOk } from '@/components/ui/confirm';
 
 interface Row {
   key: string; value: string; isDefault: boolean; default: string | null;
   group: string; label: string; help: string; type: string; enforcedIn: string;
   min?: number; max?: number;
+  options?: string[];
+  lock?: PlanLock;
 }
 
 const WEEKDAYS = [
@@ -26,10 +30,15 @@ export default function SettingsPage() {
   const qc = useQueryClient();
   const { data: payload, isLoading } = useQuery({
     queryKey: ['admin', 'settings'],
-    queryFn: () => adminGet<{ settings: Row[]; yourIp: string | null }>('/admin/settings'),
+    queryFn: () => adminGet<{ settings: Row[]; yourIp: string | null; planStructures: PlanStructureInfo[] }>('/admin/settings'),
   });
-  const data = payload?.settings;
+  /* The plan structure is lifted out of the generic list: it is a one-way
+     decision with its own explanation, not a value to type into a box. */
+  const planRow = payload?.settings.find((r) => r.key === 'PLAN_STRUCTURE');
+  const data = payload?.settings.filter((r) => r.key !== 'PLAN_STRUCTURE');
   const [edits, setEdits] = useState<Record<string, string>>({});
+
+  const askConfirm = useConfirmOk();
 
   const done = () => { qc.invalidateQueries({ queryKey: ['admin', 'settings'] }); setEdits({}); };
 
@@ -64,6 +73,16 @@ export default function SettingsPage() {
         <div className="space-y-3.5">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-52" />)}</div>
       ) : (
         <div className="space-y-3.5">
+          {planRow && payload?.planStructures && (
+            <PlanStructureCard
+              structures={payload.planStructures}
+              current={planRow.value}
+              lock={planRow.lock}
+              saving={save.isPending && save.variables?.key === 'PLAN_STRUCTURE'}
+              onChoose={(code) => save.mutate({ key: 'PLAN_STRUCTURE', value: code })}
+            />
+          )}
+
           {groups.map((group) => (
             <Card key={group}>
               <CardHead title={group} />
@@ -156,14 +175,29 @@ export default function SettingsPage() {
 
                       <Button size="sm" disabled={!dirty(r)}
                               loading={save.isPending && save.variables?.key === r.key}
-                              onClick={() => save.mutate({ key: r.key, value: valueOf(r) })}>
+                              onClick={async () => {
+                                if (!(await askConfirm({
+                                  title: `Change ${r.label}?`,
+                                  body: `${r.value} → ${valueOf(r)}. This is live on the very next request, with no restart, and takes effect in ${r.enforcedIn.toLowerCase()}. Every member is affected.`,
+                                  confirmLabel: 'Save change',
+                                  tone: 'primary',
+                                }))) return;
+                                save.mutate({ key: r.key, value: valueOf(r) });
+                              }}>
                         Save
                       </Button>
                       <button
                         title="Restore the deploy default"
                         aria-label={`Restore ${r.label} to its default`}
                         disabled={r.isDefault || reset.isPending}
-                        onClick={() => reset.mutate(r.key)}
+                        onClick={async () => {
+                          if (!(await askConfirm({
+                            title: `Restore ${r.label} to its default?`,
+                            body: `${r.value} → ${r.default ?? 'the deploy default'}. Live immediately, for every member.`,
+                            confirmLabel: 'Restore default',
+                          }))) return;
+                          reset.mutate(r.key);
+                        }}
                         className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] border border-line text-ink-3 transition hover:border-line-strong hover:text-ink disabled:pointer-events-none disabled:opacity-35"
                       >
                         <RotateCcw size={14} />

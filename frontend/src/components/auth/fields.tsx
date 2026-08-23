@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { cloneElement, isValidElement, useId, useState } from 'react';
 import { clsx } from 'clsx';
 import { AlertCircle, Check, Eye, EyeOff, Loader2 } from 'lucide-react';
 
@@ -8,10 +8,15 @@ import { AlertCircle, Check, Eye, EyeOff, Loader2 } from 'lucide-react';
    Auth screens carry the highest stakes per keystroke on the platform, so the
    feedback here is deliberately louder than in the rest of the app. */
 
+/* The auth panel is fixed black in both themes, so these fields declare their
+   own autofill colours rather than inheriting the console's themed defaults —
+   see the `:-webkit-autofill` block in globals.css. The value must match the
+   field's own background or an autofilled row stands out as a lighter box. */
 const base =
-  'w-full rounded-[10px] border bg-navy-deep/60 px-3.5 py-3 text-[14px] text-white outline-none ' +
-  'transition placeholder:text-white/25 disabled:opacity-50';
-const ok = 'border-white/12 focus:border-brand-gold/60 focus:ring-4 focus:ring-brand-gold/12';
+  'w-full rounded-[10px] border bg-[#0B0B12] px-3.5 py-2.5 text-[14px] text-white outline-none ' +
+  'transition placeholder:text-white/35 disabled:opacity-50 ' +
+  '[--fx-autofill-bg:#0B0B12] [--fx-autofill-fg:#FFFFFF]';
+const ok = 'border-white/10 focus:border-[#D4AF37]/60 focus:ring-4 focus:ring-[#D4AF37]/12';
 const bad = 'border-bad/60 focus:border-bad focus:ring-4 focus:ring-bad/15';
 
 export function Field({
@@ -20,21 +25,57 @@ export function Field({
   label: string; hint?: string; error?: string; optional?: boolean;
   children: React.ReactNode; htmlFor?: string;
 }) {
+  const id = useId();
+  const messageId = `${id}-message`;
+  const message = error ?? hint;
+
+  /**
+   * The message is tied to the control, not merely printed beneath it.
+   *
+   * The wrapping label already gives the input its name, and `aria-invalid`
+   * already marks it wrong — but without `aria-describedby` a screen reader
+   * announces "Email address, invalid" and stops. The reason sits two nodes
+   * away, visible only to someone who can see it. On a sign-up form that is
+   * the difference between fixing a typo and giving up.
+   */
+  const described = isValidElement(children)
+    ? cloneElement(children as React.ReactElement<{ 'aria-describedby'?: string }>, {
+        'aria-describedby': message ? messageId : undefined,
+      })
+    : children;
+
+  /**
+   * A wrapping label only when there is no id to point at.
+   *
+   * A wrapping `<label>` names the control from *everything* inside it — so on
+   * a password field the reveal button's own label was folded into the input's
+   * accessible name, and it announced as "Password Show password". Given an id,
+   * `htmlFor` associates the two without the control being a descendant, and
+   * the name is just the label.
+   *
+   * The wrapping form is kept for call sites that pass no id, where it is the
+   * only thing tying the label to the control.
+   */
+  const Wrapper = htmlFor ? 'div' : 'label';
+  const Caption = htmlFor ? 'label' : 'span';
+
   return (
-    <label htmlFor={htmlFor} className="block">
-      <span className="mb-1.5 flex items-baseline justify-between gap-2">
+    <Wrapper className="block">
+      <Caption htmlFor={htmlFor} className="mb-1.5 flex items-baseline justify-between gap-2">
         <span className="text-[12.5px] font-medium text-white/75">{label}</span>
-        {optional && <span className="text-[11.5px] text-white/35">Optional</span>}
-      </span>
-      {children}
+        {optional && <span className="text-[11.5px] text-white/55">Optional</span>}
+      </Caption>
+      {described}
       {error ? (
-        <span className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-bad">
+        // role="alert" so a validation failure is spoken when it appears,
+        // rather than only on the next visit to the field.
+        <span id={messageId} role="alert" className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-bad">
           <AlertCircle size={12} /> {error}
         </span>
       ) : hint ? (
-        <span className="mt-1.5 block text-[11.5px] text-white/40">{hint}</span>
+        <span id={messageId} className="mt-1.5 block text-[11.5px] text-white/58">{hint}</span>
       ) : null}
-    </label>
+    </Wrapper>
   );
 }
 
@@ -74,7 +115,7 @@ export function PasswordInput({
           onClick={() => setShown((s) => !s)}
           aria-label={shown ? 'Hide password' : 'Show password'}
           tabIndex={-1}
-          className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-white/40 transition hover:bg-white/[0.06] hover:text-white"
+          className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-white/70 transition hover:bg-white/[0.08] hover:text-white"
         >
           {shown ? <EyeOff size={15} /> : <Eye size={15} />}
         </button>
@@ -136,7 +177,7 @@ export function PasswordStrength({ password }: { password: string }) {
       </div>
       <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
         {met.map((m) => (
-          <li key={m.rule} className={clsx('flex items-center gap-1.5 text-[11px]', m.ok ? 'text-white/55' : 'text-white/30')}>
+          <li key={m.rule} className={clsx('flex items-center gap-1.5 text-[11px]', m.ok ? 'text-white/55' : 'text-white/55')}>
             <Check size={11} className={m.ok ? 'text-good' : 'text-white/20'} />
             {m.rule}
           </li>
@@ -175,7 +216,7 @@ export function SubmitButton({
       {...rest}
       type="submit"
       disabled={rest.disabled || loading}
-      className="inline-flex w-full items-center justify-center gap-2 rounded-[11px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-6 py-3.5 text-[14.5px] font-semibold text-navy transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
+      className="inline-flex w-full items-center justify-center gap-2 rounded-[11px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-6 py-3 text-[14.5px] font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     >
       {loading && <Loader2 size={15} className="animate-spin" />}
       {children}

@@ -115,7 +115,20 @@ export function Table({ head, rows, empty, dense }: {
   head: ReactNode[]; rows: ReactNode[][]; empty?: string; dense?: boolean;
 }) {
   return (
-    <div className="overflow-x-auto">
+    /**
+     * Focusable, and named.
+     *
+     * A horizontally scrolling region that cannot be focused is unreachable
+     * without a mouse — the columns past the fold simply do not exist for a
+     * keyboard user. `tabIndex={0}` puts it in the tab order so the arrow keys
+     * can scroll it, and the role and label explain what has just been focused.
+     */
+    <div
+      className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+      tabIndex={0}
+      role="region"
+      aria-label="Table, scrolls horizontally"
+    >
       <table className="w-full min-w-[520px] border-collapse">
         <thead>
           <tr className="bg-thead">
@@ -156,12 +169,27 @@ export const Skeleton = ({ className }: { className?: string }) => (
 export const controlCls =
   'h-10 rounded-[9px] border border-field-line bg-field px-3 text-[13px] text-ink outline-none transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15';
 
-export function Select({ value, onChange, options, className }: {
+export function Select({ value, onChange, options, className, label }: {
   value: string; onChange: (v: string) => void;
   options: { value: string; label: string }[]; className?: string;
+  /**
+   * What this control is for.
+   *
+   * Required in practice even where a visible label sits beside it: a select
+   * with no accessible name is announced as just "combo box", so somebody
+   * using a screen reader hears the options without ever learning what they
+   * are choosing. Axe rates it critical, and on a filter that changes which
+   * transactions are shown, it is.
+   */
+  label: string;
 }) {
   return (
-    <select value={value} onChange={(e) => onChange(e.target.value)} className={clsx(controlCls, 'pr-8', className)}>
+    <select
+      value={value}
+      aria-label={label}
+      onChange={(e) => onChange(e.target.value)}
+      className={clsx(controlCls, 'pr-8', className)}
+    >
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   );

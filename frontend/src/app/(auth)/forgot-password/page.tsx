@@ -104,7 +104,7 @@ export default function ForgotPasswordPage() {
 
         <SubmitButton loading={reset.isPending} disabled={!ready}>Set new password</SubmitButton>
 
-        <p className="text-center text-[11.5px] leading-relaxed text-white/35">
+        <p className="text-center text-[11.5px] leading-relaxed text-white/55">
           Setting a new password ends every other session on your account.
           {strength.score < 2 && newPassword.length >= 8 && ' Consider a longer passphrase — length matters more than symbols.'}
         </p>

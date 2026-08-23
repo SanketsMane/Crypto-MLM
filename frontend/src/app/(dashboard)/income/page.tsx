@@ -68,7 +68,7 @@ export default function IncomePage() {
           title={`Income statement — ${num(rows.length)}`}
           action={
             <div className="flex items-center gap-2">
-              <Select value={type} onChange={setType} className="h-9 text-[12.5px]"
+              <Select label="Filter by income stream" value={type} onChange={setType} className="h-9 text-[12.5px]"
                       options={[{ value: '', label: 'All streams' }, ...STREAMS.map((x) => ({ value: x.key, label: x.label }))]} />
               <Button size="sm" variant="outline" onClick={exportCsv} disabled={!rows.length}>
                 <Download size={14} /> CSV

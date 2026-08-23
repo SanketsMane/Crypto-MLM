@@ -20,7 +20,7 @@ export function WelcomeHeader({ firstName }: { firstName?: string }) {
         <h1 suppressHydrationWarning
             className="text-[24px] font-semibold leading-tight tracking-[-0.02em] text-ink sm:text-[28px]">
           {greeting},{' '}
-          <span className="text-[var(--color-gold)]">{firstName ?? 'there'}</span>
+          <span className="text-[var(--color-gold-on-soft)]">{firstName ?? 'there'}</span>
         </h1>
         <p className="mt-1.5 text-[13.5px] text-ink-2">
           Your earnings, packages and network at a glance.

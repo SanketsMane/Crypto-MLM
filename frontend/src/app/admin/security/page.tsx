@@ -9,6 +9,7 @@ import { Card, CardHead, Button, Skeleton, PageHeader } from '@/components/ui/pr
 import { TwoFactorCard } from '@/features/security/two-factor-card';
 import { adminTwoFactor } from '@/features/security/clients';
 import { toastError } from '@/lib/toast';
+import { useConfirmOk } from '@/components/ui/confirm';
 
 interface Session {
   id: string; userAgent: string | null; ip: string | null;
@@ -56,6 +57,9 @@ function SessionsCard() {
     queryFn: () => adminGet('/admin/sessions'),
   });
 
+  const askConfirm = useConfirmOk();
+
+
   const end = useMutation({
     mutationFn: (id: string) => adminDelete(`/admin/sessions/${id}`),
     onSuccess: () => { toast.success('Session ended'); sessions.refetch(); },
@@ -74,7 +78,14 @@ function SessionsCard() {
         title="Signed-in devices"
         subtitle="Everywhere this console account is currently open."
         right={
-          <Button variant="outline" onClick={() => endAll.mutate()} loading={endAll.isPending}>
+          <Button variant="outline" onClick={async () => {
+            if (!(await askConfirm({
+              title: 'Sign out every other session?',
+              body: 'All of your console sessions except this one are ended immediately.',
+              confirmLabel: 'Sign out other sessions',
+            }))) return;
+            endAll.mutate();
+          }} loading={endAll.isPending}>
             <LogOut size={14} /> Sign out
           </Button>
         }
@@ -93,7 +104,14 @@ function SessionsCard() {
                     {s.ip ?? 'unknown IP'} · started {when(s.createdAt)}
                   </p>
                 </div>
-                <Button variant="outline" onClick={() => end.mutate(s.id)}>End</Button>
+                <Button variant="outline" onClick={async () => {
+                  if (!(await askConfirm({
+                    title: 'End this session?',
+                    body: 'That device is signed out immediately and must authenticate again.',
+                    confirmLabel: 'End session',
+                  }))) return;
+                  end.mutate(s.id);
+                }}>End</Button>
               </li>
             ))}
             {!sessions.data?.length && <li className="py-3 text-[13px] text-ink-2">No active sessions.</li>}

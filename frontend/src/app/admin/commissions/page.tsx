@@ -35,7 +35,7 @@ export default function CommissionsPage() {
         <CardHead title={`${num(data?.total ?? 0)} commission records`}
           action={
             <div className="flex flex-wrap items-center gap-2">
-              <Select value={kind} onChange={(v) => { setKind(v); setPage(0); }} className="h-9 text-[12.5px]"
+              <Select label="Filter by commission stream" value={kind} onChange={(v) => { setKind(v); setPage(0); }} className="h-9 text-[12.5px]"
                             options={[{ value: '', label: 'All streams' }, { value: 'DIRECT', label: 'Direct sponsor' }, { value: 'GENERATION', label: 'Generation' }]} />
               <ExportButton resource="commissions" filters={{ kind: kind || undefined }} />
             </div>

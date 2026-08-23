@@ -25,7 +25,7 @@ export function IncomeBreakdown({ income, series, range, onRange, loading }: {
     <Card className="dash-card h-full overflow-hidden">
       <CardHead
         title="Income"
-        action={<Select value={range} onChange={onRange} className="h-9 text-[12.5px]"
+        action={<Select label="Choose a time range" value={range} onChange={onRange} className="h-9 text-[12.5px]"
                         options={[{ value: '7', label: 'Last 7 days' }, { value: '30', label: 'Last 30 days' }]} />}
       />
       <div className="px-5 pb-2">

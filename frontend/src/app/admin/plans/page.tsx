@@ -11,6 +11,7 @@ import { Card, CardHead, PageHeader, Table, Badge, Button, Skeleton, controlCls 
 import { Modal } from '@/components/ui/modal';
 import { ActionDialog } from '@/components/ui/dialog';
 import { usd, num, shortDate } from '@/lib/format';
+import { useConfirmOk } from '@/components/ui/confirm';
 
 interface Pkg { id: string; name: string; amount: string; dailyRoiPercent: string; capPercent: string; sortOrder: number; isActive: boolean }
 interface Rule { id: string; kind: string; level: number; percent: string; requiredDirects: number; requiredTeamVolume: string; isActive: boolean }
@@ -55,6 +56,9 @@ export default function PlansPage() {
   const [rewardForm, setRewardForm] = useState<(typeof EMPTY_REWARD & { id?: string }) | null>(null);
   const [fulfil, setFulfil] = useState<Award | null>(null);
   const key = (kind: string, level: number) => `${kind}-${level}`;
+
+  const askConfirm = useConfirmOk();
+
 
   const packages = useQuery({ queryKey: ['admin', 'packages'], queryFn: () => adminGet<Pkg[]>('/admin/packages') });
   const rewardTiers = useQuery({
@@ -190,7 +194,15 @@ export default function PlansPage() {
               <input key="b" className={cell} defaultValue={r.percent}
                      onChange={(e) => set(key(r.kind, r.level), e.target.value)} />,
               <Toggle key="c" on={r.isActive} label={`Toggle direct level ${r.level}`} onChange={() => toggleRule.mutate(r)} />,
-              <Button key="d" size="sm" variant="outline" onClick={() => saveRule.mutate(r)}>Save</Button>,
+              <Button key="d" size="sm" variant="outline" onClick={async () => {
+                if (!(await askConfirm({
+                  title: `Change the ${r.kind.toLowerCase()} bonus at level ${r.level}?`,
+                  body: `This is the percentage paid on every future qualifying purchase. Commissions already paid are not affected.`,
+                  confirmLabel: 'Save commission rule',
+                  tone: 'primary',
+                }))) return;
+                saveRule.mutate(r);
+              }}>Save</Button>,
             ])}
           />
         </Card>
@@ -210,7 +222,15 @@ export default function PlansPage() {
               <input key="d" className={cell} defaultValue={r.reward}
                      onChange={(e) => set(`rank-${r.id}-reward`, e.target.value)} />,
               <Toggle key="e" on={r.isActive} label={`Toggle ${r.name}`} onChange={() => toggleRank.mutate(r)} />,
-              <Button key="f" size="sm" variant="outline" onClick={() => saveRank.mutate(r)}>Save</Button>,
+              <Button key="f" size="sm" variant="outline" onClick={async () => {
+                if (!(await askConfirm({
+                  title: `Change the ${r.name} rank?`,
+                  body: 'Requirements and the reward apply to every member who qualifies from now on.',
+                  confirmLabel: 'Save rank',
+                  tone: 'primary',
+                }))) return;
+                saveRank.mutate(r);
+              }}>Save</Button>,
             ])}
           />
         </Card>
@@ -231,7 +251,15 @@ export default function PlansPage() {
             <input key="d" className={cell} defaultValue={r.requiredTeamVolume}
                    onChange={(e) => set(`${key(r.kind, r.level)}-volume`, e.target.value)} />,
             <Toggle key="e" on={r.isActive} label={`Toggle generation level ${r.level}`} onChange={() => toggleRule.mutate(r)} />,
-            <Button key="f" size="sm" variant="outline" onClick={() => saveRule.mutate(r)}>Save</Button>,
+            <Button key="f" size="sm" variant="outline" onClick={async () => {
+              if (!(await askConfirm({
+                title: `Change the ${r.kind.toLowerCase()} bonus at level ${r.level}?`,
+                body: 'This is the percentage paid on every future qualifying purchase.',
+                confirmLabel: 'Save commission rule',
+                tone: 'primary',
+              }))) return;
+              saveRule.mutate(r);
+            }}>Save</Button>,
           ])}
         />
       </Card>
@@ -375,7 +403,18 @@ export default function PlansPage() {
             <Button variant="outline" size="sm" onClick={() => setPkgForm(null)}>Cancel</Button>
             <Button size="sm" loading={savePackage.isPending}
                     disabled={!pkgForm?.name.trim() || !pkgForm?.amount.trim()}
-                    onClick={() => pkgForm && savePackage.mutate(pkgForm)}>
+                    onClick={async () => {
+                      if (!pkgForm) return;
+                      if (!(await askConfirm({
+                        title: pkgForm.id ? `Update the ${pkgForm.name} package?` : `Create the ${pkgForm.name} package?`,
+                        body: pkgForm.id
+                          ? 'Existing investments keep the rate stored on them. This changes what new purchases get.'
+                          : 'Members will be able to buy this immediately.',
+                        confirmLabel: pkgForm.id ? 'Update package' : 'Create package',
+                        tone: 'primary',
+                      }))) return;
+                      savePackage.mutate(pkgForm);
+                    }}>
               {pkgForm?.id ? 'Save package' : 'Create package'}
             </Button>
           </>

@@ -11,6 +11,7 @@ import { ExportButton } from '@/components/admin/export-button';
 import { ActionDialog } from '@/components/ui/dialog';
 import { Pagination } from '@/components/ui/pagination';
 import { usd, shortDate, num } from '@/lib/format';
+import { useAdmin } from '@/features/admin/use-admin';
 
 interface Row {
   id: string; userCode: string; email: string; amount: string; network: string;
@@ -32,6 +33,9 @@ export default function DepositsPage() {
     }),
   });
 
+  const { can } = useAdmin();
+
+
   const act = useMoneyMutation({
     mutationFn: ({ id, action, values }: { id: string; action: 'confirm' | 'reject'; values: Record<string, string> }, key) =>
       adminPost(`/admin/deposits/${id}/${action}`, action === 'reject' ? { reason: values.reason } : {}, key),
@@ -50,7 +54,7 @@ export default function DepositsPage() {
         <CardHead title={`${num(data?.total ?? 0)} deposits`}
           action={
             <div className="flex flex-wrap items-center gap-2">
-              <Select value={status} onChange={(v) => { setStatus(v); setPage(0); }} className="h-9 text-[12.5px]"
+              <Select label="Filter by deposit status" value={status} onChange={(v) => { setStatus(v); setPage(0); }} className="h-9 text-[12.5px]"
                             options={[{ value: '', label: 'All' }, ...['PENDING','PROCESSED','REJECTED'].map((s) => ({ value: s, label: s }))]} />
               <ExportButton resource="deposits" filters={{ status: status || undefined }} />
             </div>
@@ -67,8 +71,15 @@ export default function DepositsPage() {
             <Badge key="f" tone={toneFor(d.status)}>{d.status}</Badge>,
             d.status === 'PENDING' ? (
               <div key="g" className="flex gap-2">
-                <Button size="sm" onClick={() => setPending({ row: d, action: 'confirm' })}>Confirm</Button>
-                <Button size="sm" variant="outline" onClick={() => setPending({ row: d, action: 'reject' })}>Reject</Button>
+                {can('deposits.approve') && (
+                  <Button size="sm" onClick={() => setPending({ row: d, action: 'confirm' })}>Confirm</Button>
+                )}
+                {can('deposits.reject') && (
+                  <Button size="sm" variant="outline" onClick={() => setPending({ row: d, action: 'reject' })}>Reject</Button>
+                )}
+                {!can('deposits.approve') && !can('deposits.reject') && (
+                  <span className="text-[11.5px] text-ink-3">View only</span>
+                )}
               </div>
             ) : <span key="h" className="text-ink-3">—</span>,
           ])}

@@ -24,8 +24,16 @@ const secondaryCls =
  * would have to re-earn. The dot is decoration layered on top, and the padding
  * that makes room for it is inline so it cannot lose to `controlCls`'s own.
  */
-function WalletSelect({ value, onChange }: {
+function WalletSelect({ value, onChange, label }: {
   value: string; onChange: (v: string) => void;
+  /**
+   * Which end of the transfer this is.
+   *
+   * One component renders both controls, and "From" / "To" is the only thing
+   * distinguishing them — without it a screen reader announces two identical
+   * combo boxes and moving money becomes guesswork.
+   */
+  label: string;
 }) {
   const accent = metaFor(value).accent;
   return (
@@ -36,6 +44,7 @@ function WalletSelect({ value, onChange }: {
         style={{ background: accent }}
       />
       <Select
+        label={label}
         value={value}
         onChange={onChange}
         className="h-11 w-full"
@@ -67,11 +76,11 @@ export function MoveFundsCard({
         <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
           <label className="block">
             <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3">From</span>
-            <WalletSelect value={from} onChange={onFrom} />
+            <WalletSelect label="Transfer from" value={from} onChange={onFrom} />
           </label>
           <label className="block">
             <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3">To</span>
-            <WalletSelect value={to} onChange={onTo} />
+            <WalletSelect label="Transfer to" value={to} onChange={onTo} />
           </label>
         </div>
 
@@ -109,10 +118,10 @@ export function MoveFundsCard({
 
       <div className="mt-auto grid grid-cols-1 gap-3 border-t border-[var(--dash-border)] px-5 py-4 min-[420px]:grid-cols-2">
         <Link href="/deposit" className={secondaryCls}>
-          <ArrowDownToLine size={15} className="text-[var(--color-gold)]" /> Deposit
+          <ArrowDownToLine size={15} className="text-[var(--color-gold-on-soft)]" /> Deposit
         </Link>
         <Link href="/withdrawals" className={secondaryCls}>
-          <ArrowUpFromLine size={15} className="text-[var(--color-gold)]" /> Withdraw
+          <ArrowUpFromLine size={15} className="text-[var(--color-gold-on-soft)]" /> Withdraw
         </Link>
       </div>
     </Card>

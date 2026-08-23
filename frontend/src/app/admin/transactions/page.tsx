@@ -30,7 +30,7 @@ export default function TransactionsPage() {
         <CardHead title={`${num(data?.total ?? 0)} entries`}
           action={
             <div className="flex flex-wrap items-center gap-2">
-              <Select value={category} onChange={(v) => { setCategory(v); setPage(0); }} className="h-9 text-[12.5px]"
+              <Select label="Filter by transaction type" value={category} onChange={(v) => { setCategory(v); setPage(0); }} className="h-9 text-[12.5px]"
                       options={[{ value: '', label: 'All categories' }, ...CATS.map((c) => ({ value: c, label: titleCase(c) }))]} />
               <label className="relative flex items-center">
                 <Search size={15} className="pointer-events-none absolute left-3 text-ink-3" />

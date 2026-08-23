@@ -28,7 +28,7 @@ export function LevelProgress({ levels }: {
           {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
             <span key={n} title={`Level ${n}`}
               className={`grid aspect-square place-items-center rounded-[5px] text-[9px] font-semibold tabular-nums ${
-                n <= unlocked ? 'bg-violet text-white' : 'bg-line-soft text-ink-3'}`}>
+                n <= unlocked ? 'bg-violet text-white' : 'bg-line-soft text-mute-on'}`}>
               {n}
             </span>
           ))}
