@@ -156,19 +156,89 @@ is yours to make, not the pipeline's.
 
 ---
 
+## Faults
+
+Every 5xx is recorded, grouped by fingerprint so one broken endpoint is one row
+with a count rather than a thousand rows. Handled failures — validation, a
+rejected duplicate, an insufficient balance — are deliberately not recorded;
+they are members making ordinary mistakes, and filing them buries the row that
+means something.
+
+Read them at `/admin/errors`, or alert on the metrics:
+
+| Metric | Alert when | Because |
+|---|---|---|
+| `fortunex_unresolved_errors` | `> 0` and climbing | something is failing that nobody has looked at |
+| `fortunex_errors_last_hour` | rising sharply | an incident is in progress |
+
+Set `ERROR_WEBHOOK_URL` to be told the **first** time a fault appears. It posts
+JSON, so any endpoint works — Slack, a pager, a Sentry relay. It fires on new
+fingerprints only: alerting on every occurrence is how alerting gets muted.
+
+A fault marked resolved reopens by itself if it happens again. That is the most
+useful thing this can tell you — the fix did not hold.
+
+---
+
+## Testing at scale
+
+```bash
+# Nightly job throughput, commission walk cost, ledger contention, read latency.
+cd backend
+npx dotenv -e .env.test -- npx tsx scripts/load-test.ts --members 5000
+```
+
+Runs against the **test** database and cleans up after itself. Measured on a
+development laptop, 5,000 investments:
+
+| | |
+|---|---|
+| ROI accrual | 70 investments/sec — 14.3ms each, including the 30-level walk |
+| Projected nightly run | 10k → 2.4 min · 50k → 12 min · 100k → 24 min |
+| Commission walk | 1ms at depth 1 **and** at depth 30 — the path does its job |
+| Ledger under contention | 100 concurrent debits on a $100 balance: exactly 10 succeed, $0 left |
+| Read latency (p99) | upline 12ms · downline 19ms · passbook 6ms · balances 4ms |
+
+The nightly job is a serial loop, so it scales linearly. Past roughly 250,000
+active investments it would exceed an hour and want parallelising by member.
+
+This is how the team-volume deadlock was found: forty concurrent purchases lost
+thirty-four to `40P01` before the ancestor rows were locked in a fixed order.
+
+---
+
 ## What has not been proved
 
 Being straight about this, because the gap between "works" and "runs in
 production" is where the surprises live:
 
-- **No production traffic yet.** 225 tests pass, both images boot and serve, the
-  ledger holds under concurrent load in test. None of that is a month of real
-  members.
-- **No load testing at scale.** The concurrency tests prove correctness under
-  contention, not throughput at ten thousand members.
-- **No mainnet chain activity.** Zero real transactions, ever.
-- **No error-tracking service.** Logs are structured and correlated, which is
-  most of the value, but there is no Sentry-equivalent collecting exceptions.
+- **No production traffic yet.** 352 tests pass, both images boot and serve, the
+  ledger holds under concurrent load. None of that is a month of real members
+  behaving in ways nobody predicted.
+- **No mainnet chain activity.** The watch path *has* run against BSC testnet —
+  a real public chain, a contract somebody else deployed, real Transfer logs
+  decoded (`scripts/verify-chain-testnet.ts`). Broadcasting is proved only
+  against a local anvil node, because signing on a public chain needs a funded
+  key. Do that on testnet, with an amount you would not mind losing, before you
+  put a mainnet key anywhere near it.
+- **Load tested on a laptop, not on the target hardware.** The numbers above are
+  real but they are this machine's. Re-run the harness on the server you intend
+  to use.
 - **Single host.** This compose file runs everything on one machine. That is a
   reasonable start and a single point of failure; the API is stateless and
   scales horizontally when you need it to, but Postgres would need a plan.
+- **No frontend tests.** The backend is well covered. The web app is not covered
+  at all, and a mislabelled figure on a money screen is a financial misstatement.
+
+### Running the chain tests
+
+The 11 chain tests need an EVM node. Without one they skip, so a machine
+without Docker can still run the suite:
+
+```bash
+docker run -d --name fortunex-anvil -p 8545:8545 \
+  ghcr.io/foundry-rs/foundry:latest "anvil --host 0.0.0.0 --chain-id 31337 --silent"
+
+cd backend && npm test        # 352 tests, nothing skipped
+docker rm -f fortunex-anvil   # when you are done
+```

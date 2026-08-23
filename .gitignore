@@ -68,3 +68,9 @@ tmp/
 # account IDs. That is other people's personal data and must not be published.
 # Remove this rule only if the captures have been scrubbed.
 research/
+
+# Local mirror of fyntrust.io, kept as a porting reference. 83 MB, three
+# quarters of which is one PDF — it is a working copy of a site we already
+# own, not source, so it stays out of the history. Re-create it with
+# Doc/reference/fyntrust/mirror.py if it is needed again.
+Doc/reference/fyntrust/

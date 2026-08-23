@@ -5,13 +5,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { toastError } from '@/lib/toast';
 import { clsx } from 'clsx';
-import { Search, ShieldCheck } from 'lucide-react';
-import { adminGet, adminPost, adminError } from '@/lib/admin-api';
-import { Card, CardHead, PageHeader, Badge, Button, Select, Skeleton, controlCls, type Tone } from '@/components/ui/primitives';
+import { FileCheck2, Search, ShieldCheck, ShieldX, UserRound } from 'lucide-react';
+import { adminGet, adminPost } from '@/lib/admin-api';
+import { PageHeader, Badge, Button, Skeleton, controlCls, type Tone } from '@/components/ui/primitives';
 import { ActionDialog } from '@/components/ui/dialog';
 import { Pagination } from '@/components/ui/pagination';
 import { DocumentViewer } from '@/components/admin/document-viewer';
 import { KycChecks, type ReviewCheck, type CheckLevel } from '@/components/admin/kyc-checks';
+import {
+  Workbench, Rail, Detail, DetailBar, QueueTabs, QueueRow, EmptyDetail, FactGrid, useQueueKeys,
+} from '@/components/admin/workbench';
 import { usd, num, shortDate, ago } from '@/lib/format';
 import { useAdmin } from '@/features/admin/use-admin';
 
@@ -21,7 +24,7 @@ interface Row {
   user: { id: string; userCode: string; email: string; status: string };
 }
 interface Doc { id: string; type: string; mimeType: string; sizeBytes: number; createdAt: string }
-interface Detail {
+interface Detail_ {
   id: string; status: string; fullName: string; documentNo: string; countryCode: string;
   dateOfBirth: string | null; rejectionReason: string | null;
   reviewedAt: string | null; reviewedByName: string | null; createdAt: string;
@@ -41,6 +44,9 @@ const DOC_LABEL: Record<string, string> = {
   PROOF_OF_ADDRESS: 'Proof of address', SELFIE: 'Selfie',
 };
 
+/** Loose comparison for the name check — casing and spacing are not mismatches. */
+const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+
 export default function KycPage() {
   const qc = useQueryClient();
   const [status, setStatus] = useState('PENDING');
@@ -51,9 +57,7 @@ export default function KycPage() {
   const [decision, setDecision] = useState<'approve' | 'reject' | null>(null);
 
   const on = <T,>(fn: (v: T) => void) => (v: T) => { fn(v); setPage(0); };
-
   const { can } = useAdmin();
-
 
   const list = useQuery({
     queryKey: ['admin', 'kyc', status, q, page, size],
@@ -65,7 +69,7 @@ export default function KycPage() {
 
   const detail = useQuery({
     queryKey: ['admin', 'kyc', 'detail', openId],
-    queryFn: () => adminGet<Detail>(`/admin/kyc/${openId}`),
+    queryFn: () => adminGet<Detail_>(`/admin/kyc/${openId}`),
     enabled: !!openId,
   });
 
@@ -80,7 +84,12 @@ export default function KycPage() {
     onError: (e) => toastError(e),
   });
 
+  const rows = list.data?.rows ?? [];
+  useQueueKeys(rows.map((r) => r.id), openId, setOpenId);
+
   const d = detail.data;
+  const nameMatches = d ? norm(d.user.name || '') === norm(d.fullName) : false;
+  const reviewable = d?.status === 'PENDING' && can('kyc.review');
 
   return (
     <>
@@ -89,104 +98,142 @@ export default function KycPage() {
         subtitle="Identity submissions awaiting review. Documents are streamed to you on demand — they are never given a public URL or cached by the browser."
       />
 
-      <div className="grid grid-cols-1 items-start gap-3.5 xl:grid-cols-12">
-        <Card className="xl:col-span-5">
-          <CardHead
-            title={`${num(list.data?.total ?? 0)} submissions`}
-            action={list.data?.pending
-              ? <Badge tone="warn">{num(list.data.pending)} awaiting review</Badge>
-              : undefined}
-          />
-          <div className="flex flex-wrap items-center gap-2 px-5 pb-3">
-            <Select label="Filter by verification status" value={status} onChange={on(setStatus)} className="h-9 text-[12.5px]"
-                    options={[{ value: '', label: 'All' },
-                              ...['PENDING', 'APPROVED', 'REJECTED'].map((s) => ({ value: s, label: s }))]} />
-            <label className="relative flex flex-1 items-center">
-              <Search size={15} className="pointer-events-none absolute left-3 text-ink-3" />
-              <input value={q} onChange={(e) => on(setQ)(e.target.value)} placeholder="Name, document no. or member"
-                     className={`${controlCls} h-9 w-full pl-9 text-[12.5px]`} />
-            </label>
+      <Workbench>
+        {/* ── queue ─────────────────────────────────────────────────── */}
+        <Rail>
+          <div className="shrink-0 border-b border-line">
+            <div className="flex items-center justify-between gap-3 px-5 pb-2.5 pt-4">
+              <h2 className="text-[15px] font-semibold text-ink">{num(list.data?.total ?? 0)} submissions</h2>
+              {!!list.data?.pending && <Badge tone="warn">{num(list.data.pending)} to review</Badge>}
+            </div>
+
+            <QueueTabs
+              value={status}
+              onChange={on(setStatus)}
+              tabs={[
+                { value: 'PENDING', label: 'Pending', count: list.data?.pending },
+                { value: 'APPROVED', label: 'Approved' },
+                { value: 'REJECTED', label: 'Rejected' },
+                { value: '', label: 'All' },
+              ]}
+            />
+
+            <div className="px-5 pb-3">
+              <label className="relative flex items-center">
+                <Search size={15} className="pointer-events-none absolute left-3 text-ink-3" />
+                <span className="sr-only">Search submissions</span>
+                <input value={q} onChange={(e) => on(setQ)(e.target.value)}
+                       placeholder="Name, document no. or member"
+                       className={`${controlCls} h-9 w-full pl-9 text-[12.5px]`} />
+              </label>
+            </div>
           </div>
 
-          {list.isLoading ? (
-            <div className="space-y-2 px-5 pb-5">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14" />)}</div>
-          ) : (list.data?.rows.length ?? 0) === 0 ? (
-            <p className="px-5 py-14 text-center text-[13.5px] text-ink-2">
-              {status === 'PENDING' ? 'Nothing is waiting for review.' : 'No submissions match these filters.'}
-            </p>
-          ) : (
-            <ul className="border-t border-line">
-              {(list.data?.rows ?? []).map((row) => (
-                <li key={row.id}>
-                  <button onClick={() => setOpenId(row.id)}
-                          className={clsx('w-full border-b border-line-soft px-5 py-3 text-left transition',
-                            openId === row.id ? 'bg-gold-soft' : 'hover:bg-row-hover')}>
-                    <div className="flex items-center gap-2">
-                      <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium text-ink">{row.fullName}</span>
-                      <Badge tone={tone(row.status)}>{row.status}</Badge>
-                    </div>
-                    <p className="mt-1 truncate text-[12px] text-ink-2">
-                      <span className="font-medium">{row.user.userCode}</span> · {row.countryCode} · {row.documentCount} document{row.documentCount === 1 ? '' : 's'}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-ink-3">submitted {ago(row.createdAt)}</p>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <Pagination total={list.data?.total ?? 0} page={page} pageSize={size} onPage={setPage} onPageSize={setSize} sizes={[10, 25, 50]} />
-        </Card>
+          <div className="fx-scrollbar-hide min-h-0 flex-1 overflow-y-auto">
+            {list.isLoading ? (
+              <div className="space-y-2 p-5">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14" />)}</div>
+            ) : rows.length === 0 ? (
+              <p className="px-5 py-14 text-center text-[13.5px] text-ink-2">
+                {status === 'PENDING' ? 'Nothing is waiting for review.' : 'No submissions match these filters.'}
+              </p>
+            ) : (
+              <ul>
+                {rows.map((row) => (
+                  <li key={row.id}>
+                    <QueueRow selected={openId === row.id} onSelect={() => setOpenId(row.id)}>
+                      <div className="flex items-center gap-2">
+                        <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium text-ink">{row.fullName}</span>
+                        <Badge tone={tone(row.status)}>{row.status}</Badge>
+                      </div>
+                      <p className="mt-1 truncate text-[12px] text-ink-2">
+                        <span className="font-medium">{row.user.userCode}</span> · {row.countryCode} ·{' '}
+                        {row.documentCount} document{row.documentCount === 1 ? '' : 's'}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-ink-3">submitted {ago(row.createdAt)}</p>
+                    </QueueRow>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-        <Card className="xl:col-span-7">
+          <div className="shrink-0 border-t border-line">
+            <Pagination total={list.data?.total ?? 0} page={page} pageSize={size}
+                        onPage={setPage} onPageSize={setSize} sizes={[10, 25, 50]} />
+          </div>
+        </Rail>
+
+        {/* ── review ────────────────────────────────────────────────── */}
+        <Detail>
           {!openId ? (
-            <p className="px-5 py-20 text-center text-[13.5px] text-ink-2">Select a submission to review its documents.</p>
+            <EmptyDetail
+              icon={<FileCheck2 size={22} />}
+              title="No submission selected"
+              hint="Pick someone from the queue to read their documents and decide."
+            />
           ) : detail.isLoading || !d ? (
             <div className="space-y-3 p-5">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20" />)}</div>
           ) : (
             <>
-              <CardHead
+              <DetailBar
                 title={d.fullName}
-                action={
-                  <div className="flex items-center gap-2">
-                    <Badge tone={tone(d.status)}>{d.status}</Badge>
-                    {d.status === 'PENDING' && (
-                      <>
-                        {can('kyc.review') && (
-                          <Button size="sm" variant="outline" onClick={() => setDecision('reject')}>Reject</Button>
-                        )}
-                        {can('kyc.review') && (
-                        <Button
-                          size="sm"
-                          disabled={d.checkLevel === 'FAIL'}
-                          title={d.checkLevel === 'FAIL' ? 'A verification check is failing' : undefined}
-                          onClick={() => setDecision('approve')}
-                        >
-                          <ShieldCheck size={14} /> Approve
-                        </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                }
-              />
+                subtitle={<>{d.user.userCode} · submitted {ago(d.createdAt)}</>}
+              >
+                <Badge tone={tone(d.status)}>{d.status}</Badge>
+                {reviewable && (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => setDecision('reject')}>
+                      <ShieldX size={14} /> Reject
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={d.checkLevel === 'FAIL'}
+                      title={d.checkLevel === 'FAIL' ? 'A verification check is failing' : undefined}
+                      onClick={() => setDecision('approve')}
+                    >
+                      <ShieldCheck size={14} /> Approve
+                    </Button>
+                  </>
+                )}
+              </DetailBar>
 
-              <dl className="grid grid-cols-2 gap-px border-y border-line bg-line sm:grid-cols-4">
-                {[
-                  { k: 'Account name', v: d.user.name || '—' },
-                  { k: 'Name on document', v: d.fullName },
-                  { k: 'Date of birth', v: d.dateOfBirth ? shortDate(d.dateOfBirth) : 'Not supplied' },
-                  { k: 'Document no.', v: d.documentNo },
-                  { k: 'Country', v: d.countryCode },
-                  { k: 'Member', v: d.user.userCode },
-                  { k: 'Email', v: d.user.email },
-                  { k: 'Invested', v: usd(d.user.totalInvested) },
-                ].map((s) => (
-                  <div key={s.k} className="bg-card px-4 py-2.5">
-                    <dt className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">{s.k}</dt>
-                    <dd className="mt-0.5 truncate text-[13px] font-medium tabular-nums text-ink">{s.v}</dd>
-                  </div>
-                ))}
-              </dl>
+              {/* The comparison the whole review turns on, given its own row
+                  rather than buried as two cells in an eight-cell grid. */}
+              <div className="border-b border-line bg-canvas px-5 py-3.5">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-ink-2">Name check</span>
+                  <span className={clsx('inline-flex items-center gap-1.5 rounded-full px-2.5 py-[3px] text-[11px] font-medium',
+                    nameMatches ? 'bg-good-soft text-good-on' : 'bg-warn-soft text-warn-on')}>
+                    {nameMatches ? 'Matches the account' : 'Differs from the account'}
+                  </span>
+                </div>
+                <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
+                  {[
+                    { k: 'On the account', v: d.user.name || '—', Icon: UserRound },
+                    { k: 'On the document', v: d.fullName, Icon: FileCheck2 },
+                  ].map(({ k, v, Icon }) => (
+                    <div key={k} className={clsx('flex items-center gap-2.5 rounded-[10px] border bg-card px-3.5 py-2.5',
+                      nameMatches ? 'border-line' : 'border-warn/35')}>
+                      <Icon size={15} className="shrink-0 text-ink-3" aria-hidden />
+                      <div className="min-w-0">
+                        <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">{k}</p>
+                        <p className="truncate text-[13.5px] font-semibold text-ink">{v}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <FactGrid facts={[
+                { k: 'Document no.', v: d.documentNo, strong: true },
+                { k: 'Country', v: d.countryCode },
+                { k: 'Date of birth', v: d.dateOfBirth ? shortDate(d.dateOfBirth) : 'Not supplied' },
+                { k: 'Invested', v: usd(d.user.totalInvested) },
+                { k: 'Member', v: d.user.userCode },
+                { k: 'Email', v: d.user.email },
+                { k: 'Account', v: d.user.status },
+                { k: 'Joined', v: shortDate(d.user.createdAt) },
+              ]} />
 
               {d.status !== 'PENDING' && (
                 <p className="border-b border-line bg-canvas px-5 py-2.5 text-[12px] text-ink-2">
@@ -199,19 +246,26 @@ export default function KycPage() {
 
               <KycChecks checks={d.checks} />
 
-              <div className="grid gap-3 p-5 sm:grid-cols-2">
-                {d.documents.map((doc) => (
-                  <DocumentViewer key={doc.id} id={doc.id} label={DOC_LABEL[doc.type] ?? doc.type}
-                                  mimeType={doc.mimeType} sizeBytes={doc.sizeBytes} />
-                ))}
-                {d.documents.length === 0 && (
-                  <p className="col-span-full py-8 text-center text-[13px] text-ink-2">This submission has no documents attached.</p>
-                )}
+              <div className="p-5">
+                <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.06em] text-ink-2">
+                  Documents ({d.documents.length})
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {d.documents.map((doc) => (
+                    <DocumentViewer key={doc.id} id={doc.id} label={DOC_LABEL[doc.type] ?? doc.type}
+                                    mimeType={doc.mimeType} sizeBytes={doc.sizeBytes} />
+                  ))}
+                  {d.documents.length === 0 && (
+                    <p className="col-span-full rounded-[10px] border border-dashed border-line py-8 text-center text-[13px] text-ink-2">
+                      This submission has no documents attached.
+                    </p>
+                  )}
+                </div>
               </div>
 
               {d.history.length > 0 && (
                 <div className="border-t border-line px-5 py-4">
-                  <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.04em] text-ink-2">Earlier attempts</p>
+                  <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-ink-2">Earlier attempts</p>
                   <ul className="space-y-1.5">
                     {d.history.map((h) => (
                       <li key={h.id} className="flex items-center gap-2 text-[12px] text-ink-2">
@@ -225,8 +279,8 @@ export default function KycPage() {
               )}
             </>
           )}
-        </Card>
-      </div>
+        </Detail>
+      </Workbench>
 
       <ActionDialog
         open={decision === 'approve'}
