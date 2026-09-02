@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#08080E</color>
+    <!-- Sampled from brand/icon-maskable-512.png so the launcher plate
+         matches the icon the web app already ships. -->
+    <color name="ic_launcher_background">#071426</color>
 </resources>
