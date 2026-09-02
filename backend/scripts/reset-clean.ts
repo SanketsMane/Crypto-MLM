@@ -5,7 +5,7 @@ import { prisma } from '../src/core/db.js';
 /**
  * Wipes all customer and transactional data, leaving the platform clean.
  *
- * KEPT: the compensation plan (packages, commission rules, ranks, Roaming Club),
+ * KEPT: the compensation plan (packages, commission rules, ranks, Flyers Club),
  *       the RBAC catalogue (permissions, roles) and runtime settings — that is
  *       configuration, not data.
  * REMOVED: every customer, wallet, ledger entry, investment, commission,

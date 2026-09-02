@@ -3,16 +3,23 @@ import { prisma } from '../../core/db.js';
 import * as activity from '../../core/activity.js';
 import { notifyMember } from '../../core/notify.js';
 import { badRequest, notFound } from '../../core/errors.js';
+import { stepUpRequired } from '../auth/step-up.service.js';
+import { activeDirectCount } from '../../core/tree.js';
 
 export async function profile(userId: string) {
-  const u = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      currentRank: { select: { code: true, name: true, level: true } },
-      sponsor: { select: { userCode: true, firstName: true } },
-      teamVolume: true,
-    },
-  });
+  /* Active directs are counted, never read from `User.activeDirectCount` — that
+     column is stale for every real member. See core/tree.ts. */
+  const [u, activeDirects] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        currentRank: { select: { code: true, name: true, level: true } },
+        sponsor: { select: { userCode: true, firstName: true } },
+        teamVolume: true,
+      },
+    }),
+    activeDirectCount(userId),
+  ]);
   if (!u) throw notFound('User not found');
 
   return {
@@ -22,7 +29,7 @@ export async function profile(userId: string) {
     walletAddress: u.walletAddress,
     totalInvested: u.totalInvested.toString(),
     totalEarned: u.totalEarned.toString(),
-    directCount: u.directCount, activeDirectCount: u.activeDirectCount,
+    directCount: u.directCount, activeDirectCount: activeDirects,
     rank: u.currentRank, sponsor: u.sponsor,
     teamBusiness: u.teamVolume?.totalTeamBusiness?.toString() ?? '0',
     joinedAt: u.createdAt,
@@ -42,6 +49,7 @@ export async function update(
   userId: string,
   data: { firstName?: string; lastName?: string; phone?: string; walletAddress?: string },
   req?: Request,
+  stepUpMethod?: 'password' | 'totp',
 ) {
   const before = await prisma.user.findUnique({
     where: { id: userId },
@@ -49,13 +57,34 @@ export async function update(
   });
   if (!before) throw notFound('User not found');
 
+  /**
+   * Re-authentication, but only for the field that matters.
+   *
+   * Demanding it for a phone-number edit would train members to confirm
+   * without reading. Demanding it here is the point: this is the change an
+   * attacker makes, and the notification below is only a record of it —
+   * this is what actually stops it.
+   */
+  const changingAddress =
+    data.walletAddress !== undefined &&
+    data.walletAddress !== '' &&
+    data.walletAddress !== before.walletAddress;
+  if (changingAddress && !stepUpMethod) {
+    throw stepUpRequired('Confirm it is you before changing where your money is sent.');
+  }
+
   if (data.walletAddress !== undefined && data.walletAddress !== '') {
     if (!/^0x[a-fA-F0-9]{40}$/.test(data.walletAddress)) {
       throw badRequest('That is not a valid BEP-20 address');
     }
   }
 
-  const user = await prisma.user.update({ where: { id: userId }, data });
+  const user = await prisma.user.update({
+    where: { id: userId },
+    // Stamped in the same write as the address itself, so the hold can never
+    // be missing for an address that did change.
+    data: changingAddress ? { ...data, walletAddressChangedAt: new Date() } : data,
+  });
 
   const addressChanged =
     data.walletAddress !== undefined && data.walletAddress !== before.walletAddress;

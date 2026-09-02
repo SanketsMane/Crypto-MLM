@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 /** The password every test user is created with. */
 export const PASSWORD = 'Passw0rd!23';
@@ -124,8 +125,31 @@ export async function makeUser(opts: { sponsorId?: string; funded?: number } = {
     data: (['MAIN', 'FUND', 'DIGITAL'] as const).map((type) => ({ userId: user.id, type })),
   });
   await prisma.teamVolume.create({ data: { userId: user.id } });
-  if (sponsor) await prisma.$executeRaw`UPDATE users SET "directCount" = "directCount" + 1, "activeDirectCount" = "activeDirectCount" + 1 WHERE id = ${sponsor.id}`;
+  /**
+   * Only `directCount`, because that is all registration maintains.
+   *
+   * This fixture used to increment `activeDirectCount` too — and production
+   * never did. The whole suite therefore ran against a column that was
+   * populated in tests and permanently 0 in production, which is precisely why
+   * a 433-test suite never noticed that generation levels 2-30 paid nobody.
+   * A fixture that is kinder to the code than reality is worse than no
+   * fixture. Active directs are now counted live from the sponsorship edge.
+   */
+  if (sponsor) await prisma.$executeRaw`UPDATE users SET "directCount" = "directCount" + 1 WHERE id = ${sponsor.id}`;
 
+  /**
+   * Funded with a bare UPDATE, deliberately.
+   *
+   * This writes no ledger entry, so a fixture-funded wallet holds money the
+   * ledger cannot explain — which the trial-balance job correctly reports as
+   * drift. Posting a real DEPOSIT credit here instead was tried and reverted:
+   * it puts a transaction on core/db's connection pool inside a helper the
+   * whole suite calls, and that contends with `resetData`'s TRUNCATE badly
+   * enough to destabilise unrelated files.
+   *
+   * Tests that reconcile the books fund through the ledger themselves — see
+   * `fundThroughLedger` in trial-balance.test.ts.
+   */
   if (opts.funded) {
     await prisma.$executeRaw`
       UPDATE wallet_accounts SET balance = ${opts.funded}::numeric
@@ -149,6 +173,27 @@ export const balanceOf = async (userId: string, type: 'MAIN' | 'FUND' | 'DIGITAL
 export const accessTokenFor = async (userId: string) => {
   const { accessToken } = await issue('USER', userId);
   return accessToken;
+};
+
+/**
+ * A step-up ticket matching an access token, for tests that move money.
+ *
+ * Withdrawals and payout-address changes now demand re-authentication, and the
+ * ticket is bound to the session that minted it — so the session id is read
+ * back out of the access token rather than guessed. `password` is the weaker of
+ * the two methods, which keeps it honest: a test that needs the stronger one
+ * has to ask for `totp` explicitly.
+ */
+export const stepUpHeaderFor = async (
+  accessToken: string,
+  method: 'password' | 'totp' = 'password',
+) => {
+  const { sub, sid } = jwt.decode(accessToken) as { sub: string; sid: string };
+  return jwt.sign(
+    { sub, typ: 'step-up', sid, mth: method },
+    process.env.JWT_ACCESS_SECRET!,
+    { expiresIn: 300 },
+  );
 };
 
 /**

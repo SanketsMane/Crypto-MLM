@@ -16,7 +16,7 @@ async function pendingWithdrawal(amount = 100) {
   const u = await makeUser();
   await prisma.$executeRaw`
     UPDATE wallet_accounts SET balance = 1000 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
-  const w = await withdrawal.request(u.id, String(amount), '0x' + 'a'.repeat(40));
+  const w = await withdrawal.request(u.id, String(amount), '0x' + 'a'.repeat(40), undefined, 'password');
   return { user: u, w };
 }
 

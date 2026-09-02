@@ -2,7 +2,7 @@ import { prisma, type Tx } from '../../core/db.js';
 import { money } from '../../core/money.js';
 
 /**
- * Roaming Club (FortuneX p16/p17) — two independent tracks:
+ * Flyers Club (FortuneX p16/p17) — two independent tracks:
  *   AFFILIATE        — self capital AND team business
  *   SELF_CAPITALIST  — self capital only
  *

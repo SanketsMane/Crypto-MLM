@@ -28,6 +28,9 @@ router.delete('/sessions/:id', requireAuth, asyncHandler(controller.endSession))
 router.post('/logout-all', requireAuth, asyncHandler(controller.logoutEverywhere));
 router.post('/change-password', requireAuth, asyncHandler(account.changePassword));
 
+/** Re-authentication for money-moving actions. Limited like sign-in — it takes the same password. */
+router.post('/step-up', requireAuth, authLimiter, asyncHandler(controller.stepUpIssue));
+
 /** Email verification */
 router.post('/verify-email/send', requireAuth, authLimiter, asyncHandler(account.sendVerification));
 router.post('/verify-email/confirm', requireAuth, asyncHandler(account.confirmVerification));

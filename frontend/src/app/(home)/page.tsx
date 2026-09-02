@@ -88,9 +88,9 @@ export default async function FortuneXHome() {
       ],
     },
     {
-      label: 'Roaming Club',
+      label: 'Flyers Club',
       cards: [thailand, dubai].filter(Boolean).map((t) => ({
-        title: `${t.destination} Trip`, badge: 'Roaming Club',
+        title: `${t.destination} Trip`, badge: 'Flyers Club',
         headline: planMoney(t.self), sub: 'Self capital required',
         stats: [
           { k: 'Team business', v: planMoney(t.team) },

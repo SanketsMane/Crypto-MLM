@@ -7,6 +7,7 @@ import { Card, CardHead, PageHeader, Table, Badge } from '@/components/ui/primit
 import { StatCard } from '@/components/dashboard/stat-card';
 import { IncomeStreams, type IncomePoint } from '@/components/dashboard/income-streams';
 import { usd, num, titleCase } from '@/lib/format';
+import { rankLabel } from '@/lib/rank';
 
 interface Overview {
   users: { total: number; active: number; newToday: number };
@@ -17,7 +18,7 @@ interface Overview {
   withdrawals: { count: number; total: string; feesCollected: string };
   netPosition: string;
 }
-interface Earner { userCode: string; email: string; totalInvested: string; totalEarned: string; rank: string | null }
+interface Earner { userCode: string; email: string; totalInvested: string; totalEarned: string; rank: string | null; rankLevel: number | null }
 interface CapRow { status: string; count: number; volume: string; capLimit: string; earned: string }
 
 interface Cohort {
@@ -172,7 +173,7 @@ export default function ReportsPage() {
             <span key="m" className="text-ink-2">{x.email}</span>,
             <span key="i" className="tabular-nums">{usd(x.totalInvested)}</span>,
             <span key="e" className="font-medium tabular-nums text-good">{usd(x.totalEarned)}</span>,
-            x.rank ?? '—',
+            <span key="k" className="tabular-nums">{rankLabel(x.rankLevel)}</span>,
           ])} />
       </Card>
     </>

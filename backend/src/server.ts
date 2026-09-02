@@ -6,9 +6,27 @@ import { flushNotifications } from './core/notify.js';
 import { flushActivity } from './core/activity.js';
 import { flushErrors, installProcessHandlers } from './core/error-reporter.js';
 import { syncPermissions } from './modules/admin/rbac/rbac.service.js';
+import { payoutRail } from './core/payout-rail.js';
 
 // Before anything else, so a fault during boot is recorded rather than lost.
 installProcessHandlers();
+
+/**
+ * Refuse to serve on a payout configuration that would pay twice.
+ *
+ * Both rails able to send, with nothing naming which, means every approval
+ * spends the member's net amount twice. `assertPayoutRail` already blocks the
+ * approval itself, but a platform that boots quietly into that state and only
+ * fails when an operator clicks Approve has left the fault to be discovered at
+ * the worst moment. This is the same reasoning as the placeholder-secret check
+ * in config/env.ts: loud at boot beats silent until it matters.
+ */
+const rail = payoutRail();
+if (rail.ambiguous) {
+  logger.fatal({ reason: rail.reason }, 'refusing to start — payout configuration is ambiguous');
+  process.exit(1);
+}
+logger.info({ rail: rail.rail, reason: rail.reason }, 'payout rail resolved');
 
 const app = createApp();
 const server = app.listen(env.PORT, () => {

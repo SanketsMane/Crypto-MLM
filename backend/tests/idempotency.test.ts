@@ -3,15 +3,20 @@ import request from 'supertest';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
 import { clearSessionCache } from '../src/middleware/auth.js';
-import { prisma, resetData, seedPlan, makeUser, balanceOf, accessTokenFor, verifyKyc } from './helpers.js';
+import { prisma, resetData, seedPlan, makeUser, balanceOf, accessTokenFor, verifyKyc, stepUpHeaderFor } from './helpers.js';
 
 const app = createApp();
 const plan = (amount: string) => prisma.packagePlan.findFirstOrThrow({ where: { amount } });
 
-/** A funded member plus the Authorization header their browser would send. */
+/**
+ * A funded member plus the headers a real client sends. `stepUp` is the
+ * re-authentication a withdrawal now needs — supplied here so these tests keep
+ * exercising idempotency rather than tripping over the guard in front of it.
+ */
 async function member(funded = 5000) {
   const u = await makeUser({ funded });
-  return { id: u.id, auth: `Bearer ${await accessTokenFor(u.id)}` };
+  const token = await accessTokenFor(u.id);
+  return { id: u.id, auth: `Bearer ${token}`, stepUp: await stepUpHeaderFor(token) };
 }
 
 beforeAll(seedPlan);
@@ -190,7 +195,8 @@ describe('other money endpoints are guarded too', () => {
     const body = { amount: '100', walletAddress: '0x1234567890abcdef1234567890abcdef12345678' };
     const send = () =>
       request(app).post('/api/v1/withdrawals')
-        .set('Authorization', u.auth).set('Idempotency-Key', key).send(body);
+        .set('Authorization', u.auth).set('X-Step-Up', u.stepUp)
+        .set('Idempotency-Key', key).send(body);
 
     await send();
     await send();

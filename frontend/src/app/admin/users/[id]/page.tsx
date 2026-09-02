@@ -11,13 +11,14 @@ import { adminGet, adminPost, adminPatch, adminError } from '@/lib/admin-api';
 import { Panel, Metric, Table, Badge, toneFor, Button, PageHeader, controlCls } from '@/components/ui/primitives';
 import { ActionDialog } from '@/components/ui/dialog';
 import { usd, shortDate, titleCase } from '@/lib/format';
+import { rankLabel } from '@/lib/rank';
 
 interface Detail {
   profile: {
     id: string; userCode: string; email: string; phone: string | null; name: string;
     status: string; affiliateMode: string; walletAddress: string | null;
     totalInvested: string; totalEarned: string; directCount: number; activeDirectCount: number;
-    depth: number; rank: { code: string; name: string } | null;
+    depth: number; rank: { code: string; name: string; level: number } | null;
     sponsor: { userCode: string; email: string } | null;
     lastLoginAt: string | null; createdAt: string;
   };
@@ -27,7 +28,7 @@ interface Detail {
   investments: { id: string; package: string; amount: string; capLimit: string; totalEarned: string; status: string; startedAt: string }[];
   ledger: { id: string; wallet: string; direction: string; category: string; amount: string; balanceAfter: string; description: string | null; createdAt: string }[];
   commissions: { id: string; kind: string; level: number; from: string; percent: string; baseAmount: string; paidAmount: string; createdAt: string }[];
-  ranks: { rank: string; reward: string; achievedAt: string }[];
+  ranks: { rank: string; rankLevel: number; reward: string; achievedAt: string }[];
   directs: { userCode: string; email: string; status: string; totalInvested: string; createdAt: string }[];
 }
 
@@ -115,7 +116,7 @@ export default function AdminUserDetail() {
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={toneFor(p.status)}>{p.status}</Badge>
           <Badge tone={p.affiliateMode === 'ACTIVE' ? 'info' : 'neutral'}>cap {p.affiliateMode === 'ACTIVE' ? '300%' : '250%'}</Badge>
-          {p.rank && <Badge tone="good">{p.rank.name}</Badge>}
+          {p.rank && <Badge tone="good">{rankLabel(p.rank.level)}</Badge>}
         </div>
       </div>
 

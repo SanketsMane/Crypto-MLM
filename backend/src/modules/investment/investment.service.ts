@@ -3,7 +3,7 @@ import { postEntry } from '../../core/ledger.js';
 import { money, percentOf, toDb, type Money } from '../../core/money.js';
 import { makeReference } from '../../core/reference.js';
 import { badRequest, notFound } from '../../core/errors.js';
-import { payDirectBonus, payBinaryBonus } from '../commission/commission.service.js';
+import { payDirectBonus, payBinaryBonus, announceCommissions } from '../commission/commission.service.js';
 import { propagateInvestment } from '../team/team.service.js';
 import { evaluate as evaluateRank } from '../rank/rank.service.js';
 import { evaluate as evaluateRoaming } from '../roaming-club/roaming-club.service.js';
@@ -17,7 +17,7 @@ import type { Request } from 'express';
 /**
  * Purchase flow. Everything below happens in ONE transaction:
  *   debit FUND wallet → create investment → pay 3-level direct bonus
- *   → propagate team volume → re-evaluate rank and Roaming Club.
+ *   → propagate team volume → re-evaluate rank and Flyers Club.
  *
  * If any step fails the whole purchase rolls back, so money never moves
  * without the matching commissions.
@@ -104,29 +104,14 @@ export async function purchase(userId: string, packageId: string, req?: Request)
 
       /* No-ops under unilevel — it checks the plan structure itself, so the
          purchase path reads the same whichever plan is in force. */
-      await payBinaryBonus(tx, { investmentId: investment.id, buyerId: userId, amount });
-
-      notifyMember({
-        userId,
-        type: 'investment.purchased',
-        dedupeKey: `investment:${investment.id}`,
-        title: `${plan.name} activated`,
-        body: `$${amount.toString()} invested. Daily returns start on the next trading day, up to a ceiling of $${capLimit.toString()}.`,
-        meta: { investmentId: investment.id, plan: plan.name, amount: amount.toString() },
-      });
+      const binary = await payBinaryBonus(tx, { investmentId: investment.id, buyerId: userId, amount });
 
       // Milestone cards unlock inside the same transaction, so one cannot
       // exist for a purchase that rolled back.
       const rewardTiers = await evaluateRewards(tx, userId);
       const drawTickets = await issueTickets(tx, userId);
 
-      activity.record({
-        userId, event: 'INVESTMENT_PURCHASED', req,
-        summary: `Purchased ${plan.name} for $${amount.toString()}`,
-        meta: { plan: plan.name, amount: amount.toString(), capLimit: capLimit.toString() },
-      });
-
-      return { investment, bonuses, rewardTiers, drawTickets };
+      return { investment, bonuses: [...bonuses, ...binary], rewardTiers, drawTickets };
     },
     { timeout: 30_000 },
   ).then(async (res) => {
@@ -134,8 +119,31 @@ export async function purchase(userId: string, packageId: string, req?: Request)
     // hold the purchase transaction open.
     await evaluateRank(userId).catch(() => undefined);
     await evaluateRoaming(userId).catch(() => undefined);
-    // Announced after commit, so a member is never told about a card that a
-    // rolled-back purchase would have taken away again.
+
+    /**
+     * Everything below is announced after commit, for one reason: none of it
+     * runs on the transaction. `notifyMember` and `activity.record` write
+     * through the global client so they can never fail a purchase, which also
+     * means they commit independently of it — so calling them from inside the
+     * transaction told the member about a purchase a late rollback would then
+     * erase.
+     */
+    notifyMember({
+      userId,
+      type: 'investment.purchased',
+      dedupeKey: `investment:${res.investment.id}`,
+      title: `${plan.name} activated`,
+      body: `$${amount.toString()} invested. Daily returns start on the next trading day, up to a ceiling of $${capLimit.toString()}.`,
+      meta: { investmentId: res.investment.id, plan: plan.name, amount: amount.toString() },
+    });
+
+    activity.record({
+      userId, event: 'INVESTMENT_PURCHASED', req,
+      summary: `Purchased ${plan.name} for $${amount.toString()}`,
+      meta: { plan: plan.name, amount: amount.toString(), capLimit: capLimit.toString() },
+    });
+
+    await announceCommissions(userId, res.bonuses).catch(() => undefined);
     announceRewards(userId, res.rewardTiers);
     announceTickets(userId, res.drawTickets);
     return res;

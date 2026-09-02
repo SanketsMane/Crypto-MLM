@@ -47,7 +47,7 @@ const RANKS = [
   { code: 'LEGEND',    name: 'Legend',    level: 10, self: 10_000, team: 5_000_000, reward: 250_000 },
 ];
 
-/** p16 / p17 — Roaming Club, two tracks. */
+/** p16 / p17 — Flyers Club, two tracks. */
 const ROAMING = [
   { track: 'AFFILIATE',       destination: 'Thailand',  self: 500,    team: 3_000 },
   { track: 'AFFILIATE',       destination: 'Malaysia',  self: 1_000,  team: 6_000 },
@@ -124,7 +124,7 @@ async function main() {
     });
   }
 
-  // ── roaming club ──
+  // ── flyers club ──
   for (const [i, t] of ROAMING.entries()) {
     await prisma.roamingClubTier.upsert({
       where: { track_destination: { track: t.track as RoamingTrack, destination: t.destination } },

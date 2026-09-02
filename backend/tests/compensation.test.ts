@@ -153,7 +153,7 @@ describe('withdrawals', () => {
     await verifyKyc(u.id);
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 500 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
 
-    const w = await requestWithdrawal(u.id, '100', '0x1234567890abcdef1234567890abcdef12345678');
+    const w = await requestWithdrawal(u.id, '100', '0x1234567890abcdef1234567890abcdef12345678', undefined, 'password');
 
     expect(Number(w.fee)).toBeCloseTo(5, 6);
     expect(Number(w.netAmount)).toBeCloseTo(95, 6);
@@ -166,15 +166,15 @@ describe('withdrawals', () => {
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 99999 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
     const addr = '0x1234567890abcdef1234567890abcdef12345678';
 
-    await expect(requestWithdrawal(u.id, '5', addr)).rejects.toThrow(/Minimum/);
-    await expect(requestWithdrawal(u.id, '5001', addr)).rejects.toThrow(/Maximum/);
+    await expect(requestWithdrawal(u.id, '5', addr, undefined, 'password')).rejects.toThrow(/Minimum/);
+    await expect(requestWithdrawal(u.id, '5001', addr, undefined, 'password')).rejects.toThrow(/Maximum/);
   });
 
   it('rejects a malformed payout address', async () => {
     const u = await makeUser();
     await verifyKyc(u.id);
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 500 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
-    await expect(requestWithdrawal(u.id, '100', 'not-an-address')).rejects.toThrow(/BEP-20/);
+    await expect(requestWithdrawal(u.id, '100', 'not-an-address', undefined, 'password')).rejects.toThrow(/BEP-20/);
   });
 
   it('cannot be double-spent by two simultaneous requests', async () => {
@@ -184,8 +184,8 @@ describe('withdrawals', () => {
     const addr = '0x1234567890abcdef1234567890abcdef12345678';
 
     const results = await Promise.allSettled([
-      requestWithdrawal(u.id, '100', addr),
-      requestWithdrawal(u.id, '100', addr),
+      requestWithdrawal(u.id, '100', addr, undefined, 'password'),
+      requestWithdrawal(u.id, '100', addr, undefined, 'password'),
     ]);
 
     expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);

@@ -7,6 +7,7 @@ import { Card, CardHead } from '@/components/ui/primitives';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { Users, Wallet } from 'lucide-react';
 import { usd, pct, shortDate } from '@/lib/format';
+import { rankLabel } from '@/lib/rank';
 
 interface RankRow {
   rankCode: string; rankName: string; level: number;
@@ -55,11 +56,10 @@ export default function RankPage() {
                     {r.achieved ? <Check size={18} strokeWidth={2.4} /> : <Trophy size={17} />}
                   </span>
                   <div>
-                    <p className="text-[15px] font-semibold text-ink">{r.rankName}</p>
-                    <p className="text-[11.5px] text-ink-2">
-                      Rank {r.level}
-                      {r.achievedAt && ` · achieved ${shortDate(r.achievedAt)}`}
-                    </p>
+                    <p className="text-[15px] font-semibold text-ink">{rankLabel(r.level)}</p>
+                    {r.achievedAt && (
+                      <p className="text-[11.5px] text-ink-2">Achieved {shortDate(r.achievedAt)}</p>
+                    )}
                   </div>
                 </div>
                 <div className="text-right">

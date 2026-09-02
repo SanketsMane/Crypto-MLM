@@ -54,12 +54,12 @@ export async function topEarners(take = 20) {
   const rows = await prisma.user.findMany({
     orderBy: { totalEarned: 'desc' }, take,
     select: { userCode: true, email: true, totalInvested: true, totalEarned: true, directCount: true,
-              currentRank: { select: { name: true } } },
+              currentRank: { select: { name: true, level: true } } },
   });
   return rows.map((r) => ({
     userCode: r.userCode, email: r.email,
     totalInvested: r.totalInvested.toString(), totalEarned: r.totalEarned.toString(),
-    directCount: r.directCount, rank: r.currentRank?.name ?? null,
+    directCount: r.directCount, rank: r.currentRank?.name ?? null, rankLevel: r.currentRank?.level ?? null,
   }));
 }
 

@@ -6,7 +6,8 @@ import { env } from '../../config/env.js';
 import * as oxapay from './oxapay.js';
 import * as deposits from '../../modules/deposit/deposit.service.js';
 import * as activity from '../activity.js';
-import { notifyMember } from '../notify.js';
+import { notifyAdmins, notifyMember } from '../notify.js';
+import * as withdrawals from '../../modules/withdrawal/withdrawal.service.js';
 
 /**
  * The bridge between OxaPay and our ledger.
@@ -229,7 +230,9 @@ async function applyPayout(trackId: string, status: string, payload: Record<stri
     data: { gatewayStatus: status, ...(txHash ? { txHash } : {}) },
   });
 
-  if (oxapay.payoutOutcome(status) === 'confirmed' && txHash) {
+  const outcome = oxapay.payoutOutcome(status);
+
+  if (outcome === 'confirmed' && txHash) {
     notifyMember({
       userId: w.userId,
       type: 'withdrawal.sent',
@@ -238,7 +241,52 @@ async function applyPayout(trackId: string, status: string, payload: Record<stri
       body: `$${w.netAmount.toString()} has been sent. Transaction ${txHash.slice(0, 10)}…`,
       meta: { withdrawalId: w.id, txHash },
     });
+    return true;
   }
+
+  /**
+   * The gateway refused to send it.
+   *
+   * `payoutOutcome` has always computed this, and until now nothing consumed
+   * it: the withdrawal stayed PROCESSED, the member stayed debited and no
+   * alert fired anywhere. `ops-watch` inspects on-chain payouts only, and the
+   * overdue query filters on PENDING, so a payout stuck this way was invisible
+   * to every dashboard the operator has. The member had lost the money and the
+   * platform did not know.
+   */
+  if (outcome === 'failed') {
+    const reason = `Gateway reported the payout as ${status}`;
+    const refunded = await withdrawals.markPayoutFailed(w.id, reason);
+
+    // Null means a duplicate callback — the first one already refunded it.
+    if (refunded) {
+      logger.error(
+        { withdrawalId: w.id, reference: w.reference, status, amount: w.amount.toString() },
+        'gateway payout failed — member refunded in full',
+      );
+
+      notifyMember({
+        userId: w.userId,
+        type: 'withdrawal.rejected',
+        dedupeKey: `withdrawal-gwfail:${w.id}`,
+        title: 'Withdrawal could not be sent',
+        body: `Your $${w.amount.toString()} withdrawal could not be delivered by the payment provider, `
+            + 'and the full amount has been returned to your wallet. You can request it again, '
+            + 'or contact support if it keeps happening.',
+        meta: { withdrawalId: w.id, amount: w.amount.toString(), reason },
+      });
+
+      notifyAdmins({
+        type: 'system.payout_failed',
+        dedupeKey: `gateway-payout-failed:${w.id}`,
+        title: `Gateway payout failed — $${w.amount.toString()} refunded`,
+        body: `${w.reference} came back as ${status}. The member has been refunded in full. `
+            + 'Check the gateway account before approving further payouts.',
+        meta: { withdrawalId: w.id, status, amount: w.amount.toString() },
+      });
+    }
+  }
+
   return true;
 }
 

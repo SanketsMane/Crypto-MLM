@@ -188,7 +188,6 @@ export default function KycPage() {
                     <Button
                       size="sm"
                       disabled={d.checkLevel === 'FAIL'}
-                      title={d.checkLevel === 'FAIL' ? 'A verification check is failing' : undefined}
                       onClick={() => setDecision('approve')}
                     >
                       <ShieldCheck size={14} /> Approve
@@ -196,6 +195,26 @@ export default function KycPage() {
                   </>
                 )}
               </DetailBar>
+
+              {d.status === 'PENDING' && !can('kyc.review') && (
+                <div className="flex items-start gap-2.5 border-b border-line bg-canvas px-5 py-3">
+                  <ShieldCheck size={15} className="mt-[1px] shrink-0 text-ink-3" />
+                  <p className="text-[12px] leading-relaxed text-ink-2">
+                    Read-only. Deciding an identity check needs the “Approve or reject KYC” permission —
+                    you can read the submission and its documents, but not rule on it.
+                  </p>
+                </div>
+              )}
+
+              {reviewable && d.checkLevel === 'FAIL' && (
+                <div className="flex items-start gap-2.5 border-b border-line bg-bad-soft px-5 py-3">
+                  <ShieldX size={15} className="mt-[1px] shrink-0 text-bad-on" />
+                  <p className="text-[12px] leading-relaxed text-bad-on">
+                    A verification check is failing, so approval is blocked. Read the checks below — if the
+                    submission is genuinely wrong, reject it with a reason the member can act on.
+                  </p>
+                </div>
+              )}
 
               {/* The comparison the whole review turns on, given its own row
                   rather than buried as two cells in an eight-cell grid. */}

@@ -34,7 +34,7 @@ export async function list(opts: { take: number; skip: number; search?: string; 
     prisma.user.findMany({
       where, orderBy: { createdAt: 'desc' }, take: opts.take, skip: opts.skip,
       include: {
-        currentRank: { select: { name: true } },
+        currentRank: { select: { name: true, level: true } },
         teamVolume: { select: { totalTeamBusiness: true, teamSize: true } },
       },
     }),
@@ -51,6 +51,7 @@ export async function list(opts: { take: number; skip: number; search?: string; 
       totalEarned: u.totalEarned.toString(),
       directCount: u.directCount,
       rank: u.currentRank?.name ?? null,
+      rankLevel: u.currentRank?.level ?? null,
       teamBusiness: u.teamVolume?.totalTeamBusiness?.toString() ?? '0',
       teamSize: u.teamVolume?.teamSize ?? 0,
       createdAt: u.createdAt,
@@ -82,6 +83,10 @@ export async function detail(userId: string) {
     getCapState(userId),
   ]);
 
+  /* Counted from the directs already loaded above rather than read from the
+     stale `activeDirectCount` column. See core/tree.ts. */
+  const activeDirects = directs.filter((d) => d.status === 'ACTIVE').length;
+
   return {
     profile: {
       id: user.id, userCode: user.userCode, email: user.email, phone: user.phone,
@@ -90,9 +95,11 @@ export async function detail(userId: string) {
       walletAddress: user.walletAddress,
       totalInvested: user.totalInvested.toString(),
       totalEarned: user.totalEarned.toString(),
-      directCount: user.directCount, activeDirectCount: user.activeDirectCount,
+      directCount: user.directCount, activeDirectCount: activeDirects,
       depth: user.depth, path: user.path,
-      rank: user.currentRank ? { code: user.currentRank.code, name: user.currentRank.name } : null,
+      rank: user.currentRank
+        ? { code: user.currentRank.code, name: user.currentRank.name, level: user.currentRank.level }
+        : null,
       sponsor: user.sponsor,
       emailVerifiedAt: user.emailVerifiedAt, lastLoginAt: user.lastLoginAt, createdAt: user.createdAt,
     },
@@ -123,7 +130,7 @@ export async function detail(userId: string) {
       amount: c.amount.toString(), paidAmount: c.paidAmount.toString(),
       status: c.status, createdAt: c.createdAt,
     })),
-    ranks: ranks.map((r) => ({ rank: r.rank.name, reward: r.rewardAmount.toString(), achievedAt: r.achievedAt })),
+    ranks: ranks.map((r) => ({ rank: r.rank.name, rankLevel: r.rank.level, reward: r.rewardAmount.toString(), achievedAt: r.achievedAt })),
     deposits, withdrawals,
     directs: directs.map((d) => ({ ...d, totalInvested: d.totalInvested.toString() })),
   };

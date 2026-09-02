@@ -65,6 +65,16 @@ const schema = z.object({
   /** Public origin OxaPay calls back to. Must be reachable from the internet. */
   OXAPAY_CALLBACK_BASE: z.string().optional(),
 
+  /**
+   * Which rail sends an approved withdrawal: 'chain', 'gateway' or 'manual'.
+   *
+   * Optional, and inferred when unset — a deployment with only one rail
+   * configured needs nothing here. It exists for the case where BOTH the hot
+   * wallet and the gateway can send, which is otherwise ambiguous and used to
+   * pay the member twice. See core/payout-rail.ts.
+   */
+  PAYOUT_RAIL: z.enum(['chain', 'gateway', 'manual']).optional(),
+
   CHAIN_ENABLED: z.coerce.boolean().default(false),
   CHAIN_RPC_URL: z.string().optional(),
   CHAIN_ID: z.coerce.number().default(56),

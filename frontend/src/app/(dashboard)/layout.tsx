@@ -11,14 +11,14 @@ import { MEMBER_PAGE } from '@/components/member/nav-config';
 import { PageHeader } from '@/components/ui/primitives';
 import { get } from '@/lib/api';
 import { useMe } from '@/features/auth/use-auth';
-import { Splash } from '@/components/ui/splash';
+import { SessionLoading } from '@/components/ui/session-loading';
 import { AnnouncementBanners } from '@/features/announcements/banner';
 import { SupportViewBar } from '@/features/support-view/support-view';
 
 interface Head { profile: { name: string; userCode: string; referralLink: string; rank: { name: string } | null } }
 
 /** pages that draw their own page-level heading */
-const SELF_HEADED = new Set(['/dashboard', '/roaming-club', '/wallet']);
+const SELF_HEADED = new Set(['/dashboard', '/flyers-club', '/wallet']);
 
 export default function MemberLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -39,11 +39,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
   useEffect(() => { setMobileOpen(false); }, [pathname]);
   useEffect(() => { if (signedOut) router.replace('/login'); }, [signedOut, router]);
 
-  if (isLoading) {
-    return (
-      <Splash />
-    );
-  }
+  if (isLoading) return <SessionLoading label="Loading your account" />;
   if (signedOut) return null;
 
   /**
@@ -76,7 +72,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
         <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">
           <div className="mx-auto w-full max-w-[1520px]">
             {/* some pages render their own header: the dashboard hosts the date
-                control in it, Roaming Club replaces it with brand artwork */}
+                control in it, Flyers Club replaces it with brand artwork */}
             {page && !SELF_HEADED.has(pathname) && <PageHeader title={page.title} subtitle={page.subtitle} />}
             <AnnouncementBanners />
             {children}

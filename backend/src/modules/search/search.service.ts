@@ -200,7 +200,7 @@ const MEMBER_PAGES: { title: string; subtitle: string; href: string; terms: stri
   { title: 'Genealogy',     subtitle: 'Browse your downline',                       href: '/genealogy',    terms: 'genealogy tree downline levels' },
   { title: 'Level Status',  subtitle: 'All 30 generation levels',                   href: '/levels',       terms: 'levels generation unlock' },
   { title: 'Rank',          subtitle: 'Your position and what unlocks next',        href: '/rank',         terms: 'rank ladder achievement' },
-  { title: 'Roaming Club',  subtitle: 'Travel rewards',                             href: '/roaming-club', terms: 'roaming club travel reward trip' },
+  { title: 'Flyers Club',  subtitle: 'Travel rewards',                             href: '/flyers-club', terms: 'flyers club roaming travel reward trip destination' },
   { title: 'Notifications', subtitle: 'Everything we have told you',                href: '/notifications',terms: 'notifications alerts bell' },
   { title: 'Security',      subtitle: 'Password, two-factor and devices',           href: '/security',     terms: 'security password 2fa two factor devices sessions' },
   { title: 'Profile',       subtitle: 'Your details and payout address',            href: '/profile',      terms: 'profile account details address' },

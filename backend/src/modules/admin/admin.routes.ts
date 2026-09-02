@@ -86,6 +86,7 @@ r.get('/packages',                 can('plan.view'),      asyncHandler(catalog.p
 r.post('/packages',                can('plan.edit'),      asyncHandler(catalog.upsertPackage));
 r.get('/commission-rules',         can('plan.view'),      asyncHandler(catalog.commissionRules));
 r.put('/commission-rules',         can('plan.edit'),      asyncHandler(catalog.updateCommissionRule));
+r.put('/commission-rules/batch',   can('plan.edit'),      asyncHandler(catalog.updateCommissionRules));
 r.get('/ranks',                    can('plan.view'),      asyncHandler(catalog.ranks));
 r.patch('/ranks/:id',              can('plan.edit'),      asyncHandler(catalog.updateRank));
 r.get('/rank-achievements',        can('plan.view'),      asyncHandler(catalog.rankAchievements));

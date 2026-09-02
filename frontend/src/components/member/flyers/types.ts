@@ -1,7 +1,8 @@
 /**
- * Roaming Club — presentation model.
+ * Flyers Club — presentation model.
  *
- * Everything here is *derived* from the `/roaming-club` payload. No threshold,
+ * Everything here is *derived* from the `/roaming-club` payload (the API path
+ * is unchanged; only the programme's name is). No threshold,
  * no qualification rule and no locked/unlocked decision is made in the UI:
  * `achieved` comes from the server, and the percentages are the same ratio the
  * page has always drawn (actual ÷ requirement, capped at 100).
@@ -100,6 +101,29 @@ export function journey(tiers: TierView[]): JourneyStop[] {
   });
 }
 
+/**
+ * The member's standing across the whole programme, in the three figures the
+ * hero reports: how many destinations are already theirs, which one is next,
+ * and how far along that one is.
+ */
+export interface Standing {
+  qualified: number;
+  total: number;
+  next: TierView | null;
+  /** progress toward `next`, 0–100 — 100 once nothing is left to reach */
+  pct: number;
+}
+
+export function standing(tiers: TierView[], stops: JourneyStop[]): Standing {
+  const next = nextReward(tiers);
+  return {
+    qualified: stops.filter((s) => s.state === 'done').length,
+    total: stops.length,
+    next,
+    pct: next ? Math.floor(next.overallPct) : 100,
+  };
+}
+
 /* ── track copy ───────────────────────────────────────────────────────────
    The rule wording is carried over verbatim from the previous page — it
    describes how qualification actually works and must not drift.          */
@@ -108,15 +132,15 @@ export const TRACK_META: Record<string, {
 }> = {
   SELF_CAPITALIST: {
     short: 'Self capitalist',
-    title: 'Self Capital Track',
-    description: 'Build your own capital to unlock travel rewards.',
+    title: 'Self capital route',
+    description: 'Your own committed capital, counted alone.',
     blurb: 'Qualify on your own capital alone — no team required.',
     tone: 'gold',
   },
   AFFILIATE: {
     short: 'Affiliate',
-    title: 'Team Business Track',
-    description: 'Grow your network and unlock higher travel rewards.',
+    title: 'Team business route',
+    description: 'Your capital and your team business, counted together.',
     blurb: 'Qualify on your own capital and your team business together.',
     tone: 'violet',
   },

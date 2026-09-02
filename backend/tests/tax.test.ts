@@ -30,7 +30,7 @@ beforeEach(resetData);
 describe('withholding tax', () => {
   it('deducts nothing when no rate is configured', async () => {
     const u = await member();
-    const w = await requestWithdrawal(u.id, '100', ADDR);
+    const w = await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
 
     expect(Number(w.tax)).toBe(0);
     expect(Number(w.fee)).toBeCloseTo(5, 6);
@@ -40,7 +40,7 @@ describe('withholding tax', () => {
   it('withholds on the amount after the fee, not on the gross', async () => {
     await setRate('5');
     const u = await member();
-    const w = await requestWithdrawal(u.id, '100', ADDR);
+    const w = await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
 
     // fee 5% of 100 = 5; tax 5% of the remaining 95 = 4.75
     expect(Number(w.fee)).toBeCloseTo(5, 6);
@@ -53,7 +53,7 @@ describe('withholding tax', () => {
     const u = await member(5000);
 
     for (const amount of ['10', '100', '333.33', '1000']) {
-      const w = await requestWithdrawal(u.id, amount, ADDR);
+      const w = await requestWithdrawal(u.id, amount, ADDR, undefined, 'password');
       const reconciled = Number(w.amount) - Number(w.fee) - Number(w.tax);
       expect(Number(w.netAmount)).toBeCloseTo(reconciled, 6);
     }
@@ -62,7 +62,7 @@ describe('withholding tax', () => {
   it('still debits the full gross from the member wallet', async () => {
     await setRate('5');
     const u = await member(500);
-    await requestWithdrawal(u.id, '100', ADDR);
+    await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
 
     // The member is debited what they asked to withdraw; the deductions come
     // out of what is sent, not out of a second charge.
@@ -72,7 +72,7 @@ describe('withholding tax', () => {
   it('records the rate that applied, so a later change cannot rewrite history', async () => {
     await setRate('5');
     const u = await member();
-    const w = await requestWithdrawal(u.id, '100', ADDR);
+    const w = await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
 
     await setRate('20');
 
@@ -96,7 +96,7 @@ describe('withholding tax', () => {
     await setRate('50');
     const u = await member();
     // The floor still applies first, so use an amount that clears it.
-    const w = await requestWithdrawal(u.id, '100', ADDR);
+    const w = await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
     expect(Number(w.netAmount)).toBeCloseTo(47.5, 6);
   });
 });
@@ -105,8 +105,8 @@ describe('annual summary', () => {
   it('reports what was withheld across the year', async () => {
     await setRate('10');
     const u = await member(5000);
-    const w1 = await requestWithdrawal(u.id, '100', ADDR);
-    const w2 = await requestWithdrawal(u.id, '200', ADDR);
+    const w1 = await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
+    const w2 = await requestWithdrawal(u.id, '200', ADDR, undefined, 'password');
     await prisma.withdrawal.updateMany({
       where: { id: { in: [w1.id, w2.id] } },
       data: { status: 'PROCESSED', processedAt: new Date() },
@@ -125,7 +125,7 @@ describe('annual summary', () => {
   it('counts only payouts that actually went out', async () => {
     await setRate('10');
     const u = await member(5000);
-    await requestWithdrawal(u.id, '100', ADDR);   // still pending
+    await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');   // still pending
 
     const summary = await taxSummary(u.id, new Date().getUTCFullYear());
     expect(summary.withdrawals.count).toBe(0);

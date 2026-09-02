@@ -62,7 +62,7 @@ describe('the chain subsystem is off unless configured', () => {
     const u = await makeUser();
     await verifyKyc(u.id);
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 500 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
-    const w = await requestWithdrawal(u.id, '100', ADDR);
+    const w = await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
 
     const result = await enqueue(w.id);
 
@@ -85,7 +85,7 @@ describe('payout state machine', () => {
     const u = await makeUser();
     await verifyKyc(u.id);
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 500 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
-    const w = await requestWithdrawal(u.id, '100', ADDR);
+    const w = await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
     return prisma.chainPayout.create({
       data: { withdrawalId: w.id, toAddress: ADDR, amount: '95', status: status as never, txHash },
     });
@@ -150,7 +150,7 @@ describe('payout state machine', () => {
     const u = await makeUser();
     await verifyKyc(u.id);
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 500 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
-    const w = await requestWithdrawal(u.id, '100', ADDR);
+    const w = await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
 
     const row = await prisma.chainPayout.create({
       data: { withdrawalId: w.id, toAddress: ADDR, amount: w.netAmount.toString() },

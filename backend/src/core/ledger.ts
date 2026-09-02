@@ -65,8 +65,19 @@ export async function postEntry(db: Tx, input: PostEntryInput) {
 
   const delta = input.direction === 'CREDIT' ? amount : amount.neg();
 
-  // Atomic move. For debits the guard rides in the WHERE clause, so an
-  // overdraw is impossible even under concurrent requests.
+  /**
+   * Atomic move. For debits the guard rides in the WHERE clause, so an
+   * overdraw is impossible even under concurrent requests.
+   *
+   * The guard is against SPENDABLE funds — `balance - locked` — not the raw
+   * balance. `locked` is what a hold reserves, `wallet.service` already
+   * subtracts it to produce the `available` figure the member is shown, and
+   * this guard used to ignore it entirely. Nothing writes `locked` today, so
+   * the two readings coincide and no money was ever at risk; the defect was
+   * that the first feature to reserve funds would have shipped looking correct
+   * and been bypassable from day one, because the UI blocked at `available`
+   * and the database did not.
+   */
   const rows =
     input.direction === 'DEBIT'
       ? await db.$queryRaw<BalanceRow[]>`
@@ -74,7 +85,7 @@ export async function postEntry(db: Tx, input: PostEntryInput) {
              SET balance = balance + ${toDb(delta)}::numeric,
                  "updatedAt" = now()
            WHERE id = ${wallet.id}
-             AND balance >= ${toDb(amount)}::numeric
+             AND balance - locked >= ${toDb(amount)}::numeric
        RETURNING id, balance::text AS balance`
       : await db.$queryRaw<BalanceRow[]>`
           UPDATE wallet_accounts
@@ -84,7 +95,7 @@ export async function postEntry(db: Tx, input: PostEntryInput) {
        RETURNING id, balance::text AS balance`;
 
   const row = rows[0];
-  if (!row) throw insufficientFunds('Insufficient balance for this operation');
+  if (!row) throw insufficientFunds('Insufficient available balance for this operation');
 
   return db.ledgerEntry.create({
     data: {

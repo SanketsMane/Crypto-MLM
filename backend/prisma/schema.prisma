@@ -140,12 +140,23 @@ model User {
 
   // ── denormalised counters (maintained incrementally) ──
   directCount       Int @default(0)
+  /// DEPRECATED — do not read this. It defaults to 0 and was never incremented
+  /// outside the simulation seeder, so it is 0 for every real member. The
+  /// commission engine gated generation levels 2-30 on it and therefore never
+  /// paid them. Active directs are now counted live from the sponsorship edge:
+  /// `activeDirectCount()` / `getUpline()` in src/core/tree.ts. Left in place
+  /// so old code can still run against this schema; drop it in a later
+  /// contract migration once nothing reads it.
   activeDirectCount Int @default(0)
 
   totalInvested Decimal @default(0) @db.Decimal(38, 8)
   totalEarned   Decimal @default(0) @db.Decimal(38, 8)
 
   walletAddress String? // BEP-20 payout address
+  /// When the payout address last changed. A withdrawal to an address changed
+  /// inside the cooling-off window is held, which is what breaks the
+  /// stolen-device chain: change address -> withdraw -> funds gone.
+  walletAddressChangedAt DateTime?
 
   currentRankId String?
   currentRank   RankDefinition? @relation(fields: [currentRankId], references: [id], onDelete: SetNull)

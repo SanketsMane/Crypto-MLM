@@ -87,7 +87,7 @@ export default async function TermsPage() {
             <>
               <p>
                 The daily trade bonus of {plan.dailyReturnPercent}% accrues on trading days only
-                ({plan.tradingDays}). Commissions, rank rewards and Roaming Club awards
+                ({plan.tradingDays}). Commissions, rank rewards and Flyers Club awards
                 are paid on the terms published on this site and are subject to the qualification
                 rules stated there.
               </p>

@@ -32,7 +32,7 @@ describe('identity verification gate', () => {
     const u = await makeUser();
     await fundMain(u.id, 500);
 
-    await expect(requestWithdrawal(u.id, '100', ADDR)).rejects.toThrow(/Verify your identity/);
+    await expect(requestWithdrawal(u.id, '100', ADDR, undefined, 'password')).rejects.toThrow(/Verify your identity/);
     expect(await prisma.withdrawal.count()).toBe(0);
   });
 
@@ -43,7 +43,7 @@ describe('identity verification gate', () => {
       data: { userId: u.id, fullName: 'A Member', documentNo: 'X1', countryCode: 'IN', status: 'PENDING' },
     });
 
-    await expect(requestWithdrawal(u.id, '100', ADDR)).rejects.toThrow(/still under review/);
+    await expect(requestWithdrawal(u.id, '100', ADDR, undefined, 'password')).rejects.toThrow(/still under review/);
   });
 
   it('lets a verified member through', async () => {
@@ -51,7 +51,7 @@ describe('identity verification gate', () => {
     await fundMain(u.id, 500);
     await approveKyc(u.id);
 
-    const w = await requestWithdrawal(u.id, '100', ADDR);
+    const w = await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
     expect(Number(w.netAmount)).toBeCloseTo(95, 6);
   });
 
@@ -61,10 +61,10 @@ describe('identity verification gate', () => {
     await prisma.kycSubmission.create({
       data: { userId: u.id, fullName: 'A', documentNo: 'X', countryCode: 'IN', status: 'REJECTED', rejectionReason: 'blurry' },
     });
-    await expect(requestWithdrawal(u.id, '100', ADDR)).rejects.toThrow(/Verify your identity/);
+    await expect(requestWithdrawal(u.id, '100', ADDR, undefined, 'password')).rejects.toThrow(/Verify your identity/);
 
     await approveKyc(u.id);
-    await expect(requestWithdrawal(u.id, '100', ADDR)).resolves.toBeTruthy();
+    await expect(requestWithdrawal(u.id, '100', ADDR, undefined, 'password')).resolves.toBeTruthy();
   });
 
   it('honours the operator threshold — small payouts skip verification', async () => {
@@ -74,8 +74,8 @@ describe('identity verification gate', () => {
     const u = await makeUser();
     await fundMain(u.id, 500);
 
-    await expect(requestWithdrawal(u.id, '100', ADDR)).resolves.toBeTruthy();     // at the threshold
-    await expect(requestWithdrawal(u.id, '101', ADDR)).rejects.toThrow(/Verify your identity/);
+    await expect(requestWithdrawal(u.id, '100', ADDR, undefined, 'password')).resolves.toBeTruthy();     // at the threshold
+    await expect(requestWithdrawal(u.id, '101', ADDR, undefined, 'password')).rejects.toThrow(/Verify your identity/);
   });
 
   it('can be switched off entirely by the operator', async () => {
@@ -84,7 +84,7 @@ describe('identity verification gate', () => {
 
     const u = await makeUser();
     await fundMain(u.id, 2000);
-    await expect(requestWithdrawal(u.id, '1000', ADDR)).resolves.toBeTruthy();
+    await expect(requestWithdrawal(u.id, '1000', ADDR, undefined, 'password')).resolves.toBeTruthy();
   });
 });
 
@@ -170,7 +170,7 @@ describe('member activity trail', () => {
     const u = await makeUser();
     await fundMain(u.id, 500);
     await approveKyc(u.id);
-    await requestWithdrawal(u.id, '100', ADDR);
+    await requestWithdrawal(u.id, '100', ADDR, undefined, 'password');
 
     const rows = (await trail(u.id)).map((r) => r.event);
     expect(rows).toContain('WITHDRAWAL_REQUESTED');

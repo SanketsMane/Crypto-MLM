@@ -22,7 +22,7 @@ Investment & earnings
 6 Daily trade bonus daily-roi job on trading days → ROI credit → generation bonus (30 levels, unilevel only)
 7 Earnings ceiling every credit consumes cap allowance → investment flips CAPPED when exhausted
 8 Rank achievement evaluate-rank job → 50:50 leg rule → reward paid, achievement recorded
-9 Roaming Club qualification evaluated → admin fulfils the award
+9 Flyers Club qualification evaluated → admin fulfils the award
 10 Reward cards tier evaluated → member claims
 11 Prize draws admin opens → tickets issued → draw run → prize claimed
 Network

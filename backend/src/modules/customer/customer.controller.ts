@@ -7,7 +7,7 @@ export const profile = async (req: Request, res: Response) =>
   res.json({ success: true, data: await service.profile(req.userId!) });
 
 export const update = async (req: Request, res: Response) =>
-  res.json({ success: true, data: await service.update(req.userId!, req.body, req) });
+  res.json({ success: true, data: await service.update(req.userId!, req.body, req, req.stepUpMethod) });
 
 export const referral = async (req: Request, res: Response) =>
   res.json({ success: true, data: await service.referralLink(req.userId!, env.WEB_URL) });

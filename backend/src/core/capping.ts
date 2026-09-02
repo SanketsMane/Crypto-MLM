@@ -10,7 +10,7 @@ import { Decimal } from 'decimal.js';
  * the cap silently leaks.
  *
  * PASSIVE affiliates cap at 250% of invested capital, ACTIVE at 300%.
- * The Roaming Club is explicitly excluded from the ceiling.
+ * The Flyers Club is explicitly excluded from the ceiling.
  */
 
 export interface CapState {

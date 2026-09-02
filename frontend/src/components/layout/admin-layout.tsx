@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from './sidebar';
 import { TopHeader } from './top-header';
 import { useAdmin } from '@/features/admin/use-admin';
-import { Splash } from '@/components/ui/splash';
+import { SessionLoading } from '@/components/ui/session-loading';
 import { isAuthFailure } from '@/lib/errors';
 import { ErrorState } from '@/components/ui/error-state';
 
@@ -22,11 +22,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => { setMobileOpen(false); }, [pathname]);
   useEffect(() => { if (signedOut) router.replace('/admin/login'); }, [signedOut, router]);
 
-  if (isLoading) {
-    return (
-      <Splash />
-    );
-  }
+  if (isLoading) return <SessionLoading label="Loading the console" />;
   if (signedOut) return null;
 
   if (isError) {

@@ -36,7 +36,18 @@ export interface RoiRunResult {
   generationPayouts: number;
 }
 
-export async function runDailyRoi(forDate = new Date()): Promise<RoiRunResult> {
+/**
+ * `existingOnly` restricts the run to investments that already existed before
+ * `forDate`. Off by default, deliberately: the single-date engine has always
+ * accrued every ACTIVE investment for whatever date it was handed, and tests
+ * rely on driving it at past dates. Catch-up turns it on, because replaying a
+ * missed day must not pay an investment that was opened during the outage for
+ * days before it existed.
+ */
+export async function runDailyRoi(
+  forDate = new Date(),
+  opts: { existingOnly?: boolean } = {},
+): Promise<RoiRunResult> {
   const cfg = await config();
   const date = utcDate(forDate);
   const iso = date.toISOString().slice(0, 10);
@@ -66,6 +77,7 @@ export async function runDailyRoi(forDate = new Date()): Promise<RoiRunResult> {
     where: {
       status: 'ACTIVE',
       ...(runId ? { user: { simulationRunId: runId } } : {}),
+      ...(opts.existingOnly ? { startedAt: { lt: date } } : {}),
     },
     select: { id: true, userId: true, amount: true, dailyRoiPercent: true },
   });
@@ -155,4 +167,80 @@ export async function runDailyRoi(forDate = new Date()): Promise<RoiRunResult> {
   const summary = { date: iso, skipped: false, processed, paid: paidTotal.toString(), cappedOut, generationPayouts };
   logger.info(summary, 'daily ROI run complete');
   return summary;
+}
+
+
+/**
+ * Accrue every trading day that was missed, oldest first.
+ *
+ * The scheduler used to call `runDailyRoi()` with no argument, which accrues
+ * exactly one day: today. `lastAccrualDate` was written on every investment
+ * and read by nothing. So any interruption on a weekday — a worker crash, a
+ * Redis outage, a scheduler miss, a deploy that overran — erased that day's
+ * 0.5% permanently, along with the generation bonuses paid on it, silently,
+ * for every active investment on the platform.
+ *
+ * The accrual table's `(investmentId, accrualDate)` unique constraint already
+ * made a re-run a no-op, so catching up is a loop rather than a redesign.
+ *
+ * Bounded on purpose. A gap longer than `maxDays` is not an outage any more,
+ * it is a restore from an old backup or a clock problem, and quietly paying
+ * out months of backdated returns is the wrong response to either — so the
+ * window is capped and the overflow is reported for a human.
+ */
+export interface RoiCatchUpResult {
+  days: RoiRunResult[];
+  /** Trading days older than the window that were NOT paid. Needs an operator. */
+  skippedBeyondWindow: string[];
+}
+
+export async function catchUpDailyRoi(
+  through = new Date(),
+  maxDays = 30,
+): Promise<RoiCatchUpResult> {
+  const cfg = await config();
+  const today = utcDate(through);
+
+  /**
+   * The last day the job actually ran.
+   *
+   * Every active investment gets `lastAccrualDate` stamped on a successful
+   * run, so the maximum across them is the most recent completed run. Null
+   * everywhere (a fresh platform) means there is nothing to catch up.
+   */
+  const high = await prisma.investment.aggregate({
+    where: { status: 'ACTIVE' },
+    _max: { lastAccrualDate: true },
+  });
+  const last = high._max.lastAccrualDate;
+  if (!last) return { days: [await runDailyRoi(through)], skippedBeyondWindow: [] };
+
+  // Every trading day strictly after the last run, up to and including today.
+  const pending: Date[] = [];
+  for (let d = utcDate(new Date(last.getTime() + 86_400_000)); d <= today; d = utcDate(new Date(d.getTime() + 86_400_000))) {
+    if (isTradingDay(d, cfg.tradingDays)) pending.push(d);
+  }
+
+  const skippedBeyondWindow = pending
+    .slice(0, Math.max(0, pending.length - maxDays))
+    .map((d) => d.toISOString().slice(0, 10));
+
+  if (skippedBeyondWindow.length) {
+    logger.error(
+      { count: skippedBeyondWindow.length, from: skippedBeyondWindow[0], to: skippedBeyondWindow.at(-1) },
+      'ROI gap is longer than the catch-up window — these days need an operator decision',
+    );
+  }
+
+  const days: RoiRunResult[] = [];
+  for (const day of pending.slice(-maxDays)) {
+    // Oldest first: the cap consumes headroom in date order, so replaying out
+    // of order would clamp the wrong day.
+    days.push(await runDailyRoi(day, { existingOnly: true }));
+  }
+
+  if (days.length > 1) {
+    logger.warn({ days: days.length }, 'ROI catch-up paid more than one day — the worker had missed some');
+  }
+  return { days, skippedBeyondWindow };
 }

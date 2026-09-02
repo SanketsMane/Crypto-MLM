@@ -14,7 +14,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: ['/admin', '/admin/', '/dashboard', '/wallet', '/team', '/genealogy',
                    '/income', '/packages', '/withdrawals', '/profile', '/support',
-                   '/rank', '/roaming-club', '/kyc', '/deposit', '/passbook', '/levels',
+                   '/rank', '/flyers-club', '/kyc', '/deposit', '/passbook', '/levels',
                    '/security', '/login', '/register'],
       },
     ],

@@ -50,7 +50,7 @@ export const MEMBER_NOTIFICATIONS = {
   'commission.binary':     { category: 'EARNINGS', severity: 'SUCCESS', link: '/income' },
   'investment.capped':     { category: 'EARNINGS', severity: 'WARNING', link: '/packages' },
   'rank.achieved':         { category: 'EARNINGS', severity: 'SUCCESS', link: '/rank' },
-  'roaming.qualified':     { category: 'EARNINGS', severity: 'SUCCESS', link: '/roaming-club' },
+  'roaming.qualified':     { category: 'EARNINGS', severity: 'SUCCESS', link: '/flyers-club' },
 
   // ── network ──
   'referral.joined':       { category: 'NETWORK', severity: 'INFO', link: '/team' },
@@ -97,6 +97,8 @@ export const ADMIN_NOTIFICATIONS = {
   'system.treasury_low':     { category: 'SYSTEM', severity: 'WARNING',  link: '/admin/chain',    permission: 'jobs.view' },
   'system.watcher_stalled':  { category: 'SYSTEM', severity: 'CRITICAL', link: '/admin/chain',    permission: 'jobs.view' },
   'system.job_failed':       { category: 'SYSTEM', severity: 'CRITICAL', link: '/admin/jobs',     permission: 'jobs.view' },
+  /* The ledger no longer balances. Nothing on this platform matters more. */
+  'system.trial_balance_failed': { category: 'SYSTEM', severity: 'CRITICAL', link: '/admin/ledger', permission: 'jobs.view' },
   'system.roi_complete':     { category: 'SYSTEM', severity: 'INFO',     link: '/admin/jobs',     permission: 'jobs.view' },
   'system.settings_changed': { category: 'SYSTEM', severity: 'WARNING',  link: '/admin/settings', permission: 'settings.view' },
   'system.admin_changed':    { category: 'SYSTEM', severity: 'WARNING',  link: '/admin/access',   permission: 'admins.view' },

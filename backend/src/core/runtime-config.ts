@@ -172,6 +172,25 @@ export const SPECS: SettingSpec[] = [
   },
 
   {
+    key: 'STEP_UP_TTL_MINUTES', group: 'Security', type: 'int', min: 1, max: 60,
+    label: 'Step-up validity',
+    help: 'How long a re-authentication stays good for. The member proves who they are once, then has this many minutes to change a payout address or submit a withdrawal without proving it again. Short is safer; too short and a member re-authenticates mid-flow.',
+    enforcedIn: 'Payout address change, withdrawal request',
+  },
+  {
+    key: 'STEP_UP_TOTP_ABOVE', group: 'Security', type: 'money', min: 0,
+    label: 'Require an authenticator code above',
+    help: 'Withdrawals at or below this amount may be confirmed with a password or device biometrics. Above it, the member must enter a code from their authenticator app. Set to 0 to demand a code for every withdrawal.',
+    enforcedIn: 'Withdrawal request',
+  },
+  {
+    key: 'WITHDRAWAL_ADDRESS_HOLD_HOURS', group: 'Withdrawals', type: 'int', min: 0, max: 168,
+    label: 'Hold after a payout address change',
+    help: 'Withdrawals are refused for this many hours after the payout address changes. This is the control that breaks the theft chain — change the address, then withdraw — because an attacker with a stolen phone cannot wait it out unnoticed. Set to 0 to disable, which is not recommended.',
+    enforcedIn: 'Withdrawal request',
+  },
+
+  {
     key: 'MAINTENANCE_MODE', group: 'Platform', type: 'bool', public: true,
     label: 'Maintenance mode',
     help: 'Closes the member app while you work. Operators keep full access, background jobs keep running, and nothing already in flight is lost — members see a notice instead of a broken screen.',
@@ -210,6 +229,9 @@ export const DEFAULTS: Record<string, string> = {
   TAX_WITHHOLDING_PERCENT: '0',
   KYC_REQUIRED_FOR_WITHDRAWAL: 'true',
   KYC_REQUIRED_ABOVE: '0',
+  STEP_UP_TTL_MINUTES: '5',
+  STEP_UP_TOTP_ABOVE: '1000',
+  WITHDRAWAL_ADDRESS_HOLD_HOURS: '24',
   ADMIN_IDLE_TIMEOUT_MINUTES: '30',
   ADMIN_IP_ALLOWLIST: '',
   MAINTENANCE_MODE: 'false',
@@ -233,6 +255,9 @@ export interface RuntimeConfig {
   taxWithholdingPercent: number;
   kycRequiredForWithdrawal: boolean;
   kycRequiredAbove: number;
+  stepUpTtlMinutes: number;
+  stepUpTotpAbove: number;
+  withdrawalAddressHoldHours: number;
   adminIdleTimeoutMinutes: number;
   adminIpAllowlist: string[];
   maintenanceMode: boolean;
@@ -330,6 +355,9 @@ function build(stored: Record<string, string>): RuntimeConfig {
     taxWithholdingPercent: num('TAX_WITHHOLDING_PERCENT'),
     kycRequiredForWithdrawal: bool('KYC_REQUIRED_FOR_WITHDRAWAL'),
     kycRequiredAbove: num('KYC_REQUIRED_ABOVE'),
+    stepUpTtlMinutes: num('STEP_UP_TTL_MINUTES'),
+    stepUpTotpAbove: num('STEP_UP_TOTP_ABOVE'),
+    withdrawalAddressHoldHours: num('WITHDRAWAL_ADDRESS_HOLD_HOURS'),
     adminIdleTimeoutMinutes: num('ADMIN_IDLE_TIMEOUT_MINUTES'),
     adminIpAllowlist: v('ADMIN_IP_ALLOWLIST').split(',').map((x) => x.trim()).filter(Boolean),
     maintenanceMode: bool('MAINTENANCE_MODE'),

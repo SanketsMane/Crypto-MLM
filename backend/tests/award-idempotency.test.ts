@@ -8,7 +8,7 @@ import { resetData, seedPlan, makeUser } from './helpers.js';
 /**
  * Threshold awards.
  *
- * Rank rewards, Roaming Club places and reward cards are all granted by an
+ * Rank rewards, Flyers Club places and reward cards are all granted by an
  * evaluator that runs repeatedly — on a schedule, after a purchase, and by an
  * operator pressing a button. Each of those is a chance to pay the same
  * milestone twice, so evaluating again must never grant again.
@@ -76,7 +76,7 @@ describe('rank rewards', () => {
   });
 });
 
-describe('roaming club', () => {
+describe('flyers club', () => {
   it('awards a tier once, however often it is evaluated', async () => {
     const u = await qualified();
     await roaming.evaluate(u.id);

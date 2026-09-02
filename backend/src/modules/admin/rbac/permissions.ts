@@ -26,8 +26,8 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: 'withdrawals.reject',  group: 'Finance',   label: 'Reject withdrawals' },
 
   { key: 'plan.view',           group: 'Plan',      label: 'View compensation plan' },
-  { key: 'plan.edit',           group: 'Plan',      label: 'Edit compensation plan', description: 'Packages, commission levels, ranks and Roaming Club' },
-  { key: 'roaming.fulfil',      group: 'Plan',      label: 'Fulfil Roaming Club awards' },
+  { key: 'plan.edit',           group: 'Plan',      label: 'Edit compensation plan', description: 'Packages, commission levels, ranks and Flyers Club' },
+  { key: 'roaming.fulfil',      group: 'Plan',      label: 'Fulfil Flyers Club awards' },
 
   { key: 'support.view',        group: 'Support',   label: 'View support tickets' },
   { key: 'support.manage',      group: 'Support',   label: 'Reply and close tickets', description: 'Answer members and change ticket status' },

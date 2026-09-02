@@ -331,7 +331,7 @@ describe('wired into the real flows', () => {
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 500 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
 
     const { request: requestWithdrawal } = await import('../src/modules/withdrawal/withdrawal.service.js');
-    await requestWithdrawal(u.id, '100', '0x1234567890abcdef1234567890abcdef12345678');
+    await requestWithdrawal(u.id, '100', '0x1234567890abcdef1234567890abcdef12345678', undefined, 'password');
     await new Promise((r) => setTimeout(r, 200));
 
     const { rows } = await service.list('ADMIN', admin.id);

@@ -4,11 +4,12 @@ import { Container, Panel, Section, SectionHead } from '@/components/site/primit
 import { PageHero } from '@/components/site/page-hero';
 import { CtaBand } from '@/components/site/cta-band';
 import { getPlan, planMoney } from '@/lib/platform-config.server';
+import { rankLabelAt } from '@/lib/rank';
 
 export const metadata: Metadata = {
   title: 'Rewards & ranks',
   description:
-    'The FortuneX affiliate structure: a three-level direct bonus, a thirty-level generation bonus, ten executive ranks and the Roaming Club travel awards.',
+    'The FortuneX affiliate structure: a three-level direct bonus, a thirty-level generation bonus, ten executive ranks and the Flyers Club travel awards.',
 };
 
 export default async function RewardsPage() {
@@ -131,7 +132,7 @@ export default async function RewardsPage() {
                     <td className="whitespace-nowrap px-5 py-4">
                       <span className="flex items-center gap-2.5 text-[14px] font-medium text-white">
                         <Trophy size={14} className={i >= 7 ? 'text-brand-gold' : 'text-white/55'} />
-                        {r.name}
+                        {rankLabelAt(i)}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-5 py-4 text-[13.5px] tabular-nums text-white/65">{planMoney(r.self)}</td>
@@ -145,13 +146,13 @@ export default async function RewardsPage() {
         </Container>
       </Section>
 
-      {/* ── roaming club ──────────────────────────────────────────────── */}
-      <Section tone="raised" id="roaming-club">
+      {/* ── flyers club ──────────────────────────────────────────────── */}
+      <Section tone="raised" id="flyers-club">
         <Container>
           <SectionHead
             eyebrow="Stream four"
-            title="The Roaming Club"
-            lead="International travel awards on two tracks — one for members who build a team, one for members who commit capital themselves. Roaming Club awards sit outside the earnings ceiling and never consume your cap."
+            title="The Flyers Club"
+            lead="International travel awards on two tracks — one for members who build a team, one for members who commit capital themselves. Flyers Club awards sit outside the earnings ceiling and never consume your cap."
           />
 
           <div className="mt-10 grid gap-4 lg:grid-cols-2">

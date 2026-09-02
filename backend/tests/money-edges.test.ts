@@ -104,14 +104,14 @@ describe('requesting a withdrawal', () => {
   it('refuses more than the balance', async () => {
     const u = await makeUser();
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 50 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
-    await expect(withdrawal.request(u.id, '100', '0x' + 'a'.repeat(40))).rejects.toThrow();
+    await expect(withdrawal.request(u.id, '100', '0x' + 'a'.repeat(40), undefined, 'password')).rejects.toThrow();
     expect(await balanceOf(u.id, 'MAIN')).toBeCloseTo(50, 6);
   });
 
   it('refuses a malformed payout address', async () => {
     const u = await makeUser();
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 500 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
-    await expect(withdrawal.request(u.id, '100', 'not-an-address')).rejects.toThrow(/address/i);
+    await expect(withdrawal.request(u.id, '100', 'not-an-address', undefined, 'password')).rejects.toThrow(/address/i);
   });
 
   it('debits once when two requests race the same balance', async () => {
@@ -119,8 +119,8 @@ describe('requesting a withdrawal', () => {
     await prisma.$executeRaw`UPDATE wallet_accounts SET balance = 100 WHERE "userId" = ${u.id} AND type = 'MAIN'`;
     const addr = '0x' + 'a'.repeat(40);
     await Promise.allSettled([
-      withdrawal.request(u.id, '100', addr),
-      withdrawal.request(u.id, '100', addr),
+      withdrawal.request(u.id, '100', addr, undefined, 'password'),
+      withdrawal.request(u.id, '100', addr, undefined, 'password'),
     ]);
     expect(await balanceOf(u.id, 'MAIN')).toBeGreaterThanOrEqual(0);
     expect(await prisma.withdrawal.count({ where: { userId: u.id } })).toBe(1);

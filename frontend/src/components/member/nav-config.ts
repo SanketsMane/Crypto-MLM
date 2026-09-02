@@ -15,7 +15,7 @@ export const MEMBER_NAV: MemberNavGroup[] = [
     { href: '/income',      label: 'Income',    icon: TrendingUp },
     { href: '/rank',        label: 'Rank',      icon: Trophy },
     { href: '/reward-cards', label: 'Rewards',  icon: Gift },
-    { href: '/roaming-club',label: 'Roaming Club', icon: Plane },
+    { href: '/flyers-club',label: 'Flyers Club', icon: Plane },
     { href: '/draws',       label: 'Prize Draws', icon: Ticket },
   ]},
   { heading: 'Money', items: [
@@ -47,7 +47,7 @@ export const MEMBER_PAGE: Record<string, { title: string; subtitle: string }> = 
   '/reward-cards': { title: 'Rewards',       subtitle: 'Bonus cards that unlock as your investment grows.' },
   '/rank':         { title: 'Rank',          subtitle: 'Your position on the executive ladder and what unlocks next.' },
   '/draws':        { title: 'Prize Draws',   subtitle: 'Tickets earned by investing, and a result anyone can verify.' },
-  '/roaming-club': { title: 'Roaming Club',  subtitle: 'Travel rewards for self capital and team performance.' },
+  '/flyers-club': { title: 'Flyers Club',  subtitle: 'Travel rewards for self capital and team performance.' },
   '/wallet':       { title: 'Wallet',        subtitle: 'Your three balances and how value moves between them.' },
   '/deposit':      { title: 'Deposit',       subtitle: 'Fund your account with USDT on BEP-20.' },
   '/withdrawals':  { title: 'Withdraw',      subtitle: 'Request a payout to your BEP-20 address.' },

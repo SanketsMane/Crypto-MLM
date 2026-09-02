@@ -41,7 +41,11 @@ export function Rail({ children }: { children: ReactNode }) {
 
 export function Detail({ children }: { children: ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-[14px] border border-line bg-card shadow-card lg:col-span-7 xl:col-span-8">
+    // `overflow-clip` rather than `overflow-hidden`: hidden makes this a scroll
+    // container, which silently defeats the sticky DetailBar inside it — the bar
+    // can only stick within a box that never scrolls, so it scrolled away with
+    // the page. `clip` clips to the rounded corner without becoming one.
+    <section className="overflow-clip rounded-[14px] border border-line bg-card shadow-card lg:col-span-7 xl:col-span-8">
       {children}
     </section>
   );
@@ -52,7 +56,7 @@ export function DetailBar({ title, subtitle, children }: {
   title: string; subtitle?: ReactNode; children?: ReactNode;
 }) {
   return (
-    <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-card/95 px-5 py-3.5 backdrop-blur">
+    <header className="sticky top-[72px] z-20 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-card/95 px-5 py-3.5 backdrop-blur">
       <div className="min-w-0">
         <h2 className="truncate text-[16px] font-semibold leading-tight tracking-[-0.01em] text-ink">{title}</h2>
         {subtitle && <div className="mt-0.5 text-[12px] text-ink-2">{subtitle}</div>}

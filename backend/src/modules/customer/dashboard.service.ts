@@ -63,7 +63,7 @@ export async function summary(userId: string, webUrl = env.WEB_URL) {
       walletAddress: user.walletAddress,
       affiliateMode: user.affiliateMode,
       status: user.status,
-      rank: achieved ? { code: achieved.code, name: achieved.name } : null,
+      rank: achieved ? { code: achieved.code, name: achieved.name, level: achieved.level } : null,
       joinedAt: user.createdAt,
       referralLink: `${webUrl}/register?ref=${user.userCode}`,
     },

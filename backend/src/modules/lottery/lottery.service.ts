@@ -435,8 +435,76 @@ export async function memberView(userId: string) {
   };
 }
 
-export const listDraws = () =>
-  prisma.lotteryDraw.findMany({
+/**
+ * The console's view of every draw.
+ *
+ * Two things this deliberately does **not** do:
+ *
+ *   • **It does not hand back the seed before the draw has run.** The seed is
+ *     the secret half of the commitment — `seedHash` is published when entries
+ *     open, and anyone holding the seed itself can run the same deterministic
+ *     `shuffle` and know the winning tickets while entries are still open. The
+ *     member-facing payload has always been careful about this (only `seedHash`
+ *     on the live draw); this one returned the whole row, so every operator with
+ *     `plan.view` — which includes read-only roles like Support Agent — could
+ *     read it off the screen. It is withheld until `DRAWN`, when revealing it is
+ *     the entire point.
+ *
+ *   • **It does not make the caller guess who won.** `winnerTicketId` alone is
+ *     unresolvable in the console, so an operator could not check that a draw
+ *     paid the people it says it paid.
+ */
+export async function listDraws() {
+  const draws = await prisma.lotteryDraw.findMany({
     orderBy: { createdAt: 'desc' },
-    include: { prizes: { orderBy: { position: 'asc' } }, _count: { select: { tickets: true } } },
+    include: {
+      prizes: {
+        orderBy: { position: 'asc' },
+        include: {
+          winnerTicket: {
+            select: { number: true, user: { select: { userCode: true, firstName: true } } },
+          },
+        },
+      },
+      _count: { select: { tickets: true } },
+    },
   });
+
+  // Distinct entrants per draw in one pass, rather than a count query per row.
+  const grouped = draws.length
+    ? await prisma.lotteryTicket.groupBy({
+      by: ['drawId', 'userId'],
+      where: { drawId: { in: draws.map((d) => d.id) } },
+    })
+    : [];
+  const entrants = new Map<string, number>();
+  for (const g of grouped) entrants.set(g.drawId, (entrants.get(g.drawId) ?? 0) + 1);
+
+  return draws.map((d) => ({
+    id: d.id,
+    name: d.name,
+    notes: d.notes,
+    status: d.status,
+    ticketThreshold: d.ticketThreshold.toString(),
+    maxTicketsPerMember: d.maxTicketsPerMember,
+    opensAt: d.opensAt,
+    closesAt: d.closesAt,
+    drawnAt: d.drawnAt,
+    seedHash: d.seedHash,
+    seed: d.status === 'DRAWN' ? d.seed : null,
+    entrants: entrants.get(d.id) ?? 0,
+    _count: d._count,
+    prizes: d.prizes.map((p) => ({
+      id: p.id,
+      position: p.position,
+      label: p.label,
+      amount: p.amount.toString(),
+      winnerTicketId: p.winnerTicketId,
+      claimedAt: p.claimedAt,
+      winnerTicket: p.winnerTicket?.number ?? null,
+      winner: p.winnerTicket
+        ? `${p.winnerTicket.user.firstName} (${p.winnerTicket.user.userCode})`
+        : null,
+    })),
+  }));
+}

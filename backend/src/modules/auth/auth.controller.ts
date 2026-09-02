@@ -1,7 +1,30 @@
 import type { Request, Response } from 'express';
 import * as service from './auth.service.js';
 import { loginSchema, registerSchema } from './auth.validation.js';
-import { badRequest } from '../../core/errors.js';
+import { badRequest, unauthorized } from '../../core/errors.js';
+import { z } from 'zod';
+import * as stepUp from './step-up.service.js';
+
+const stepUpSchema = z.object({
+  password: z.string().min(1).optional(),
+  code: z.string().trim().min(6).max(12).optional(),
+}).refine((v) => Boolean(v.password) || Boolean(v.code), {
+  message: 'Provide either your password or an authenticator code',
+});
+
+/**
+ * Re-authenticate, in exchange for a short-lived ticket that authorises a
+ * payout-address change or a withdrawal. Rate limited like sign-in, because it
+ * takes the same password.
+ */
+export const stepUpIssue = async (req: Request, res: Response) => {
+  if (!req.userId || !req.sessionId) throw unauthorized();
+  const input = stepUpSchema.parse(req.body);
+  res.json({
+    success: true,
+    data: await stepUp.issueStepUp(req.userId, req.sessionId, input, req),
+  });
+};
 
 export const register = async (req: Request, res: Response) => {
   const data = registerSchema.parse(req.body);

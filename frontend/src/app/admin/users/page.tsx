@@ -16,11 +16,13 @@ import { useAdmin } from '@/features/admin/use-admin';
 import { UserPlus } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import { usd, shortDate, num } from '@/lib/format';
+import { rankLabel } from '@/lib/rank';
 
 interface Row {
   id: string; userCode: string; email: string; name: string; status: string;
   affiliateMode: string; totalInvested: string; totalEarned: string;
-  directCount: number; rank: string | null; teamBusiness: string; teamSize: number; createdAt: string;
+  directCount: number; rank: string | null; rankLevel: number | null;
+  teamBusiness: string; teamSize: number; createdAt: string;
 }
 
 export default function UsersPage() {
@@ -169,7 +171,7 @@ export default function UsersPage() {
               <span key="r" className="font-medium tabular-nums text-good">{usd(u.totalEarned)}</span>,
               <span key="t" className="tabular-nums">{usd(u.teamBusiness)}</span>,
               <span key="d" className="tabular-nums">{u.directCount}</span>,
-              u.rank ?? '—',
+              <span key="k" className="tabular-nums">{rankLabel(u.rankLevel)}</span>,
               <span key="j" className="text-ink-2">{shortDate(u.createdAt)}</span>,
               <Link key="v" href={`/admin/users/${u.id}`} className="font-medium text-violet hover:underline">View</Link>,
             ])}

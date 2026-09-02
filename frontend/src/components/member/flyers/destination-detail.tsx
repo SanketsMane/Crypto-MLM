@@ -9,7 +9,7 @@ import { trackMeta, type TierView } from './types';
 
 /**
  * Requirement breakdown for one tier. Read-only by design: the platform has no
- * claim or booking flow for Roaming Club, so this reports the position rather
+ * claim or booking flow for Flyers Club, so this reports the position rather
  * than offering an action that does not exist.
  */
 export function DestinationDetail({ tier, onClose }: { tier: TierView | null; onClose: () => void }) {
@@ -67,7 +67,7 @@ export function DestinationDetail({ tier, onClose }: { tier: TierView | null; on
 
         <p className="text-[12.5px] leading-relaxed text-ink-2">
           {tier.achieved
-            ? `Qualified${tier.achievedAt ? ` on ${shortDate(tier.achievedAt)}` : ''}${tier.status ? ` · award status: ${tier.status.toLowerCase()}` : ''}. Roaming Club awards are travel entitlements, not cash — the FortuneX team arranges fulfilment and will be in touch.`
+            ? `Qualified${tier.achievedAt ? ` on ${shortDate(tier.achievedAt)}` : ''}${tier.status ? ` · award status: ${tier.status.toLowerCase()}` : ''}. Flyers Club awards are travel entitlements, not cash — the FortuneX team arranges fulfilment and will be in touch.`
             : tier.needsTeam
               ? 'Both requirements must be met before this destination is awarded. Qualification is evaluated automatically as your capital and team business grow.'
               : 'This destination is awarded on your own capital alone. Qualification is evaluated automatically as your capital grows.'}

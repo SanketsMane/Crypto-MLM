@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { Trophy } from 'lucide-react';
 import { Card, CardHead } from '@/components/ui/primitives';
 import { usd, pct } from '@/lib/format';
+import { rankLabel } from '@/lib/rank';
 
 export function RankProgress({ rank, team }: {
-  rank?: { current: { name: string } | null; next: { name: string; reward: string; selfCapital: string; teamBusiness: string; percent: number } | null };
+  rank?: { current: { name: string; level: number } | null; next: { name: string; level: number; reward: string; selfCapital: string; teamBusiness: string; percent: number } | null };
   team?: { totalTeamBusiness: string; powerLegVolume: string; otherLegsVolume: string };
 }) {
   const next = rank?.next;
@@ -24,8 +25,8 @@ export function RankProgress({ rank, team }: {
             <Trophy size={19} strokeWidth={2.1} />
           </span>
           <div>
-            <p className="text-[15px] font-semibold text-ink">{rank?.current?.name ?? 'Unranked'}</p>
-            <p className="text-[12px] text-ink-2">{next ? `Next: ${next.name}` : 'Highest rank achieved'}</p>
+            <p className="text-[15px] font-semibold text-ink">{rank?.current ? rankLabel(rank.current.level) : 'Unranked'}</p>
+            <p className="text-[12px] text-ink-2">{next ? `Next: ${rankLabel(next.level)}` : 'Highest rank achieved'}</p>
           </div>
           {next && (
             <span className="ml-auto text-right">

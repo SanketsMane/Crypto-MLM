@@ -11,12 +11,13 @@ import { get, patch, apiErrorMessage } from '@/lib/api';
 import { Card, CardHead, Button, Badge, controlCls } from '@/components/ui/primitives';
 import { MemberCard } from '@/components/member/member-card';
 import { usd, shortDate } from '@/lib/format';
+import { rankLabel } from '@/lib/rank';
 
 interface Profile {
   id: string; userCode: string; email: string; phone: string | null;
   firstName: string; lastName: string | null; status: string; affiliateMode: string;
   walletAddress: string | null; totalInvested: string; totalEarned: string;
-  directCount: number; rank: { code: string; name: string } | null;
+  directCount: number; rank: { code: string; name: string; level: number } | null;
   sponsor: { userCode: string; firstName: string } | null;
   teamBusiness: string; joinedAt: string;
 }
@@ -56,7 +57,7 @@ export default function ProfilePage() {
         <MemberCard
           name={[p?.firstName, p?.lastName].filter(Boolean).join(' ') || '—'}
           userCode={p?.userCode}
-          rank={p?.rank?.name ?? 'Unranked'}
+          rank={p?.rank ? rankLabel(p.rank.level) : 'Unranked'}
           sponsor={p?.sponsor?.userCode ?? 'Root account'}
           invested={p?.totalInvested}
           earned={p?.totalEarned}

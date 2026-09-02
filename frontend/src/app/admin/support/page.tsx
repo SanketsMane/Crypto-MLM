@@ -1,18 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { toastError } from '@/lib/toast';
 import { clsx } from 'clsx';
-import { Search, Send } from 'lucide-react';
-import { adminGet, adminPost, adminPatch, adminError } from '@/lib/admin-api';
-import { Card, CardHead, PageHeader, Badge, Button, Select, Skeleton, controlCls, type Tone } from '@/components/ui/primitives';
+import { LifeBuoy, Search, Send, UserCheck } from 'lucide-react';
+import { toastError } from '@/lib/toast';
+import { adminGet, adminGetBlob, adminPost, adminPatch } from '@/lib/admin-api';
+import { PageHeader, Badge, Button, Skeleton, controlCls, type Tone } from '@/components/ui/primitives';
 import { Pagination } from '@/components/ui/pagination';
-import { usd, num, ago } from '@/lib/format';
-import { UserCheck } from 'lucide-react';
+import {
+  Workbench, Rail, Detail, DetailBar, QueueRow, QueueTabs, EmptyDetail, FactGrid, useQueueKeys,
+} from '@/components/admin/workbench';
 import { AttachmentList } from '@/features/support/attachments';
-import { adminGetBlob } from '@/lib/admin-api';
+import { useAdmin } from '@/features/admin/use-admin';
+import { useConfirmOk } from '@/components/ui/confirm';
+import { usd, num, ago, shortDate } from '@/lib/format';
 
 type Priority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 type Category = 'DEPOSIT' | 'WITHDRAWAL' | 'ACCOUNT' | 'VERIFICATION' | 'EARNINGS' | 'TECHNICAL' | 'OTHER';
@@ -51,6 +54,9 @@ const statusTone = (s: string): Tone => (s === 'OPEN' ? 'warn' : s === 'ANSWERED
 
 export default function SupportPage() {
   const qc = useQueryClient();
+  const { admin, can } = useAdmin();
+  const askConfirm = useConfirmOk();
+
   const [status, setStatus] = useState('');
   const [awaiting, setAwaiting] = useState(false);
   const [q, setQ] = useState('');
@@ -60,6 +66,11 @@ export default function SupportPage() {
   const [draft, setDraft] = useState('');
 
   const on = <T,>(fn: (v: T) => void) => (v: T) => { fn(v); setPage(0); };
+
+  /* Replying, triaging, claiming and closing are all gated on `support.manage`
+     server-side (admin.routes.ts:109-113). `support.view` alone is a real role,
+     so the console must not offer controls that come back 403. */
+  const mayManage = can('support.manage');
 
   const list = useQuery({
     queryKey: ['admin', 'support', status, awaiting, q, page, size],
@@ -76,9 +87,7 @@ export default function SupportPage() {
     enabled: !!openId,
   });
 
-  const refresh = () => {
-    qc.invalidateQueries({ queryKey: ['admin', 'support'] });
-  };
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin', 'support'] });
 
   const reply = useMutation({
     mutationFn: () => adminPost(`/admin/support/${openId}/reply`, { body: draft.trim() }),
@@ -86,18 +95,23 @@ export default function SupportPage() {
     onError: (e) => toastError(e),
   });
 
-  const me = useQuery<{ id: string }>({ queryKey: ['admin', 'me'], queryFn: () => adminGet('/admin/me') });
-
   const triage = useMutation({
     mutationFn: (patch: { priority?: Priority; category?: Category; assignedTo?: string | null }) =>
       adminPatch(`/admin/support/${openId}/triage`, patch),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'support'] }),
+    // Silent success reads as "nothing happened" on a control that did change
+    // how the queue is ordered for everyone else.
+    onSuccess: (_d, patch) => {
+      toast.success(patch.priority ? `Priority set to ${patch.priority.toLowerCase()}`
+        : patch.category ? `Category set to ${patch.category.toLowerCase()}`
+        : 'Ticket released');
+      refresh();
+    },
     onError: (e) => toastError(e),
   });
 
   const claim = useMutation({
     mutationFn: () => adminPost(`/admin/support/${openId}/claim`),
-    onSuccess: () => { toast.success('Ticket is yours'); qc.invalidateQueries({ queryKey: ['admin', 'support'] }); },
+    onSuccess: () => { toast.success('Ticket is yours'); refresh(); },
     onError: (e) => toastError(e),
   });
 
@@ -107,7 +121,21 @@ export default function SupportPage() {
     onError: (e) => toastError(e),
   });
 
+  const rows = list.data?.rows ?? [];
+  useQueueKeys(rows.map((r) => r.id), openId, (id) => { setOpenId(id); setDraft(''); });
+
   const t = thread.data;
+
+  /* Jump to the newest message whenever the thread changes or a reply lands —
+     a conversation that opens at the top hides the thing you need to answer. */
+  const feedRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!t) return;
+    const el = feedRef.current;
+    if (el) el.scrollIntoView({ block: 'end' });
+  }, [t?.id, t?.messages.length]);
+
+  const closed = t?.status === 'CLOSED';
 
   return (
     <>
@@ -116,157 +144,186 @@ export default function SupportPage() {
         subtitle="Member queries and replies. A ticket needs attention when it is open and the last word was the member's."
       />
 
-      <div className="grid grid-cols-1 items-start gap-3.5 xl:grid-cols-12">
-        {/* ── queue ─────────────────────────────────────────────────── */}
-        <Card className="xl:col-span-5">
-          <CardHead
-            title={`${num(list.data?.total ?? 0)} tickets`}
-            action={list.data?.awaitingCount
-              ? <Badge tone="warn">{num(list.data.awaitingCount)} awaiting reply</Badge>
-              : undefined}
-          />
-          <div className="flex flex-wrap items-center gap-2 px-5 pb-3">
-            <Select label="Filter by ticket status" value={status} onChange={on(setStatus)} className="h-9 text-[12.5px]"
-                    options={[{ value: '', label: 'All statuses' },
-                              ...['OPEN', 'ANSWERED', 'CLOSED'].map((s) => ({ value: s, label: s }))]} />
-            <label className="flex items-center gap-1.5 text-[12.5px] text-ink-2">
-              <input type="checkbox" checked={awaiting} onChange={(e) => on(setAwaiting)(e.target.checked)} className="accent-gold" />
-              Awaiting reply
-            </label>
-            <label className="relative flex flex-1 items-center">
-              <Search size={15} className="pointer-events-none absolute left-3 text-ink-3" />
-              <input value={q} onChange={(e) => on(setQ)(e.target.value)} placeholder="Subject, email or member ID"
-                     className={`${controlCls} h-9 w-full pl-9 text-[12.5px]`} />
-            </label>
+      <Workbench>
+        {/* ── queue ──────────────────────────────────────────────────────── */}
+        <Rail>
+          <div className="shrink-0 border-b border-line">
+            <div className="flex items-center justify-between gap-3 px-5 pb-2.5 pt-4">
+              <h2 className="text-[15px] font-semibold text-ink">{num(list.data?.total ?? 0)} tickets</h2>
+              {!!list.data?.awaitingCount && (
+                <Badge tone="warn">{num(list.data.awaitingCount)} awaiting reply</Badge>
+              )}
+            </div>
+
+            <QueueTabs
+              value={status}
+              onChange={on(setStatus)}
+              tabs={[
+                { value: '', label: 'All' },
+                { value: 'OPEN', label: 'Open', count: list.data?.openCount },
+                { value: 'ANSWERED', label: 'Answered' },
+                { value: 'CLOSED', label: 'Closed' },
+              ]}
+            />
+
+            <div className="flex items-center gap-2 px-5 pb-3">
+              <label className="relative flex flex-1 items-center">
+                <Search size={15} className="pointer-events-none absolute left-3 text-ink-3" />
+                <span className="sr-only">Search tickets</span>
+                <input value={q} onChange={(e) => on(setQ)(e.target.value)}
+                       placeholder="Subject, email or member ID"
+                       className={`${controlCls} h-9 w-full pl-9 text-[12.5px]`} />
+              </label>
+              <label className="flex shrink-0 items-center gap-1.5 text-[12.5px] text-ink-2">
+                <input type="checkbox" checked={awaiting} onChange={(e) => on(setAwaiting)(e.target.checked)}
+                       className="h-4 w-4 accent-gold" />
+                Awaiting
+              </label>
+            </div>
           </div>
 
-          {list.isLoading ? (
-            <div className="space-y-2 px-5 pb-5">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
-          ) : (list.data?.rows.length ?? 0) === 0 ? (
-            <p className="px-5 py-14 text-center text-[13.5px] text-ink-2">No tickets match these filters.</p>
-          ) : (
-            <ul className="border-t border-line">
-              {(list.data?.rows ?? []).map((row) => (
-                <li key={row.id}>
-                  <button
-                    onClick={() => { setOpenId(row.id); setDraft(''); }}
-                    className={clsx('w-full border-b border-line-soft px-5 py-3 text-left transition',
-                      openId === row.id ? 'bg-gold-soft' : 'hover:bg-row-hover')}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium text-ink">{row.subject}</span>
-                      {row.awaitingReply && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-warn" title="Awaiting reply" />}
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {(row.priority === 'HIGH' || row.priority === 'URGENT') && (
-                          <Badge tone={PRIORITY_TONE[row.priority]}>{row.priority}</Badge>
-                        )}
-                        <Badge tone={statusTone(row.status)}>{row.status}</Badge>
-                      </div>
-                    </div>
-                    <p className="mt-1 truncate text-[12px] text-ink-2">
-                      <span className="font-medium">{row.user.userCode}</span>
-                      {row.lastMessage && <> · {row.lastMessage.isStaff ? 'You: ' : ''}{row.lastMessage.body}</>}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-ink-3">
-                      {num(row.messageCount)} message{row.messageCount === 1 ? '' : 's'} · updated {ago(row.updatedAt)}
-                    </p>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <Pagination total={list.data?.total ?? 0} page={page} pageSize={size} onPage={setPage} onPageSize={setSize} sizes={[10, 25, 50]} />
-        </Card>
+          <div className="fx-scrollbar-hide min-h-0 flex-1 overflow-y-auto">
+            {list.isLoading ? (
+              <div className="space-y-2 p-5">
+                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
+              </div>
+            ) : rows.length === 0 ? (
+              <p className="px-5 py-14 text-center text-[13.5px] text-ink-2">
+                {awaiting || status || q ? 'No tickets match these filters.' : 'No tickets yet.'}
+              </p>
+            ) : rows.map((row) => (
+              <QueueRow key={row.id} selected={openId === row.id}
+                        onSelect={() => { setOpenId(row.id); setDraft(''); }}>
+                <div className="flex items-start gap-2">
+                  <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium text-ink">{row.subject}</span>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {(row.priority === 'HIGH' || row.priority === 'URGENT') && (
+                      <Badge tone={PRIORITY_TONE[row.priority]}>{row.priority}</Badge>
+                    )}
+                    <Badge tone={statusTone(row.status)}>{row.status}</Badge>
+                  </div>
+                </div>
+                <p className="mt-1 truncate text-[12px] text-ink-2">
+                  <span className="font-medium">{row.user.userCode}</span>
+                  {row.lastMessage && <> · {row.lastMessage.isStaff ? 'You: ' : ''}{row.lastMessage.body}</>}
+                </p>
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11px] text-ink-3">
+                  {row.awaitingReply && (
+                    <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap font-medium text-warn-on">
+                      <span className="h-1.5 w-1.5 rounded-full bg-warn" aria-hidden />
+                      awaiting reply
+                    </span>
+                  )}
+                  <span className="truncate">
+                    {num(row.messageCount)} message{row.messageCount === 1 ? '' : 's'} · updated {ago(row.updatedAt)}
+                  </span>
+                </p>
+              </QueueRow>
+            ))}
+          </div>
 
-        {/* ── thread ────────────────────────────────────────────────── */}
-        <Card className="xl:col-span-7">
+          <div className="shrink-0 border-t border-line">
+            <Pagination total={list.data?.total ?? 0} page={page} pageSize={size}
+                        onPage={setPage} onPageSize={setSize} sizes={[10, 25, 50]} />
+          </div>
+        </Rail>
+
+        {/* ── thread ─────────────────────────────────────────────────────── */}
+        <Detail>
           {!openId ? (
-            <p className="px-5 py-20 text-center text-[13.5px] text-ink-2">Select a ticket to read the conversation.</p>
+            <EmptyDetail
+              icon={<LifeBuoy size={20} />}
+              title="No ticket selected"
+              hint="Pick one from the queue to read the conversation and answer it."
+            />
           ) : thread.isLoading || !t ? (
-            <div className="space-y-3 p-5">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
+            <div className="space-y-3 p-5">
+              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
+            </div>
           ) : (
             <>
-              <CardHead
+              <DetailBar
                 title={t.subject}
-                action={
-                  <div className="flex items-center gap-2">
-                    <Badge tone={statusTone(t.status)}>{t.status}</Badge>
-                    {t.status !== 'CLOSED' ? (
-                      <Button size="sm" variant="outline" loading={setTicketStatus.isPending}
-                              onClick={() => setTicketStatus.mutate('CLOSED')}>Close</Button>
+                subtitle={<span>{t.user.userCode} · opened {ago(t.createdAt)} · {t.category.toLowerCase()}</span>}
+              >
+                <Badge tone={statusTone(t.status)}>{t.status}</Badge>
+                {mayManage && (
+                  closed ? (
+                    <Button size="sm" variant="outline" loading={setTicketStatus.isPending}
+                            onClick={() => setTicketStatus.mutate('OPEN')}>Reopen</Button>
+                  ) : (
+                    <Button size="sm" variant="outline" loading={setTicketStatus.isPending}
+                      onClick={async () => {
+                        if (!(await askConfirm({
+                          title: 'Close this ticket?',
+                          body: 'The member is no longer expecting a reply. They can reopen it by writing again.',
+                          confirmLabel: 'Close ticket',
+                          tone: 'primary',
+                        }))) return;
+                        setTicketStatus.mutate('CLOSED');
+                      }}>Close</Button>
+                  )
+                )}
+              </DetailBar>
+
+              {/* Triage — set by the member, adjustable here. */}
+              {mayManage && (
+                <div className="flex flex-wrap items-center gap-2 border-b border-line px-5 py-2.5">
+                  <label className="flex items-center gap-1.5">
+                    <span className="text-[11px] uppercase tracking-[0.04em] text-ink-3">Priority</span>
+                    <select value={t.priority} aria-label="Ticket priority"
+                            onChange={(e) => triage.mutate({ priority: e.target.value as Priority })}
+                            className={`${controlCls} h-8 text-[12.5px]`}>
+                      {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </label>
+
+                  <label className="flex items-center gap-1.5">
+                    <span className="text-[11px] uppercase tracking-[0.04em] text-ink-3">Category</span>
+                    <select value={t.category} aria-label="Ticket category"
+                            onChange={(e) => triage.mutate({ category: e.target.value as Category })}
+                            className={`${controlCls} h-8 text-[12.5px]`}>
+                      {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </label>
+
+                  <div className="ml-auto flex items-center gap-2">
+                    {t.assignedTo ? (
+                      <span className="inline-flex items-center gap-1.5 text-[12px] text-ink-2">
+                        <UserCheck size={13} className="text-good" />
+                        {t.assignedTo === admin?.id ? 'Yours' : 'Assigned to someone else'}
+                        <button type="button" onClick={() => triage.mutate({ assignedTo: null })}
+                                className="rounded text-ink-3 underline underline-offset-2 transition hover:text-ink">
+                          release
+                        </button>
+                      </span>
                     ) : (
-                      <Button size="sm" variant="outline" loading={setTicketStatus.isPending}
-                              onClick={() => setTicketStatus.mutate('OPEN')}>Reopen</Button>
+                      <Button size="sm" variant="outline" loading={claim.isPending} onClick={() => claim.mutate()}>
+                        <UserCheck size={13} /> Claim
+                      </Button>
                     )}
                   </div>
-                }
-              />
-
-              {/* Triage. Set by the member, adjustable here — they know whether
-                  their money arrived, we know how the queue should run. */}
-              <div className="flex flex-wrap items-center gap-2 border-t border-line px-5 py-3">
-                <label className="flex items-center gap-1.5">
-                  <span className="text-[11px] uppercase tracking-[0.04em] text-ink-3">Priority</span>
-                  <select
-                    value={t.priority}
-                    onChange={(e) => triage.mutate({ priority: e.target.value as Priority })}
-                    className={`${controlCls} h-8 text-[12.5px]`}
-                  >
-                    {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </label>
-
-                <label className="flex items-center gap-1.5">
-                  <span className="text-[11px] uppercase tracking-[0.04em] text-ink-3">Category</span>
-                  <select
-                    value={t.category}
-                    onChange={(e) => triage.mutate({ category: e.target.value as Category })}
-                    className={`${controlCls} h-8 text-[12.5px]`}
-                  >
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </label>
-
-                <div className="ml-auto flex items-center gap-2">
-                  {t.assignedTo ? (
-                    <span className="inline-flex items-center gap-1.5 text-[12px] text-ink-2">
-                      <UserCheck size={13} className="text-good" />
-                      {t.assignedTo === me.data?.id ? 'Yours' : 'Assigned'}
-                      <button type="button" onClick={() => triage.mutate({ assignedTo: null })}
-                              className="text-ink-3 underline underline-offset-2 hover:text-ink">
-                        release
-                      </button>
-                    </span>
-                  ) : (
-                    <Button size="sm" variant="outline" loading={claim.isPending} onClick={() => claim.mutate()}>
-                      <UserCheck size={13} /> Claim
-                    </Button>
-                  )}
                 </div>
-              </div>
+              )}
 
               {/* who you are talking to — enough to answer without leaving */}
-              <dl className="grid grid-cols-2 gap-px border-y border-line bg-line sm:grid-cols-4">
-                {[
-                  { k: 'Member', v: t.user.userCode },
-                  { k: 'Account', v: t.user.status },
-                  { k: 'Invested', v: usd(t.user.totalInvested) },
-                  { k: 'Rank', v: t.user.rank ?? '—' },
-                ].map((s) => (
-                  <div key={s.k} className="bg-card px-4 py-2.5">
-                    <dt className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">{s.k}</dt>
-                    <dd className="mt-0.5 truncate text-[13px] font-medium tabular-nums text-ink">{s.v}</dd>
-                  </div>
-                ))}
-              </dl>
+              <FactGrid facts={[
+                { k: 'Member', v: t.user.userCode },
+                { k: 'Account', v: t.user.status, tone: t.user.status === 'ACTIVE' ? 'good' : 'warn' },
+                { k: 'Invested', v: usd(t.user.totalInvested) },
+                { k: 'Earned', v: usd(t.user.totalEarned) },
+              ]} />
 
-              <ul className="max-h-[46vh] space-y-3 overflow-y-auto px-5 py-4">
+              <div className="space-y-3 px-5 py-4">
                 {t.messages.map((m) => (
-                  <li key={m.id} className={clsx('flex', m.isStaff ? 'justify-end' : 'justify-start')}>
+                  <div key={m.id} className={clsx('flex', m.isStaff ? 'justify-end' : 'justify-start')}>
                     <div className={clsx('max-w-[78%] rounded-[12px] px-3.5 py-2.5',
                       m.isStaff ? 'bg-violet-soft' : 'border border-line bg-canvas')}>
                       <p className="text-[11px] font-medium text-ink-2">
-                        {m.author} <span className="font-normal text-ink-3">· {ago(m.createdAt)}</span>
+                        {m.author}{' '}
+                        <span className="font-normal text-ink-3" title={shortDate(m.createdAt)}>
+                          · {ago(m.createdAt)}
+                        </span>
                       </p>
                       <p className="mt-1 whitespace-pre-wrap text-[13px] leading-relaxed text-ink">{m.body}</p>
                       <AttachmentList
@@ -274,33 +331,51 @@ export default function SupportPage() {
                         fetcher={(id) => adminGetBlob(`/admin/support/attachments/${id}`)}
                       />
                     </div>
-                  </li>
+                  </div>
                 ))}
-              </ul>
-
-              <div className="border-t border-line p-4">
-                <textarea
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && draft.trim().length > 1) reply.mutate();
-                  }}
-                  rows={3}
-                  placeholder={t.status === 'CLOSED' ? 'Replying will reopen this ticket…' : 'Write a reply…'}
-                  className="w-full resize-none rounded-[9px] border border-field-line bg-field px-3 py-2 text-[13px] text-ink outline-none transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15"
-                />
-                <div className="mt-2 flex items-center justify-between gap-3">
-                  <p className="text-[11.5px] text-ink-3">⌘/Ctrl + Enter to send. The member sees this immediately.</p>
-                  <Button size="sm" loading={reply.isPending} disabled={draft.trim().length < 2}
-                          onClick={() => reply.mutate()}>
-                    <Send size={13} /> Send reply
-                  </Button>
-                </div>
+                <div ref={feedRef} aria-hidden />
               </div>
+
+              {/* Composer sticks to the bottom of the viewport so a long thread
+                  never puts the reply box a scroll away. */}
+              {mayManage ? (
+                <div className="sticky bottom-0 z-10 border-t border-line bg-card/95 p-4 backdrop-blur">
+                  {closed && (
+                    <p className="mb-2 rounded-md bg-warn-soft px-3 py-1.5 text-[11.5px] text-warn-on">
+                      This ticket is closed. Sending a reply reopens it.
+                    </p>
+                  )}
+                  <label>
+                    <span className="sr-only">Reply to this ticket</span>
+                    <textarea
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && draft.trim().length > 1) reply.mutate();
+                      }}
+                      rows={3}
+                      placeholder="Write a reply…"
+                      className="w-full resize-none rounded-[9px] border border-field-line bg-field px-3 py-2 text-[13px] text-ink outline-none transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15"
+                    />
+                  </label>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <p className="text-[11.5px] text-ink-3">⌘/Ctrl + Enter to send. The member sees this immediately.</p>
+                    <Button size="sm" loading={reply.isPending} disabled={draft.trim().length < 2}
+                            onClick={() => reply.mutate()}>
+                      <Send size={13} /> Send reply
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="border-t border-line bg-canvas px-5 py-3 text-[12px] text-ink-2">
+                  Read-only. Answering, triaging and closing tickets need the “Reply and close tickets”
+                  permission.
+                </p>
+              )}
             </>
           )}
-        </Card>
-      </div>
+        </Detail>
+      </Workbench>
     </>
   );
 }

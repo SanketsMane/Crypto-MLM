@@ -3,7 +3,7 @@ import { Redis } from 'ioredis';
 import { env } from '../config/env.js';
 import { logger } from '../core/logger.js';
 import { captureError } from '../core/error-reporter.js';
-import { runDailyRoi } from './daily-roi.job.js';
+import { catchUpDailyRoi } from './daily-roi.job.js';
 import { evaluate as evaluateRank } from '../modules/rank/rank.service.js';
 import { recalculate } from '../modules/team/team.service.js';
 import { purgeExpiredSessions } from '../core/sessions.js';
@@ -13,6 +13,7 @@ import { processQueue as processPayouts } from '../core/chain/payouts.js';
 import { chainState } from '../core/chain/config.js';
 import { sendEarningsDigest } from './earnings-digest.job.js';
 import { runOpsWatch } from './ops-watch.job.js';
+import { runTrialBalance } from './trial-balance.job.js';
 import { purgeOldNotifications } from '../core/notify.js';
 import { notifyAdmins } from '../core/notify.js';
 import { purgeExpiredIdempotencyKeys } from '../middleware/idempotency.js';
@@ -39,6 +40,14 @@ export async function scheduleRecurring() {
     'daily-roi',
     { pattern: '10 0 * * *' },
     { name: 'daily-roi', data: {}, opts: defaults },
+  );
+
+  /* 02:00 UTC daily — after the ROI run has settled, before the working day.
+     Reconciliation is only useful if somebody reads it in the morning. */
+  await queue.upsertJobScheduler(
+    'trial-balance',
+    { pattern: '0 2 * * *' },
+    { name: 'trial-balance', data: {}, opts: defaults },
   );
 
   // 03:30 UTC daily. Expired sessions and spent idempotency keys are dead
@@ -97,7 +106,9 @@ export function startWorker() {
       runWithContext({ requestId: `job-${job.name}-${crypto.randomUUID()}` }, async () => {
         switch (job.name) {
           case 'daily-roi':
-            return runDailyRoi();
+            // Catch-up, not a single day: a tick that was missed must still be
+            // paid. See catchUpDailyRoi in daily-roi.job.ts.
+            return catchUpDailyRoi();
           case 'maintenance':
             return {
               sessions: await purgeExpiredSessions(),
@@ -109,6 +120,8 @@ export function startWorker() {
             return sendEarningsDigest();
           case 'ops-watch':
             return runOpsWatch();
+          case 'trial-balance':
+            return runTrialBalance();
           case 'chain-scan':
             return scanForDeposits();
           case 'chain-payouts':

@@ -103,9 +103,9 @@ describe('search', () => {
   });
 });
 
-// ── roaming club ────────────────────────────────────────────────────────────
+// ── flyers club ────────────────────────────────────────────────────────────
 
-describe('roaming club', () => {
+describe('flyers club', () => {
   async function tiers() {
     await prisma.roamingClubTier.deleteMany({});
     await prisma.roamingClubTier.createMany({

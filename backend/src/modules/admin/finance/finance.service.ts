@@ -10,6 +10,7 @@ import { notifyMember } from '../../../core/notify.js';
 import * as payouts from '../../../core/chain/payouts.js';
 import * as gateway from '../../../core/gateway/gateway.service.js';
 import { logger } from '../../../core/logger.js';
+import { assertPayoutRail } from '../../../core/payout-rail.js';
 
 // ── deposits ──
 
@@ -107,27 +108,43 @@ export async function withdrawals(opts: { status?: TxStatus; overdueOnly?: boole
 }
 
 export async function approveWithdrawal(adminId: string, id: string, txHash: string | undefined, req?: Request) {
+  /**
+   * Exactly one rail sends the money.
+   *
+   * Resolved BEFORE the withdrawal is claimed: an unresolvable configuration
+   * throws here, leaving the request PENDING and re-approvable once the
+   * operator has fixed it, rather than stranding it approved-but-unpaid.
+   *
+   * This used to call both rails unconditionally, which paid the member twice
+   * wherever both were configured. See core/payout-rail.ts.
+   */
+  const rail = assertPayoutRail();
+
   const w = await withdrawalService.approve(id, txHash);
   await audit.record({
     adminId, action: 'APPROVE', entityType: 'withdrawal', entityId: id,
-    summary: `Withdrawal ${w.reference} approved — net ${w.netAmount.toString()}`,
-    after: { status: w.status, txHash: txHash ?? null }, req,
+    summary: `Withdrawal ${w.reference} approved — net ${w.netAmount.toString()} via ${rail.rail}`,
+    after: { status: w.status, txHash: txHash ?? null, rail: rail.rail }, req,
   });
 
   // Approving is an accounting decision; paying is a network operation. The
-  // payout is queued here and broadcast by the worker, so a slow or unreachable
-  // RPC can never hold up an operator's queue.
-  const queued = await payouts.enqueue(id);
+  // on-chain payout is queued here and broadcast by the worker, so a slow or
+  // unreachable RPC can never hold up an operator's queue.
+  let queued: payouts.PayoutResult = { status: 'SKIPPED', reason: rail.reason };
 
-  /* If the gateway is configured it does the sending; the on-chain worker
-     above stays for self-hosted deployments that sign their own transactions.
-     A gateway failure must not unwind an approval an operator already made —
-     the payout is left handed-over-but-unsent for them to retry, and the
-     failure is logged rather than thrown. */
-  try {
-    await gateway.sendPayout(id);
-  } catch (cause) {
-    logger.error({ cause, withdrawalId: id }, 'gateway payout could not be dispatched — retry from the console');
+  if (rail.rail === 'chain') {
+    queued = await payouts.enqueue(id);
+  } else if (rail.rail === 'gateway') {
+    /* A gateway failure must not unwind an approval an operator already made —
+       the payout is left handed-over-but-unsent for them to retry, and the
+       failure is logged rather than thrown. */
+    try {
+      await gateway.sendPayout(id);
+    } catch (cause) {
+      logger.error({ cause, withdrawalId: id }, 'gateway payout could not be dispatched — retry from the console');
+    }
+  } else {
+    logger.info({ withdrawalId: id, reason: rail.reason }, 'withdrawal approved for manual payment');
   }
 
   notifyMember({

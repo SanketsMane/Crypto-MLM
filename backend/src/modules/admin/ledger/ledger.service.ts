@@ -1,7 +1,7 @@
 import { prisma } from '../../../core/db.js';
 import { money } from '../../../core/money.js';
 import { notFound } from '../../../core/errors.js';
-import { buildPath, getUpline } from '../../../core/tree.js';
+import { activeDirectCount, buildPath, getUpline } from '../../../core/tree.js';
 import { legVolumes } from '../../team/team.service.js';
 
 /** Cross-user views over the ledger and its derived records. */
@@ -133,7 +133,7 @@ export async function genealogy(opts: { userCode?: string; userId?: string; dept
     select: {
       id: true, userCode: true, firstName: true, lastName: true, status: true,
       depth: true, path: true, totalInvested: true, directCount: true,
-      activeDirectCount: true, createdAt: true,
+      createdAt: true,
       teamVolume: { select: { totalTeamBusiness: true, teamSize: true, powerLegVolume: true } },
       sponsor: { select: { userCode: true } },
     },
@@ -142,6 +142,9 @@ export async function genealogy(opts: { userCode?: string; userId?: string; dept
 
   const depth = Math.min(Math.max(opts.depth, 1), 5);
   const prefix = buildPath(root.path, root.id);
+
+  /* Live, not the stale column. See core/tree.ts. */
+  const rootActiveDirects = await activeDirectCount(root.id);
 
   const [descendants, total, upline, legs] = await Promise.all([
     prisma.user.findMany({
@@ -195,7 +198,7 @@ export async function genealogy(opts: { userCode?: string; userId?: string; dept
       name: [root.firstName, root.lastName].filter(Boolean).join(' '),
       status: root.status, depth: root.depth,
       totalInvested: root.totalInvested.toString(),
-      directCount: root.directCount, activeDirectCount: root.activeDirectCount,
+      directCount: root.directCount, activeDirectCount: rootActiveDirects,
       joinedAt: root.createdAt,
       sponsorCode: root.sponsor?.userCode ?? null,
       teamBusiness: root.teamVolume?.totalTeamBusiness?.toString() ?? '0',

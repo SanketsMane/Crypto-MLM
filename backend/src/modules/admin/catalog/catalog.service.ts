@@ -9,7 +9,7 @@ import * as audit from '../audit/audit.service.js';
 
 /**
  * The plan itself is data, not code. Packages, the 33 commission rules, ranks
- * and Roaming Club tiers are all editable here so the compensation plan can be
+ * and Flyers Club tiers are all editable here so the compensation plan can be
  * tuned without a deploy — every change audited.
  */
 
@@ -96,6 +96,65 @@ export async function updateCommissionRule(
   return row;
 }
 
+/**
+ * Write several commission rules as one unit.
+ *
+ * A generation band spans up to ten levels. Sending them one request at a time
+ * means a failure halfway leaves the plan inconsistent — levels 11–15 on the new
+ * percent, 16–20 still on the old one — and the next payout run would pay a
+ * blend of two plans that was never approved. One transaction, so a band either
+ * moves whole or does not move at all.
+ */
+export async function updateCommissionRules(
+  adminId: string,
+  rules: Array<{
+    kind: CommissionKind; level: number; percent: string;
+    requiredDirects?: number; requiredTeamVolume?: string; isActive?: boolean;
+  }>,
+  req?: Request,
+) {
+  const before = await prisma.commissionRule.findMany({
+    where: { OR: rules.map((r) => ({ kind: r.kind, level: r.level })) },
+  });
+  const priorBy = new Map(before.map((b) => [`${b.kind}-${b.level}`, b]));
+
+  const rows = await prisma.$transaction(
+    rules.map((r) =>
+      prisma.commissionRule.upsert({
+        where: { kind_level: { kind: r.kind, level: r.level } },
+        create: {
+          kind: r.kind, level: r.level, percent: r.percent,
+          requiredDirects: r.requiredDirects ?? 0,
+          requiredTeamVolume: r.requiredTeamVolume ?? '0',
+          isActive: r.isActive ?? true,
+        },
+        update: {
+          percent: r.percent,
+          ...(r.requiredDirects !== undefined ? { requiredDirects: r.requiredDirects } : {}),
+          ...(r.requiredTeamVolume !== undefined ? { requiredTeamVolume: r.requiredTeamVolume } : {}),
+          ...(r.isActive !== undefined ? { isActive: r.isActive } : {}),
+        },
+      }),
+    ),
+  );
+
+  // One audit row per rule, exactly as a single-level edit writes, so the audit
+  // trail reads the same whether a level moved alone or inside a band.
+  for (const row of rows) {
+    const prior = priorBy.get(`${row.kind}-${row.level}`);
+    await audit.record({
+      adminId, action: 'UPDATE', entityType: 'commission_rule', entityId: row.id,
+      summary: `${row.kind} L${row.level}: ${prior?.percent?.toString() ?? '—'}% → ${row.percent.toString()}% (directs ${row.requiredDirects}, volume ${row.requiredTeamVolume.toString()})`,
+      before: prior
+        ? { percent: prior.percent.toString(), requiredDirects: prior.requiredDirects, requiredTeamVolume: prior.requiredTeamVolume.toString() }
+        : undefined,
+      after: { percent: row.percent.toString(), requiredDirects: row.requiredDirects, requiredTeamVolume: row.requiredTeamVolume.toString() },
+      req,
+    });
+  }
+  return rows;
+}
+
 // ── ranks ──
 
 export const ranks = () => prisma.rankDefinition.findMany({ orderBy: { level: 'asc' } });
@@ -133,7 +192,7 @@ export async function rankAchievements(opts: { take: number; skip: number }) {
   const [rows, total, agg] = await Promise.all([
     prisma.rankAchievement.findMany({
       orderBy: { achievedAt: 'desc' }, take: opts.take, skip: opts.skip,
-      include: { rank: { select: { name: true, code: true } }, user: { select: { userCode: true, email: true } } },
+      include: { rank: { select: { name: true, code: true, level: true } }, user: { select: { userCode: true, email: true } } },
     }),
     prisma.rankAchievement.count(),
     prisma.rankAchievement.aggregate({ _sum: { rewardAmount: true } }),
@@ -143,19 +202,19 @@ export async function rankAchievements(opts: { take: number; skip: number }) {
     rewarded: (agg._sum.rewardAmount ?? 0).toString(),
     rows: rows.map((r) => ({
       id: r.id, userCode: r.user.userCode, email: r.user.email,
-      rank: r.rank.name, rankCode: r.rank.code,
+      rank: r.rank.name, rankCode: r.rank.code, rankLevel: r.rank.level,
       reward: r.rewardAmount.toString(), achievedAt: r.achievedAt,
     })),
   };
 }
 
-// ── roaming club ──
+// ── flyers club ──
 
 export const roamingTiers = () =>
   prisma.roamingClubTier.findMany({ orderBy: [{ track: 'asc' }, { sortOrder: 'asc' }] });
 
 /**
- * The Roaming Club fulfilment queue.
+ * The Flyers Club fulfilment queue.
  *
  * Awards are earned automatically; a human still has to book the trip, so each
  * one sits here until an operator marks it fulfilled with a note.
@@ -193,7 +252,7 @@ export async function fulfilRoamingAward(adminId: string, id: string, notes: str
   });
   await audit.record({
     adminId, action: 'APPROVE', entityType: 'roaming_award', entityId: id,
-    summary: `Roaming Club ${award.tier.destination} fulfilled for ${award.user.userCode}`,
+    summary: `Flyers Club ${award.tier.destination} fulfilled for ${award.user.userCode}`,
     after: { status: 'PROCESSED', notes }, req,
   });
   return row;

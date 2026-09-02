@@ -39,6 +39,17 @@ const nextConfig: NextConfig = {
     '172.*.*.*',
     '192.168.*.*',
   ],
+
+  /**
+   * The Roaming Club was renamed the Flyers Club and moved with it. Members
+   * hold bookmarks, and notifications sent before the rename still carry the
+   * old link, so the old path keeps resolving rather than 404ing.
+   */
+  async redirects() {
+    return [
+      { source: '/roaming-club', destination: '/flyers-club', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -19,14 +19,14 @@ import { ActivityFeed, type Entry } from '@/components/member/cards/activity-fee
 import { usdWhole, num } from '@/lib/format';
 
 interface Dash {
-  profile: { name: string; userCode: string; walletAddress: string | null; referralLink: string; joinedAt: string; rank: { name: string } | null };
+  profile: { name: string; userCode: string; walletAddress: string | null; referralLink: string; joinedAt: string; rank: { name: string; level: number } | null };
   wallets: { type: string; balance: string; available: string }[];
   capping: { limit: string; earned: string; remaining: string; isCapped: boolean; percent: number; ceiling: number; mode: string };
   investments: { totalInvested: string; totalEarned: string; active: number; capped: number; count: number };
   income: { total: string; today: string; yesterday: string; breakdown: { category: string; total: string; count: number }[] };
   team: { totalTeamBusiness: string; directBusiness: string; powerLegVolume: string; otherLegsVolume: string; teamSize: number; directCount: number; activeDirectCount: number };
   levels: { unlocked: number; total: number; next: { level: number; percent: string; needDirects: number; needVolume: string } | null };
-  rank: { current: { name: string } | null; next: { name: string; reward: string; selfCapital: string; teamBusiness: string; percent: number } | null };
+  rank: { current: { name: string; level: number } | null; next: { name: string; level: number; reward: string; selfCapital: string; teamBusiness: string; percent: number } | null };
 }
 
 export default function MemberDashboard() {

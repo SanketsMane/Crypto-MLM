@@ -295,7 +295,7 @@ export const publicUser = (u: {
 export const me = async (userId: string) => {
   const u = await prisma.user.findUnique({
     where: { id: userId },
-    include: { currentRank: { select: { code: true, name: true } } },
+    include: { currentRank: { select: { code: true, name: true, level: true } } },
   });
   if (!u) throw unauthorized();
   return {

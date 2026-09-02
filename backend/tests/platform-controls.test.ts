@@ -7,7 +7,7 @@ import { issue } from '../src/core/sessions.js';
 import * as impersonation from '../src/modules/admin/impersonation/impersonation.service.js';
 import * as announcements from '../src/modules/announcement/announcement.service.js';
 import * as notifications from '../src/modules/notification/notification.service.js';
-import { prisma, resetData, seedPlan, makeUser, verifyKyc, accessTokenFor } from './helpers.js';
+import { prisma, resetData, seedPlan, makeUser, verifyKyc, accessTokenFor, stepUpHeaderFor } from './helpers.js';
 
 const app = createApp();
 const ADDR = '0x1234567890abcdef1234567890abcdef12345678';
@@ -89,6 +89,7 @@ describe('support view (impersonation)', () => {
     const res = await request(app)
       .post('/api/v1/withdrawals')
       .set('Authorization', `Bearer ${token}`)
+      .set('X-Step-Up', await stepUpHeaderFor(token))
       .set('Idempotency-Key', 'b'.repeat(20))
       .send({ amount: '100', walletAddress: ADDR });
 

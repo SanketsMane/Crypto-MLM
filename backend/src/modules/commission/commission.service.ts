@@ -31,6 +31,8 @@ export interface PayoutResult {
   userId: string;
   level: number;
   kind: CommissionKind;
+  /** What the payout was calculated on — capital for DIRECT, matched volume for BINARY. */
+  base: Money;
   intended: Money;
   paid: Money;
   cappedOut: boolean;
@@ -105,7 +107,7 @@ async function payOne(
   const intended = percentOf(params.baseAmount, params.percent);
 
   if (intended.lte(0)) {
-    return { userId: params.earnerId, level: params.level, kind: params.kind, intended, paid: money(0), cappedOut: false };
+    return { userId: params.earnerId, level: params.level, kind: params.kind, base: params.baseAmount, intended, paid: money(0), cappedOut: false };
   }
 
   // Reserve cap headroom first; whatever it grants is what we credit.
@@ -158,6 +160,7 @@ async function payOne(
     userId: params.earnerId,
     level: params.level,
     kind: params.kind,
+    base: params.baseAmount,
     intended,
     paid,
     cappedOut: paid.lt(intended),
@@ -175,14 +178,6 @@ export async function payDirectBonus(
   const rules = await loadRules('DIRECT', db);
   const upline = await getUpline(params.buyerId, DIRECT_MAX_LEVEL, db);
   const results: PayoutResult[] = [];
-
-  const buyer = await db.user.findUnique({
-    where: { id: params.buyerId },
-    select: { firstName: true, lastName: true, userCode: true },
-  });
-  const buyerName = buyer
-    ? [buyer.firstName, buyer.lastName].filter(Boolean).join(' ') || buyer.userCode
-    : 'a member';
 
   for (const anc of upline) {
     const rule = rules.get(anc.level);
@@ -202,20 +197,6 @@ export async function payDirectBonus(
         description: `Direct sponsor bonus L${anc.level}`,
       }),
     );
-
-    const result = results.at(-1);
-    // Only what was actually paid is worth announcing — a commission clamped to
-    // zero by the cap is not income, and "you earned $0" reads as a bug.
-    if (result && result.paid.gt(0)) {
-      notifyMember({
-        userId: anc.id,
-        type: 'commission.direct',
-        dedupeKey: `direct:${params.investmentId}:${anc.level}`,
-        title: `Sponsor bonus — $${result.paid.toString()}`,
-        body: `You earned $${result.paid.toString()} from ${buyerName}'s investment (level ${anc.level}).`,
-        meta: { level: anc.level, amount: result.paid.toString(), from: buyerName },
-      });
-    }
   }
   return results;
 }
@@ -322,22 +303,55 @@ export async function payBinaryBonus(
       }),
     );
 
-    const result = results.at(-1);
-    if (result && result.paid.gt(0)) {
-      notifyMember({
-        userId: earnerId,
-        type: 'commission.binary',
-        dedupeKey: `binary:${params.investmentId}:${earnerId}`,
-        title: `Binary bonus — $${result.paid.toString()}`,
-        body: `Your legs matched $${match.matched.toString()} and paid $${result.paid.toString()}.`,
-        meta: {
-          matched: match.matched.toString(),
-          carriedLeft: match.carriedLeft.toString(),
-          carriedRight: match.carriedRight.toString(),
-        },
-      });
-    }
   }
 
   return results;
+}
+
+/**
+ * Tell the uplines what they earned — AFTER the purchase has committed.
+ *
+ * These notifications used to fire from inside `payDirectBonus` and
+ * `payBinaryBonus`, which run inside the purchase transaction. `notifyMember`
+ * writes through the global client so it can never fail a payment, and that is
+ * exactly why it must not be called from in there: it commits independently,
+ * so a late rollback left sponsors told about commissions that no longer
+ * existed. The caller now announces once the money is real.
+ *
+ * Only what was actually paid is announced — a commission clamped to zero by
+ * the cap is not income, and "you earned $0" reads as a bug.
+ */
+export async function announceCommissions(buyerId: string, results: PayoutResult[]) {
+  const paid = results.filter((r) => r.paid.gt(0));
+  if (paid.length === 0) return;
+
+  const buyer = await prisma.user.findUnique({
+    where: { id: buyerId },
+    select: { firstName: true, lastName: true, userCode: true },
+  });
+  const buyerName = buyer
+    ? [buyer.firstName, buyer.lastName].filter(Boolean).join(' ') || buyer.userCode
+    : 'a member';
+
+  for (const r of paid) {
+    if (r.kind === 'DIRECT') {
+      notifyMember({
+        userId: r.userId,
+        type: 'commission.direct',
+        dedupeKey: `direct:${buyerId}:${r.userId}:${r.level}:${r.paid.toString()}`,
+        title: `Sponsor bonus — $${r.paid.toString()}`,
+        body: `You earned $${r.paid.toString()} from ${buyerName}'s investment (level ${r.level}).`,
+        meta: { level: r.level, amount: r.paid.toString(), from: buyerName },
+      });
+    } else if (r.kind === 'BINARY') {
+      notifyMember({
+        userId: r.userId,
+        type: 'commission.binary',
+        dedupeKey: `binary:${buyerId}:${r.userId}:${r.paid.toString()}`,
+        title: `Binary bonus — $${r.paid.toString()}`,
+        body: `Your legs matched $${r.base.toString()} and paid $${r.paid.toString()}.`,
+        meta: { matched: r.base.toString(), amount: r.paid.toString() },
+      });
+    }
+  }
 }

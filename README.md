@@ -80,7 +80,7 @@ npx tsx scripts/verify-roi.ts           # weekday gate + replay safety
 | Direct sponsor | L1 4%, L2 0.5%, L3 0.5% | p11 |
 | Generation | 30 levels, 13% → 0.5%, gated on directs + team volume | p13 |
 | Executive rank | 10 ranks, Starter → Legend, 50:50 power-leg rule | p14, p15 |
-| Roaming Club | 2 tracks × 5 destinations | p16, p17 |
+| Flyers Club | 2 tracks × 5 destinations | p16, p17 |
 | Earnings cap | 250% passive / 300% active | p18 |
 | Withdrawals | 5% fee, $10–$5,000, 48h SLA, USDT BEP-20 | p18 |
 

@@ -1027,7 +1027,7 @@ async function summarise(
     ['Direct sponsor bonus', 'DIRECT_BONUS'],
     ['Generation bonus', 'GENERATION_BONUS'],
     ['Rank rewards', 'RANK_BONUS'],
-    ['Roaming Club', 'ROAMING_CLUB'],
+    ['Flyers Club', 'ROAMING_CLUB'],
     ['Reward cards', 'REWARD_CARD'],
     ['Prize draws', 'LOTTERY_PRIZE'],
   ] as const;

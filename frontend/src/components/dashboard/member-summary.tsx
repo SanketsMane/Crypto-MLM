@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Check, Copy, UserRound } from 'lucide-react';
 import { usd, shortDate } from '@/lib/format';
+import { rankLabel } from '@/lib/rank';
 
 /**
  * Who the member is, in one panel — a plain premium information card, not the
@@ -13,7 +14,7 @@ import { usd, shortDate } from '@/lib/format';
  * than inventing a value.
  */
 export function MemberSummary({ profile, invested, earned, sponsor, joinedAt }: {
-  profile?: { name: string; userCode: string; rank: { name: string } | null };
+  profile?: { name: string; userCode: string; rank: { name: string; level: number } | null };
   invested?: string;
   earned?: string;
   sponsor?: string;
@@ -33,7 +34,7 @@ export function MemberSummary({ profile, invested, earned, sponsor, joinedAt }: 
   };
 
   const facts = [
-    { k: 'Rank', v: profile?.rank?.name ?? 'Unranked' },
+    { k: 'Rank', v: profile?.rank ? rankLabel(profile.rank.level) : 'Unranked' },
     { k: 'Sponsor', v: sponsor ?? '—' },
     { k: 'Invested', v: usd(invested) },
     { k: 'Earned', v: usd(earned) },

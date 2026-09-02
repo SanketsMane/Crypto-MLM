@@ -8,7 +8,7 @@ import { Reveal } from '@/components/home/motion';
 
 export const metadata: Metadata = {
   title: 'Opportunity | FortuneX',
-  description: 'The FortuneX compensation plan in full — tiers, the daily trade bonus, direct and generation bonuses, executive ranks and the Roaming Club.',
+  description: 'The four ways FortuneX pays — a daily trade bonus on invested capital, direct and generation bonuses, executive ranks and the Flyers Club.',
 };
 
 export const revalidate = 60;
@@ -55,7 +55,7 @@ export default async function OpportunityPage() {
       body: `Split across your first three levels on every referred purchase — ${plan.directBonus.map((d) => `${d.percent}%`).join(' / ')}.` },
     { Icon: Trophy, title: 'Executive ranks', figure: `${plan.ranks.length}`,
       body: `A ladder from ${plan.ranks[0]?.name} to ${plan.ranks[plan.ranks.length - 1]?.name}, each with a one-off reward on qualification.` },
-    { Icon: Plane, title: 'Roaming Club', figure: `${plan.roaming.affiliate.length}`,
+    { Icon: Plane, title: 'Flyers Club', figure: `${plan.roaming.affiliate.length}`,
       body: 'Travel rewards on performance, through two independent tracks — and outside your earnings cap.' },
   ];
 
@@ -63,8 +63,8 @@ export default async function OpportunityPage() {
     <main>
       <PageHero
         crumb="Opportunity"
-        title="The plan, published in full"
-        lead="Four income streams, each with its own rules, its own qualification and its own line in your ledger. Nothing below is an introductory rate — these are the constants the platform runs on."
+        title="How the platform pays"
+        lead="Four income streams, each with its own rules, its own qualification and its own line in your ledger. Every rate below is a constant the platform runs on, not an introductory offer."
       />
 
       {/* ── streams ──────────────────────────────────────────────────── */}
@@ -88,78 +88,13 @@ export default async function OpportunityPage() {
         </Container>
       </section>
 
-      {/* ── tiers ────────────────────────────────────────────────────── */}
+      {/* ── flyers club ─────────────────────────────────────────────── */}
       <section className="border-t border-[var(--home-line)] py-20 sm:py-24">
         <Container>
           <Reveal>
-            <Heading>Investment tiers</Heading>
+            <Heading>The Flyers Club</Heading>
             <p className="mt-4 max-w-[64ch] text-[14.5px] leading-[1.8] text-[var(--home-text-2)]">
-              The tier sets the size of your position. The rate, the ceiling and every rule around
-              them are identical at every level.
-            </p>
-          </Reveal>
-          <Reveal delay={120} className="mt-10 block">
-            <PlanTable
-              head={['Tier', 'Capital', 'Daily bonus', 'Ceiling', 'Total return at cap']}
-              rows={plan.packages.map((amount, i) => [
-                `Tier ${i + 1}`,
-                planMoney(amount),
-                `${plan.dailyReturnPercent}%`,
-                `${plan.capPassivePercent}%`,
-                planMoney((amount * plan.capPassivePercent) / 100),
-              ])}
-            />
-          </Reveal>
-        </Container>
-      </section>
-
-      {/* ── generation bands ─────────────────────────────────────────── */}
-      <section className="border-t border-[var(--home-line)] py-20 sm:py-24">
-        <Container>
-          <Reveal>
-            <Heading>Generation bonus — thirty levels</Heading>
-            <p className="mt-4 max-w-[64ch] text-[14.5px] leading-[1.8] text-[var(--home-text-2)]">
-              Paid on the daily trade bonus earned beneath you. Each band has its own qualification
-              on active directs and accumulated team volume.
-            </p>
-          </Reveal>
-          <Reveal delay={120} className="mt-10 block">
-            <PlanTable
-              head={['Levels', 'Share', 'Active directs', 'Team volume']}
-              rows={plan.generationBands.map((b) => [
-                b.levels, `${b.percent}%`, b.directs, planMoney(b.volume),
-              ])}
-            />
-          </Reveal>
-        </Container>
-      </section>
-
-      {/* ── ranks ────────────────────────────────────────────────────── */}
-      <section className="border-t border-[var(--home-line)] py-20 sm:py-24">
-        <Container>
-          <Reveal>
-            <Heading>Executive ranks</Heading>
-            <p className="mt-4 max-w-[64ch] text-[14.5px] leading-[1.8] text-[var(--home-text-2)]">
-              Team business counts 50:50 — at most half may come from your strongest leg. Business
-              already counted carries forward to the next rank.
-            </p>
-          </Reveal>
-          <Reveal delay={120} className="mt-10 block">
-            <PlanTable
-              head={['Rank', 'Self capital', 'Team business', 'Reward']}
-              rows={plan.ranks.map((r) => [r.name, planMoney(r.self), planMoney(r.team), planMoney(r.reward)])}
-            />
-          </Reveal>
-        </Container>
-      </section>
-
-      {/* ── roaming club ─────────────────────────────────────────────── */}
-      <section className="border-t border-[var(--home-line)] py-20 sm:py-24">
-        <Container>
-          <Reveal>
-            <Heading>The Roaming Club</Heading>
-            <p className="mt-4 max-w-[64ch] text-[14.5px] leading-[1.8] text-[var(--home-text-2)]">
-              Two independent tracks — qualify on either. Roaming Club awards are travel
+              Two independent tracks — qualify on either. Flyers Club awards are travel
               entitlements rather than cash, and sit outside your earnings cap.
             </p>
           </Reveal>

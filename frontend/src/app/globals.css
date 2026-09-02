@@ -395,18 +395,6 @@ html.theme-switching *::after {
 }
 .fx-stop-pulse { animation: fx-stop-pulse 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 
-/* Splash — an indeterminate sweep under the wordmark while the session
-   resolves. Transform-only, so it never touches layout, and it stops entirely
-   for anyone who has asked for reduced motion. */
-@keyframes fx-splash-sweep {
-  0%   { transform: translateX(-120%); }
-  100% { transform: translateX(420%); }
-}
-.fx-splash-sweep { animation: fx-splash-sweep 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .fx-splash-sweep { animation: none; width: 100%; opacity: 0.6; }
-}
-
 /* native controls (date pickers, dropdown lists, scrollbars) follow suit */
 input, select, textarea, button { color-scheme: inherit; }
 

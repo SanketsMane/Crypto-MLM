@@ -25,11 +25,15 @@ const today = () => new Date().toISOString().slice(0, 10);
 const LOW_GAS_BNB = 0.05;
 /** A watcher this far behind the chain head has stopped keeping up. */
 const STALLED_BLOCKS = 1_000;
+/** A gateway payout not settled this long after approval needs a human. */
+const GATEWAY_SETTLE_HOURS = 6;
 
 export interface OpsWatchResult {
   overdueWithdrawals: number;
   largeWithdrawals: number;
   stuckPayouts: number;
+  /** Approved but handed to the gateway and never confirmed. */
+  stalledGatewayPayouts: number;
   treasuryLow: boolean;
   watcherStalled: boolean;
 }
@@ -151,13 +155,51 @@ export async function runOpsWatch(): Promise<OpsWatchResult> {
     }
   }
 
-  // ── roaming club awards waiting to be fulfilled ──
+  /**
+   * Gateway payouts that were handed over and never landed.
+   *
+   * This whole rail had no monitoring. `ops-watch` inspected `chainPayout`
+   * rows only, and the overdue query filters on PENDING — so an approved
+   * withdrawal sitting at the gateway in a non-terminal state was invisible to
+   * every dashboard an operator has, indefinitely, while the member stayed
+   * debited.
+   *
+   * Terminal states are excluded: `confirmed` succeeded, and the failure
+   * states now refund on the callback. What is left is the genuinely stuck
+   * ones — accepted, queued, sending — past the point where they should have
+   * settled.
+   */
+  const settleBy = new Date(Date.now() - GATEWAY_SETTLE_HOURS * 3_600_000);
+  const stalledGateway = await prisma.withdrawal.findMany({
+    where: {
+      status: 'PROCESSED',
+      gatewayTrackId: { not: null },
+      gatewayStatus: { notIn: ['confirmed', 'canceled', 'cancelled', 'rejected'] },
+      processedAt: { lt: settleBy },
+    },
+    select: { id: true, amount: true, reference: true, gatewayStatus: true },
+    take: 50,
+  });
+
+  if (stalledGateway.length) {
+    const total = stalledGateway.reduce((a, w) => a + Number(w.amount), 0);
+    notifyAdmins({
+      type: 'system.payout_failed',
+      dedupeKey: `stalled-gateway-payouts:${day}:${stalledGateway.length}`,
+      title: `${stalledGateway.length} gateway payout${stalledGateway.length === 1 ? '' : 's'} have not settled`,
+      body: `About $${total.toFixed(2)} was approved and handed to the gateway more than `
+          + `${GATEWAY_SETTLE_HOURS} hours ago and has not confirmed. The members are debited and waiting.`,
+      meta: { count: stalledGateway.length, oldestStatus: stalledGateway[0]?.gatewayStatus ?? null },
+    });
+  }
+
+  // ── flyers club awards waiting to be fulfilled ──
   const awards = await prisma.roamingClubAward.count({ where: { fulfilledAt: null } });
   if (awards) {
     notifyAdmins({
       type: 'ops.roaming_award',
       dedupeKey: `roaming-awards:${day}:${awards}`,
-      title: `${awards} Roaming Club award${awards === 1 ? '' : 's'} to arrange`,
+      title: `${awards} Flyers Club award${awards === 1 ? '' : 's'} to arrange`,
       body: 'Members have qualified for travel rewards that have not been fulfilled yet.',
       meta: { count: awards },
     });
@@ -167,6 +209,7 @@ export async function runOpsWatch(): Promise<OpsWatchResult> {
     overdueWithdrawals: overdue.length,
     largeWithdrawals: large.length,
     stuckPayouts,
+    stalledGatewayPayouts: stalledGateway.length,
     treasuryLow,
     watcherStalled,
   };
