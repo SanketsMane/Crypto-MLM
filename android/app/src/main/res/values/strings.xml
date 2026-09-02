@@ -1,3 +1,35 @@
 <resources>
     <string name="app_name">FortuneX</string>
+
+    <!-- Onboarding -->
+    <string name="skip">Skip</string>
+    <string name="next">Next</string>
+    <string name="get_started">Get started</string>
+    <string name="onboarding_page_of">Page %1$d of %2$d</string>
+
+    <!-- Sign in -->
+    <string name="sign_in">Sign in</string>
+    <string name="sign_in_subtitle">Sign in to your account</string>
+    <string name="email_or_member_code">Email or member code</string>
+    <string name="password">Password</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="brand_logo">FortuneX</string>
+
+    <!-- Two-factor -->
+    <string name="two_factor_title">Verification code</string>
+    <string name="two_factor_body">Enter the 6-digit code from your authenticator app.</string>
+    <string name="verify">Verify</string>
+
+    <!-- Feedback. Written to say what happened and what to do about it, never
+         to blame the member or to leak a provider's wording. -->
+    <string name="err_offline">No connection. Check your network and try again.</string>
+    <string name="err_timeout">That took too long. Your account has not changed — try again.</string>
+    <string name="err_server">Something went wrong at our end. Nothing has changed. Try again shortly.</string>
+    <string name="err_unexpected">Something went wrong. Please try again.</string>
+    <string name="err_invalid_credentials">Those details do not match an account.</string>
+    <string name="retry">Try again</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="reference_is">Ref %1$s</string>
 </resources>

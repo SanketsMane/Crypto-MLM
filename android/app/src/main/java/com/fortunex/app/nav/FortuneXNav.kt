@@ -40,6 +40,11 @@ fun FortuneXNav(
                 },
             )
         }
-        composable(Routes.LOGIN) { LoginScreen() }
+        composable(Routes.LOGIN) {
+            LoginScreen(
+                onSignedIn = { /* the member area lands in the next slice */ },
+                onNeedsTwoFactor = { /* two-factor screen lands in the next slice */ },
+            )
+        }
     }
 }
