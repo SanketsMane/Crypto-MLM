@@ -173,15 +173,20 @@ describe('POST /investments/purchase — idempotency', () => {
 
 describe('other money endpoints are guarded too', () => {
   const cases = [
-    { name: 'withdrawal', path: '/api/v1/withdrawals', body: { amount: '100', walletAddress: '0x1234567890abcdef1234567890abcdef12345678' } },
-    { name: 'transfer',   path: '/api/v1/wallet/transfer', body: { from: 'MAIN', to: 'FUND', amount: '50' } },
-    { name: 'deposit',    path: '/api/v1/deposits', body: { amount: '100', txHash: '0xabc' } },
+    // `stepUp` marks the endpoints that re-authenticate before anything else.
+    // Without the ticket the request is refused at 401 and never reaches the
+    // idempotency check, which is what this test is actually about.
+    { name: 'withdrawal', stepUp: true,  path: '/api/v1/withdrawals', body: { amount: '100', walletAddress: '0x1234567890abcdef1234567890abcdef12345678' } },
+    { name: 'transfer',   stepUp: false, path: '/api/v1/wallet/transfer', body: { from: 'MAIN', to: 'FUND', amount: '50' } },
+    { name: 'deposit',    stepUp: false, path: '/api/v1/deposits', body: { amount: '100', txHash: '0xabc' } },
   ];
 
   for (const c of cases) {
     it(`${c.name} refuses a request with no key`, async () => {
       const u = await member();
-      const res = await request(app).post(c.path).set('Authorization', u.auth).send(c.body);
+      const req = request(app).post(c.path).set('Authorization', u.auth);
+      if (c.stepUp) req.set('X-Step-Up', u.stepUp);
+      const res = await req.send(c.body);
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe('IDEMPOTENCY_KEY_REQUIRED');
     });

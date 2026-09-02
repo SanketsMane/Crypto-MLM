@@ -49,6 +49,18 @@ api.interceptors.response.use(
   (r) => r,
   async (error: AxiosError) => {
     const original = error.config as (typeof error.config & { _retried?: boolean }) | undefined;
+
+    /**
+     * A step-up 401 means "prove it is you", not "your session ended".
+     *
+     * Both arrive as 401. Refreshing the token cannot satisfy a step-up — the
+     * ticket is a separate credential — so treating one as the other burns the
+     * retry, fails again, and signs the member out in the middle of a
+     * withdrawal. The screen that asked for it handles this code itself.
+     */
+    const code = (error.response?.data as { error?: { code?: string } } | undefined)?.error?.code;
+    if (code === 'STEP_UP_REQUIRED') throw error;
+
     if (
       error.response?.status !== 401 || !original || original._retried ||
       isPublicAuth(original.url)          // let the form show the real message
@@ -90,9 +102,20 @@ export async function get<T>(url: string, params?: Record<string, unknown>): Pro
  * lets the server tell a retry apart from a second, deliberate request. Supply
  * it from `useMoneyMutation`, which keeps one key per submission.
  */
-export async function post<T>(url: string, body?: unknown, idempotencyKey?: string): Promise<T> {
+export async function post<T>(
+  url: string,
+  body?: unknown,
+  idempotencyKey?: string,
+  stepUp?: string,
+): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+  // Short-lived proof that the member re-authenticated for this action. Only
+  // the endpoints that move money out of the platform ask for it.
+  if (stepUp) headers['X-Step-Up'] = stepUp;
+
   const { data } = await api.post<ApiEnvelope<T>>(url, body, {
-    headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+    headers: Object.keys(headers).length ? headers : undefined,
   });
   return data.data;
 }

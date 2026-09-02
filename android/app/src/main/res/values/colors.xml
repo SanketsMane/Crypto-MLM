@@ -1,0 +1,6 @@
+<resources>
+    <!-- Mirrors the web theme so the launch plate and the first Compose frame
+         are the same colour and there is no flash between them. -->
+    <color name="fx_ground">#08080E</color>
+    <color name="fx_gold">#C89B2C</color>
+</resources>

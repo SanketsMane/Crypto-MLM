@@ -110,8 +110,10 @@ describe('member activity trail', () => {
 
   it('records a payout address change with both the old and new value', async () => {
     const u = await makeUser();
-    await updateProfile(u.id, { walletAddress: ADDR });
-    await updateProfile(u.id, { walletAddress: ALT_ADDR });
+    // Changing the payout address demands re-authentication, so these pass the
+    // step-up the endpoint would have collected.
+    await updateProfile(u.id, { walletAddress: ADDR }, undefined, 'password');
+    await updateProfile(u.id, { walletAddress: ALT_ADDR }, undefined, 'password');
 
     const rows = (await trail(u.id)).filter((r) => r.event === 'PAYOUT_ADDRESS_CHANGED');
     expect(rows).toHaveLength(2);
@@ -122,7 +124,7 @@ describe('member activity trail', () => {
 
   it('never records a full payout address in the human-readable line', async () => {
     const u = await makeUser();
-    await updateProfile(u.id, { walletAddress: ADDR });
+    await updateProfile(u.id, { walletAddress: ADDR }, undefined, 'password');
 
     const rows = await trail(u.id);
     expect(rows.every((r) => !r.summary.includes(ADDR))).toBe(true);
@@ -130,7 +132,8 @@ describe('member activity trail', () => {
 
   it('refuses a payout address that is not a BEP-20 address', async () => {
     const u = await makeUser();
-    await expect(updateProfile(u.id, { walletAddress: 'my-wallet' })).rejects.toThrow(/BEP-20/);
+    await expect(updateProfile(u.id, { walletAddress: 'my-wallet' }, undefined, 'password'))
+      .rejects.toThrow(/BEP-20/);
   });
 
   it('marks an operator action as an operator action', async () => {

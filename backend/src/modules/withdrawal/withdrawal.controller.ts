@@ -9,5 +9,12 @@ export const request = async (req: Request, res: Response) =>
     ),
   });
 
+/**
+ * What this amount would pay out. Read-only, so no idempotency key and no
+ * step-up: the member is still typing.
+ */
+export const quote = async (req: Request, res: Response) =>
+  res.json({ success: true, data: await service.quote(String(req.query.amount ?? '0')) });
+
 export const list = async (req: Request, res: Response) =>
   res.json({ success: true, data: await service.listForUser(req.userId!) });

@@ -1,3 +1,4 @@
+import { getAddress } from 'ethers';
 import { prisma } from '../../core/db.js';
 import { postEntry } from '../../core/ledger.js';
 import { money, percentOf, type Money } from '../../core/money.js';
@@ -157,25 +158,27 @@ async function assertAddressSettled(userId: string, cfg: RuntimeConfig) {
   );
 }
 
-export async function request(
-  userId: string,
-  amount: string,
-  walletAddress: string,
-  req?: Request,
-  stepUpMethod?: 'password' | 'totp',
-) {
-  const cfg = await config();
-  const value = money(amount);
+/**
+ * Fee, withholding and net — computed once, in one place.
+ *
+ * The member's screen used to derive these itself in JavaScript floats while
+ * the server derived them in Decimal with ROUND_DOWN. Two implementations of
+ * the same formula, rounding in different directions, and the member only ever
+ * saw the first: the figure they agreed to was permitted to disagree with the
+ * figure that settled. `GET /withdrawals/quote` now serves exactly what
+ * `request` will use, so there is one answer and the UI reports it rather than
+ * guessing at it.
+ */
+export interface WithdrawalQuote {
+  amount: string;
+  fee: string;
+  feePercent: number;
+  tax: string;
+  taxPercent: number;
+  net: string;
+}
 
-  if (!cfg.withdrawalsOpen) throw badRequest('Withdrawals are temporarily closed');
-  if (value.lt(cfg.withdrawMin)) throw badRequest(`Minimum withdrawal is $${cfg.withdrawMin}`);
-  if (value.gt(cfg.withdrawMax)) throw badRequest(`Maximum withdrawal is $${cfg.withdrawMax}`);
-  if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) throw badRequest('Invalid BEP-20 address');
-
-  await assertStepUpSufficient(value, cfg, stepUpMethod);
-  await assertAddressSettled(userId, cfg);
-  await assertVerified(userId, value, cfg);
-
+function priceIt(value: Money, cfg: RuntimeConfig): WithdrawalQuote {
   const fee = percentOf(value, cfg.withdrawFeePercent);
 
   /**
@@ -189,7 +192,78 @@ export async function request(
   const tax = cfg.taxWithholdingPercent > 0
     ? percentOf(taxable, cfg.taxWithholdingPercent)
     : money(0);
-  const net = taxable.sub(tax);
+
+  return {
+    amount: value.toString(),
+    fee: fee.toString(),
+    feePercent: cfg.withdrawFeePercent,
+    tax: tax.toString(),
+    taxPercent: cfg.taxWithholdingPercent,
+    net: taxable.sub(tax).toString(),
+  };
+}
+
+/**
+ * What a withdrawal of this size would actually pay out.
+ *
+ * Deliberately does not check the balance, KYC or step-up: this is a pricing
+ * question asked while the member is still typing, and answering it with
+ * "verify your identity" would be answering a question nobody asked. Every one
+ * of those gates still runs on the real request.
+ */
+export async function quote(amount: string): Promise<WithdrawalQuote> {
+  const cfg = await config();
+  const value = money(amount);
+  if (value.lte(0)) throw badRequest('Amount must be positive');
+  return priceIt(value, cfg);
+}
+
+/**
+ * A syntactically valid address that is one keystroke wrong is still valid.
+ *
+ * The regex below accepts any 40 hex characters, so a mistyped or truncated
+ * address passes it and the funds go on chain to somewhere nobody controls.
+ * EIP-55 puts a checksum in the capitalisation, and `getAddress` verifies it —
+ * which is the one test that catches a typo. An all-lowercase address carries
+ * no checksum to check and is accepted as-is, because plenty of wallets still
+ * export them that way; a MIXED-case address whose checksum does not match is
+ * refused, because that is a corrupted copy of a real address.
+ */
+function checksummed(walletAddress: string): string {
+  if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) throw badRequest('Invalid BEP-20 address');
+  try {
+    return getAddress(walletAddress);
+  } catch {
+    throw badRequest(
+      'That address looks mistyped — its checksum does not match. Copy it again from your wallet.',
+    );
+  }
+}
+
+export async function request(
+  userId: string,
+  amount: string,
+  walletAddress: string,
+  req?: Request,
+  stepUpMethod?: 'password' | 'totp',
+) {
+  const cfg = await config();
+  const value = money(amount);
+
+  if (!cfg.withdrawalsOpen) throw badRequest('Withdrawals are temporarily closed');
+  if (value.lt(cfg.withdrawMin)) throw badRequest(`Minimum withdrawal is $${cfg.withdrawMin}`);
+  if (value.gt(cfg.withdrawMax)) throw badRequest(`Maximum withdrawal is $${cfg.withdrawMax}`);
+  const payoutAddress = checksummed(walletAddress);
+
+  await assertStepUpSufficient(value, cfg, stepUpMethod);
+  await assertAddressSettled(userId, cfg);
+  await assertVerified(userId, value, cfg);
+
+  // The same arithmetic the member was quoted, from the same function.
+  const priced = priceIt(value, cfg);
+  const fee = money(priced.fee);
+  const tax = money(priced.tax);
+  const net = money(priced.net);
 
   if (net.lte(0)) {
     throw badRequest('After fees and withholding this payout would come to nothing');
@@ -219,7 +293,7 @@ export async function request(
         taxPercent: cfg.taxWithholdingPercent,
         tax: tax.toString(),
         netAmount: net.toString(),
-        walletAddress,
+        walletAddress: payoutAddress,
         network: 'BEP20',
         reference,
         slaDueAt,
@@ -242,7 +316,7 @@ export async function request(
    * holding "Withdrawal requested" and the operator holding a queue item for a
    * withdrawal that did not exist.
    */
-  const masked = activity.maskAddress(walletAddress);
+  const masked = activity.maskAddress(payoutAddress);
 
   notifyMember({
     userId,
@@ -266,7 +340,7 @@ export async function request(
   activity.record({
     userId, event: 'WITHDRAWAL_REQUESTED', req,
     summary: `Requested a withdrawal of $${value.toString()} to ${masked}`,
-    meta: { amount: value.toString(), fee: fee.toString(), net: net.toString(), address: walletAddress },
+    meta: { amount: value.toString(), fee: fee.toString(), net: net.toString(), address: payoutAddress },
   });
 
   return created;

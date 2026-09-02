@@ -8,5 +8,6 @@ import { requireStepUp } from '../../middleware/step-up.js';
 const r = Router();
 r.use(requireAuth);
 r.get('/', asyncHandler(c.list));
+r.get('/quote', asyncHandler(c.quote));
 r.post('/', requireStepUp, idempotent, asyncHandler(c.request));
 export default r;

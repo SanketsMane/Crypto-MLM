@@ -1,0 +1,10 @@
+# Build output and machine-specific config. local.properties holds an absolute
+# SDK path, so it must never be shared.
+.gradle/
+build/
+app/build/
+local.properties
+.idea/
+*.iml
+captures/
+.cxx/

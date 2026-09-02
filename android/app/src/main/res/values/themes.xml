@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The system splash, not a Composable.
+
+      A Compose "splash screen" cannot be shown until the process has started and
+      the first frame is ready, which is exactly the window it is meant to cover —
+      so it produces a blank screen followed by a logo, which is worse than
+      nothing. The platform API paints from the moment the icon is tapped.
+    -->
+    <style name="Theme.FortuneX.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/fx_ground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.FortuneX</item>
+    </style>
+
+    <style name="Theme.FortuneX" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/fx_ground</item>
+        <item name="android:navigationBarColor">@color/fx_ground</item>
+        <item name="android:windowBackground">@color/fx_ground</item>
+    </style>
+</resources>
