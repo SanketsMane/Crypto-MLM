@@ -50,6 +50,7 @@ export const MEMBER_NOTIFICATIONS = {
   'commission.binary':     { category: 'EARNINGS', severity: 'SUCCESS', link: '/income' },
   'investment.capped':     { category: 'EARNINGS', severity: 'WARNING', link: '/packages' },
   'rank.achieved':         { category: 'EARNINGS', severity: 'SUCCESS', link: '/rank' },
+  'rank.instalment':       { category: 'EARNINGS', severity: 'SUCCESS', link: '/rank' },
   'roaming.qualified':     { category: 'EARNINGS', severity: 'SUCCESS', link: '/flyers-club' },
 
   // ── network ──

@@ -5,6 +5,8 @@ import { deterministicReference } from '../../core/reference.js';
 import { recalculate } from '../team/team.service.js';
 import { logger } from '../../core/logger.js';
 import { notifyMember } from '../../core/notify.js';
+import { config } from '../../core/runtime-config.js';
+import { scheduleReward } from './reward-vesting.service.js';
 
 /**
  * Executive rank ladder — ten ranks, Starter → Legend (FortuneX p14/p15).
@@ -61,6 +63,8 @@ export async function evaluate(userId: string, db: Tx = prisma) {
   const others = money(tv?.otherLegsVolume?.toString() ?? 0);
   const total = money(tv?.totalTeamBusiness?.toString() ?? 0);
 
+  const { rewardVestingMonths: vestingMonths } = await config();
+
   const newly: string[] = [];
 
   for (const rank of ranks) {
@@ -72,31 +76,51 @@ export async function evaluate(userId: string, db: Tx = prisma) {
     const reward = money(rank.reward.toString());
     const reference = deterministicReference('RANK', userId, rank.code);
 
-    await db.rankAchievement.create({
+    const achievement = await db.rankAchievement.create({
       data: {
         userId, rankId: rank.id,
         teamBusinessAtAchievement: toDb(total),
         powerLegVolume: toDb(power),
         otherLegsVolume: toDb(others),
         rewardAmount: toDb(reward),
-        rewardPaidAt: reward.gt(0) ? new Date() : null,
+        // Only stamped when the money actually moved here. A vested reward is
+        // marked paid by its final instalment, not by being promised.
+        rewardPaidAt: reward.gt(0) && vestingMonths < 1 ? new Date() : null,
         reference,
       },
     });
 
-    // Rank rewards sit OUTSIDE the earnings cap — they are a recognition
-    // payment, not investment yield. Change here if the client rules otherwise.
+    /**
+     * Rank rewards sit OUTSIDE the earnings cap — they are a recognition
+     * payment, not investment yield. Change here if the client rules otherwise.
+     *
+     * How it is paid is an operator setting. At zero the reward credits in full
+     * the moment it is earned, which is the behaviour this platform shipped
+     * with. Above zero it is written as a schedule and the monthly run pays it;
+     * nothing is credited here, so a member cannot be paid twice by a config
+     * change landing mid-flight.
+     */
     if (reward.gt(0)) {
-      await postEntry(db, {
-        userId, walletType: 'MAIN', direction: 'CREDIT', category: 'RANK_BONUS',
-        amount: reward, reference,
-        description: `Rank reward — ${rank.name}`,
-        meta: { rank: rank.code, teamBusiness: toDb(total), powerLeg: toDb(power), otherLegs: toDb(others) },
-        sourceType: 'rank_achievement', sourceId: rank.id,
+      const scheduled = await scheduleReward(db, {
+        achievementId: achievement.id,
+        userId,
+        reward,
+        months: vestingMonths,
+        achievedAt: achievement.achievedAt,
       });
-      await db.$executeRaw`
-        UPDATE users SET "totalEarned" = "totalEarned" + ${toDb(reward)}::numeric
-         WHERE id = ${userId}`;
+
+      if (scheduled === 0) {
+        await postEntry(db, {
+          userId, walletType: 'MAIN', direction: 'CREDIT', category: 'RANK_BONUS',
+          amount: reward, reference,
+          description: `Rank reward — ${rank.name}`,
+          meta: { rank: rank.code, teamBusiness: toDb(total), powerLeg: toDb(power), otherLegs: toDb(others) },
+          sourceType: 'rank_achievement', sourceId: rank.id,
+        });
+        await db.$executeRaw`
+          UPDATE users SET "totalEarned" = "totalEarned" + ${toDb(reward)}::numeric
+           WHERE id = ${userId}`;
+      }
     }
 
     await db.user.update({ where: { id: userId }, data: { currentRankId: rank.id } });
@@ -107,9 +131,12 @@ export async function evaluate(userId: string, db: Tx = prisma) {
       type: 'rank.achieved',
       dedupeKey: `rank:${userId}:${rank.code}`,
       title: `${rank.name} achieved`,
-      body: reward.gt(0)
-        ? `You reached ${rank.name} and a $${reward.toString()} reward has been credited to your main wallet.`
-        : `You reached ${rank.name}.`,
+      body: reward.lte(0)
+        ? `You reached ${rank.name}.`
+        : vestingMonths < 1
+          ? `You reached ${rank.name} and a $${reward.toString()} reward has been credited to your main wallet.`
+          : `You reached ${rank.name}. Your $${reward.toString()} reward will be paid in `
+            + `${vestingMonths} monthly instalments, starting on the 1st of next month.`,
       meta: { rank: rank.code, reward: reward.toString() },
     });
   }

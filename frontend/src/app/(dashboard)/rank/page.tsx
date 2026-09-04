@@ -8,6 +8,7 @@ import { StatCard } from '@/components/dashboard/stat-card';
 import { Users, Wallet } from 'lucide-react';
 import { usd, pct, shortDate } from '@/lib/format';
 import { rankLabel } from '@/lib/rank';
+import { RewardSchedule } from '@/components/member/reward-schedule';
 
 interface RankRow {
   rankCode: string; rankName: string; level: number;
@@ -31,6 +32,8 @@ export default function RankPage() {
         <StatCard label="Other Legs" value={usd(first?.actual.otherLegs)} change={null}
                   icon={Wallet} chip="bg-[#E8F1FE] text-info dark:bg-[#12233D]" loading={isLoading} />
       </div>
+
+      <RewardSchedule />
 
       <Card className="mt-3.5">
         <CardHead title="How rank qualification works" />

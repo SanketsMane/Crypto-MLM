@@ -172,6 +172,13 @@ export const SPECS: SettingSpec[] = [
   },
 
   {
+    key: 'REWARD_VESTING_MONTHS', group: 'Payouts', type: 'int', min: 0, max: 60,
+    label: 'Rank reward instalments',
+    help: 'Pay a rank reward in this many equal monthly parts, credited on the 1st. A $300 reward over 10 months credits $30 a month. Set to 0 to pay the whole reward at the moment the rank is achieved. Changing this never alters a schedule already running — a member who was promised ten payments still gets ten.',
+    enforcedIn: 'Rank rewards, monthly vesting run',
+  },
+
+  {
     key: 'STEP_UP_TTL_MINUTES', group: 'Security', type: 'int', min: 1, max: 60,
     label: 'Step-up validity',
     help: 'How long a re-authentication stays good for. The member proves who they are once, then has this many minutes to change a payout address or submit a withdrawal without proving it again. Short is safer; too short and a member re-authenticates mid-flow.',
@@ -229,6 +236,7 @@ export const DEFAULTS: Record<string, string> = {
   TAX_WITHHOLDING_PERCENT: '0',
   KYC_REQUIRED_FOR_WITHDRAWAL: 'true',
   KYC_REQUIRED_ABOVE: '0',
+  REWARD_VESTING_MONTHS: '0',
   STEP_UP_TTL_MINUTES: '5',
   STEP_UP_TOTP_ABOVE: '1000',
   WITHDRAWAL_ADDRESS_HOLD_HOURS: '24',
@@ -255,6 +263,7 @@ export interface RuntimeConfig {
   taxWithholdingPercent: number;
   kycRequiredForWithdrawal: boolean;
   kycRequiredAbove: number;
+  rewardVestingMonths: number;
   stepUpTtlMinutes: number;
   stepUpTotpAbove: number;
   withdrawalAddressHoldHours: number;
@@ -355,6 +364,7 @@ function build(stored: Record<string, string>): RuntimeConfig {
     taxWithholdingPercent: num('TAX_WITHHOLDING_PERCENT'),
     kycRequiredForWithdrawal: bool('KYC_REQUIRED_FOR_WITHDRAWAL'),
     kycRequiredAbove: num('KYC_REQUIRED_ABOVE'),
+    rewardVestingMonths: num('REWARD_VESTING_MONTHS'),
     stepUpTtlMinutes: num('STEP_UP_TTL_MINUTES'),
     stepUpTotpAbove: num('STEP_UP_TOTP_ABOVE'),
     withdrawalAddressHoldHours: num('WITHDRAWAL_ADDRESS_HOLD_HOURS'),

@@ -175,6 +175,7 @@ model User {
   earnedCommissions Commission[]      @relation("CommissionEarner")
   sourceCommissions Commission[]      @relation("CommissionSource")
   rankAchievements  RankAchievement[]
+  rewardInstalments RankRewardInstalment[]
   roamingAwards     RoamingClubAward[]
   teamVolume        TeamVolume?
   tickets           SupportTicket[]
@@ -479,6 +480,46 @@ model RankDefinition {
   @@map("rank_definitions")
 }
 
+/// One scheduled slice of a rank reward.
+///
+/// A reward is promised in full the moment the rank is achieved, but paid in
+/// equal monthly parts. The schedule is written once, at achievement, and never
+/// recalculated — an operator changing the month count later must not move an
+/// amount a member has already been told they are getting.
+///
+/// `reference` is the idempotency key: the vesting job derives it from
+/// (achievement, sequence), so a job that runs twice on the 1st collides on the
+/// unique index instead of paying twice.
+model RankRewardInstalment {
+  id            String @id @default(cuid())
+  achievementId String
+  achievement   RankAchievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  /// Denormalised from the achievement so the monthly job can find what is due
+  /// without walking two joins for every member.
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// 1-based position in the schedule, and how many there are in total.
+  sequence Int
+  ofTotal  Int
+
+  amount Decimal @db.Decimal(38, 8)
+  /// The 1st of the month this becomes payable. Left in the past when a member
+  /// was not ACTIVE on the day, which is what makes catch-up automatic.
+  dueOn  DateTime @db.Date
+  paidAt DateTime?
+
+  reference String @unique
+
+  createdAt DateTime @default(now())
+
+  @@unique([achievementId, sequence])
+  @@index([dueOn, paidAt])
+  @@index([userId])
+  @@map("rank_reward_instalments")
+}
+
 model RankAchievement {
   id     String @id @default(cuid())
   userId String
@@ -495,6 +536,8 @@ model RankAchievement {
   reference    String    @unique
 
   achievedAt DateTime @default(now())
+
+  instalments RankRewardInstalment[]
 
   @@unique([userId, rankId])
   @@map("rank_achievements")

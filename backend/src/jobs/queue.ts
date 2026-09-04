@@ -5,6 +5,7 @@ import { logger } from '../core/logger.js';
 import { captureError } from '../core/error-reporter.js';
 import { catchUpDailyRoi } from './daily-roi.job.js';
 import { evaluate as evaluateRank } from '../modules/rank/rank.service.js';
+import { runRewardVesting } from '../modules/rank/reward-vesting.service.js';
 import { recalculate } from '../modules/team/team.service.js';
 import { purgeExpiredSessions } from '../core/sessions.js';
 import { purgeExpiredOtpChallenges } from '../core/otp.js';
@@ -77,6 +78,18 @@ export async function scheduleRecurring() {
     );
   }
 
+  /* 01:00 UTC on the 1st. Rank reward instalments.
+
+     The job pays everything that has come due rather than only today's, so a
+     month it did not run is not a month a member loses — the arrears simply
+     pay on the next run. That also makes this schedule safe to miss during a
+     deploy window. */
+  await queue.upsertJobScheduler(
+    'reward-vesting',
+    { pattern: '0 1 1 * *' },
+    { name: 'reward-vesting', data: {}, opts: defaults },
+  );
+
   // 00:40 UTC — half an hour after the ROI run, so the day's earnings are
   // settled before they are summarised.
   await queue.upsertJobScheduler(
@@ -116,6 +129,8 @@ export function startWorker() {
               otpChallenges: await purgeExpiredOtpChallenges(),
               notifications: await purgeOldNotifications(),
             };
+          case 'reward-vesting':
+            return runRewardVesting();
           case 'earnings-digest':
             return sendEarningsDigest();
           case 'ops-watch':
