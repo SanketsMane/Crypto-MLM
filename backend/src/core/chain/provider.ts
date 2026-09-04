@@ -1,6 +1,7 @@
 import { Contract, JsonRpcProvider, Wallet, formatUnits, parseUnits } from 'ethers';
 import { decrypt } from '../crypto.js';
 import { logger } from '../logger.js';
+import { env } from '../../config/env.js';
 import { requireChain } from './config.js';
 
 /**
@@ -36,14 +37,53 @@ export const getToken = () => new Contract(requireChain().tokenAddress, TOKEN_AB
  * needed. It is never logged, never returned, and never reaches a request
  * handler — payouts run in the worker process, not the API.
  */
+/** An encrypted payout key is stored as a `v1.` blob; anything else is raw. */
+export const isEncryptedPayoutKey = (key: string): boolean => key.startsWith('v1.');
+
+/**
+ * A raw key is a development convenience, and it used to be accepted silently
+ * everywhere — including production, where this one value can move every payout
+ * the platform makes. Left unencrypted in `.env` it is readable by anyone with
+ * file access and travels into process dumps, container inspects and backups.
+ *
+ * Refused outright in production rather than warned about: the failure mode of
+ * a warning is that nobody reads it until the funds are gone. Elsewhere it is
+ * allowed but says so loudly, once per process.
+ *
+ * Pure and exported so the rule can be tested without booting a chain — the
+ * production branch of this file was otherwise unreachable from a test.
+ */
+export function assertPayoutKeyAcceptable(payoutKey: string, isProd: boolean): void {
+  if (isEncryptedPayoutKey(payoutKey)) return;
+  if (isProd) {
+    throw new Error(
+      'CHAIN_PAYOUT_KEY must be encrypted in production. Encrypt it with ENCRYPTION_KEY '
+      + '(the stored value starts "v1.") — a raw private key in the environment is readable '
+      + 'by anything that can read the process.',
+    );
+  }
+  warnRawKeyOnce();
+}
+
+let rawKeyWarned = false;
+function warnRawKeyOnce() {
+  if (rawKeyWarned) return;
+  rawKeyWarned = true;
+  logger.warn(
+    'CHAIN_PAYOUT_KEY is not encrypted. Acceptable against a local chain; production refuses it.',
+  );
+}
+
 export function getSigner(): Wallet {
   const cfg = requireChain();
   if (!cfg.payoutKey) throw new Error('No payout key configured');
 
+  const encrypted = cfg.payoutKey.startsWith('v1.');
+  assertPayoutKeyAcceptable(cfg.payoutKey, env.isProd);
+
   let key: string;
   try {
-    // Accept either an encrypted blob or, for a local chain, a raw key.
-    key = cfg.payoutKey.startsWith('v1.') ? decrypt(cfg.payoutKey) : cfg.payoutKey;
+    key = encrypted ? decrypt(cfg.payoutKey) : cfg.payoutKey;
   } catch (err) {
     logger.error({ err }, 'could not decrypt the payout key');
     throw new Error('Payout key could not be decrypted');
