@@ -189,17 +189,29 @@ export async function updateRank(
 
 /** Who has hit which rank, newest first — the reward side of the plan. */
 export async function rankAchievements(opts: { take: number; skip: number }) {
-  const [rows, total, agg] = await Promise.all([
+  const [rows, total, agg, instalmentsPaid, paidOutright] = await Promise.all([
     prisma.rankAchievement.findMany({
       orderBy: { achievedAt: 'desc' }, take: opts.take, skip: opts.skip,
       include: { rank: { select: { name: true, code: true, level: true } }, user: { select: { userCode: true, email: true } } },
     }),
     prisma.rankAchievement.count(),
     prisma.rankAchievement.aggregate({ _sum: { rewardAmount: true } }),
+    /**
+     * Awarded and credited are different numbers once rewards vest, and an
+     * operator asking "how much has left the platform" needs the second one.
+     * Credited is the sum of paid instalments plus every reward that was paid
+     * outright — the latter has no instalment rows to add up.
+     */
+    prisma.rankRewardInstalment.aggregate({ _sum: { amount: true }, where: { paidAt: { not: null } } }),
+    prisma.rankAchievement.aggregate({ _sum: { rewardAmount: true }, where: { rewardPaidAt: { not: null } } }),
   ]);
+  const credited = money(instalmentsPaid._sum.amount?.toString() ?? 0)
+    .add(money(paidOutright._sum.rewardAmount?.toString() ?? 0));
   return {
     total,
-    rewarded: (agg._sum.rewardAmount ?? 0).toString(),
+    awarded: (agg._sum.rewardAmount ?? 0).toString(),
+    credited: credited.toString(),
+    outstanding: money(agg._sum.rewardAmount?.toString() ?? 0).sub(credited).toString(),
     rows: rows.map((r) => ({
       id: r.id, userCode: r.user.userCode, email: r.user.email,
       rank: r.rank.name, rankCode: r.rank.code, rankLevel: r.rank.level,

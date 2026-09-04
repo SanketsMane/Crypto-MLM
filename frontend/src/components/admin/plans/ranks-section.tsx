@@ -26,7 +26,9 @@ export function RanksSection() {
   const q = useQuery({ queryKey: ['admin', 'ranks'], queryFn: () => adminGet<Rank[]>('/admin/ranks') });
   const achievements = useQuery({
     queryKey: ['admin', 'rank-achievements'],
-    queryFn: () => adminGet<{ total: number; rewarded: string; rows: Achievement[] }>('/admin/rank-achievements', { take: 25 }),
+    queryFn: () => adminGet<{
+      total: number; awarded: string; credited: string; outstanding: string; rows: Achievement[];
+    }>('/admin/rank-achievements', { take: 25 }),
   });
 
   const ranks = useMemo(() => [...(q.data ?? [])].sort((a, b) => a.level - b.level), [q.data]);
@@ -159,7 +161,12 @@ export function RanksSection() {
           subtitle="Every rank a member has reached, newest first. Each rank pays once."
           action={achievements.data ? (
             <span className="text-[12.5px] text-ink-2">
-              {num(achievements.data.total)} awarded · <span className="tabular-nums">{usd(achievements.data.rewarded)}</span> paid
+              {/* Awarded and credited are different figures once rewards vest.
+                  One line saying "paid" for the award total tells an operator
+                  money has left the platform when it has not. */}
+              {num(achievements.data.total)} achieved ·{' '}
+              <span className="tabular-nums">{usd(achievements.data.credited)}</span> credited{' '}
+              of <span className="tabular-nums">{usd(achievements.data.awarded)}</span> awarded
             </span>
           ) : undefined}
         />

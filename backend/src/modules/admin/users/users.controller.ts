@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import * as service from './users.service.js';
+import * as approval from './adjustment-approval.service.js';
 
 const statusSchema = z.object({ status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED', 'BLOCKED']) });
 const modeSchema = z.object({ affiliateMode: z.enum(['PASSIVE', 'ACTIVE']) });
@@ -81,3 +82,30 @@ export const bulkAffiliateMode = async (req: Request, res: Response) => {
   const b = bulkModeSchema.parse(req.body);
   res.json({ success: true, data: await service.bulkAffiliateMode(req.adminId!, b.userIds, b.mode, req) });
 };
+
+/* ── manual adjustments awaiting a second operator ───────────────────── */
+
+export const pendingAdjustments = async (_req: Request, res: Response) =>
+  res.json({ success: true, data: await approval.listPending() });
+
+export const approveAdjustment = async (req: Request, res: Response) =>
+  res.json({
+    success: true,
+    data: await approval.approveAdjustment(
+      req.adminId!,
+      String(req.params.id),
+      // The applying function is handed in, so the approval module never has to
+      // import the one that calls it.
+      (adminId, input, r) => service.adjustBalance(adminId, input, r, true),
+      typeof req.body?.note === 'string' ? req.body.note : undefined,
+      req,
+    ),
+  });
+
+export const rejectAdjustment = async (req: Request, res: Response) =>
+  res.json({
+    success: true,
+    data: await approval.rejectAdjustment(
+      req.adminId!, String(req.params.id), String(req.body?.note ?? ''), req,
+    ),
+  });

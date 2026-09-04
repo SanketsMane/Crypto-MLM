@@ -179,6 +179,23 @@ export async function runRewardVesting(now: Date = new Date()): Promise<VestingR
         await tx.$executeRaw`
           UPDATE users SET "totalEarned" = "totalEarned" + ${toDb(amount)}::numeric
            WHERE id = ${inst.userId}`;
+
+        /**
+         * Stamp the achievement once its last instalment lands, so
+         * `rewardPaidAt` means the same thing however the reward was paid.
+         * Done by counting what is still outstanding rather than by trusting
+         * the sequence number, which would be wrong if a schedule were ever
+         * amended.
+         */
+        const stillDue = await tx.rankRewardInstalment.count({
+          where: { achievementId: inst.achievementId, paidAt: null },
+        });
+        if (stillDue === 0) {
+          await tx.rankAchievement.update({
+            where: { id: inst.achievementId },
+            data: { rewardPaidAt: new Date() },
+          });
+        }
       });
 
       paid += 1;

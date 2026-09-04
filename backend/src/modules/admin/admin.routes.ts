@@ -70,6 +70,12 @@ r.post('/users/bulk/status',             can('users.status'), idempotent, asyncH
 r.post('/users/bulk/affiliate-mode',     can('users.mode'),   idempotent, asyncHandler(users.bulkAffiliateMode));
 r.post('/users/:id/impersonate',         can('users.impersonate'), asyncHandler(impersonation.start));
 r.post('/users/:id/adjust',              can('users.adjust'), idempotent, asyncHandler(users.adjust));
+/* Manual adjustments above the threshold wait here for a SECOND operator.
+   Same permission by design — the control is that the approver must be a
+   different person, not that they hold a rarer role. */
+r.get('/adjustments',                    can('users.adjust'), asyncHandler(users.pendingAdjustments));
+r.post('/adjustments/:id/approve',       can('users.adjust'), idempotent, asyncHandler(users.approveAdjustment));
+r.post('/adjustments/:id/reject',        can('users.adjust'), asyncHandler(users.rejectAdjustment));
 r.post('/users/:id/recalculate-team',    can('users.recalc'), asyncHandler(users.recalcTeam));
 r.post('/users/:id/reset-password',       can('users.password'), asyncHandler(users.resetPassword));
 

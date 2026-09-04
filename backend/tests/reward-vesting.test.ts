@@ -238,6 +238,20 @@ describe('the monthly run', () => {
     expect(await balanceOf(userId)).toBeCloseTo(300, 6);
   });
 
+  it('marks the achievement paid only once the last instalment lands', async () => {
+    const userId = await qualifyForRank1();
+    await evaluateRank(userId);
+    const rows = await instalmentsFor(userId);
+
+    await runRewardVesting(rows[8].dueOn); // nine of ten
+    let a = await prisma.rankAchievement.findFirstOrThrow({ where: { userId } });
+    expect(a.rewardPaidAt).toBeNull();
+
+    await runRewardVesting(rows[9].dueOn); // the tenth
+    a = await prisma.rankAchievement.findFirstOrThrow({ where: { userId } });
+    expect(a.rewardPaidAt).not.toBeNull();
+  });
+
   it('counts each instalment as earned only when it lands', async () => {
     const userId = await qualifyForRank1();
     await evaluateRank(userId);

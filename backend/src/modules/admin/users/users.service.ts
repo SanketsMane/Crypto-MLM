@@ -13,6 +13,7 @@ import bcrypt from 'bcryptjs';
 import * as audit from '../audit/audit.service.js';
 import { revokeAllFor } from '../../../core/sessions.js';
 import * as activity from '../../../core/activity.js';
+import { needsSecondApproval, requestAdjustment } from './adjustment-approval.service.js';
 import { notifyMember } from '../../../core/notify.js';
 import type { Request } from 'express';
 
@@ -196,6 +197,8 @@ export async function adjustBalance(
   adminId: string,
   params: { userId: string; walletType: 'MAIN' | 'FUND' | 'DIGITAL'; direction: 'CREDIT' | 'DEBIT'; amount: string; reason: string },
   req?: Request,
+  /** Set only by the approval path, which has already passed the gate. */
+  skipApprovalGate = false,
 ) {
   const value = money(params.amount);
   if (value.lte(0)) throw badRequest('Amount must be positive');
@@ -203,6 +206,17 @@ export async function adjustBalance(
 
   const user = await prisma.user.findUnique({ where: { id: params.userId }, select: { userCode: true } });
   if (!user) throw notFound('User not found');
+
+  /**
+   * Above the operator threshold this does not move money — it parks a request
+   * for a second operator. Checked here rather than at the route so every
+   * caller of `adjustBalance` inherits the control, including a future one that
+   * forgets it exists.
+   */
+  if (!skipApprovalGate && (await needsSecondApproval(value))) {
+    const request = await requestAdjustment(adminId, { ...params, reason: params.reason.trim() }, req);
+    return { pendingApproval: true as const, request };
+  }
 
   const reference = makeReference('ADJ', params.userId);
 
@@ -249,7 +263,11 @@ export async function adjustBalance(
     meta: { direction: params.direction, wallet: params.walletType, amount: value.toString(), reason: params.reason },
   });
 
-  return { reference: entry.reference, balanceAfter: entry.balanceAfter.toString() };
+  return {
+    pendingApproval: false as const,
+    reference: entry.reference,
+    balanceAfter: entry.balanceAfter.toString(),
+  };
 }
 
 /** Force a team-volume rebuild — useful after data fixes. */

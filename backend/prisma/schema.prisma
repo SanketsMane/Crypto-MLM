@@ -104,7 +104,7 @@ enum TicketStatus {
 
 model User {
   id           String  @id @default(cuid())
-  userCode     String  @unique                 // public referral code, e.g. FX7Q2M4A
+  userCode     String  @unique // public referral code, e.g. FX7Q2M4A
   email        String  @unique
   phone        String?
   passwordHash String
@@ -152,7 +152,7 @@ model User {
   totalInvested Decimal @default(0) @db.Decimal(38, 8)
   totalEarned   Decimal @default(0) @db.Decimal(38, 8)
 
-  walletAddress String? // BEP-20 payout address
+  walletAddress          String? // BEP-20 payout address
   /// When the payout address last changed. A withdrawal to an address changed
   /// inside the cooling-off window is held, which is what breaks the
   /// stolen-device chain: change address -> withdraw -> funds gone.
@@ -166,28 +166,21 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  wallets           WalletAccount[]
-  ledgerEntries     LedgerEntry[]
-  investments       Investment[]
-  roiAccruals       RoiAccrual[]
-  deposits          Deposit[]
-  withdrawals       Withdrawal[]
-  earnedCommissions Commission[]      @relation("CommissionEarner")
-  sourceCommissions Commission[]      @relation("CommissionSource")
-  rankAchievements  RankAchievement[]
-  rewardInstalments RankRewardInstalment[]
-  roamingAwards     RoamingClubAward[]
-  teamVolume        TeamVolume?
-  tickets           SupportTicket[]
-  kycSubmissions    KycSubmission[]
-
-  @@index([sponsorId])
-  @@index([path])
-  @@index([placementParentId])
-  @@index([placementPath])
-  @@index([status])
-  @@index([simulationRunId])
-  @@map("users")
+  wallets            WalletAccount[]
+  ledgerEntries      LedgerEntry[]
+  investments        Investment[]
+  roiAccruals        RoiAccrual[]
+  deposits           Deposit[]
+  withdrawals        Withdrawal[]
+  earnedCommissions  Commission[]               @relation("CommissionEarner")
+  sourceCommissions  Commission[]               @relation("CommissionSource")
+  rankAchievements   RankAchievement[]
+  rewardInstalments  RankRewardInstalment[]
+  adjustmentRequests BalanceAdjustmentRequest[]
+  roamingAwards      RoamingClubAward[]
+  teamVolume         TeamVolume?
+  tickets            SupportTicket[]
+  kycSubmissions     KycSubmission[]
 
   /// Per-account brute-force defence. IP rate limiting does not help when the
   /// attempts arrive from a botnet, so the account itself counts and locks.
@@ -196,15 +189,15 @@ model User {
 
   /// Two-factor authentication (TOTP). The secret is encrypted at rest, so a
   /// database leak does not let anyone generate valid codes.
-  twoFactorSecret     String?
-  twoFactorEnabledAt  DateTime?
+  twoFactorSecret    String?
+  twoFactorEnabledAt DateTime?
 
   activityLogs   ActivityLog[]
   otpChallenges  OtpChallenge[]
   recoveryCodes  TwoFactorRecoveryCode[]
   depositAddress DepositAddress?
-  consents ConsentRecord[]
-  rewardCards RewardCard[]
+  consents       ConsentRecord[]
+  rewardCards    RewardCard[]
   lotteryTickets LotteryTicket[]
 
   /// Set when this member was created by a simulation run.
@@ -214,6 +207,59 @@ model User {
   /// run deletes exactly the rows carrying its id.
   simulationRunId String?
   simulationRun   SimulationRun? @relation(fields: [simulationRunId], references: [id], onDelete: Cascade)
+
+  @@index([sponsorId])
+  @@index([path])
+  @@index([placementParentId])
+  @@index([placementPath])
+  @@index([status])
+  @@index([simulationRunId])
+  @@map("users")
+}
+
+/// A manual balance adjustment that is too large for one operator to make alone.
+///
+/// Small corrections apply immediately, as they always did. Above the operator
+/// threshold the request is parked here until a DIFFERENT admin approves it —
+/// the money does not move until then. Rejected and approved are both terminal.
+///
+/// This exists because an adjustment is the one place in the platform where
+/// value is created rather than moved, and a single compromised operator
+/// account should not be able to do it without a second pair of eyes.
+model BalanceAdjustmentRequest {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  walletType WalletType
+  direction  LedgerDirection
+  amount     Decimal         @db.Decimal(38, 8)
+  reason     String
+
+  status AdjustmentStatus @default(PENDING)
+
+  requestedById String
+  requestedBy   AdminUser @relation("AdjustmentRequestedBy", fields: [requestedById], references: [id])
+  requestedAt   DateTime  @default(now())
+
+  /// Never the same admin as `requestedById` — enforced in the service.
+  decidedById  String?
+  decidedBy    AdminUser? @relation("AdjustmentDecidedBy", fields: [decidedById], references: [id])
+  decidedAt    DateTime?
+  decisionNote String?
+
+  /// The ledger reference once applied, so the entry can be traced back here.
+  reference String? @unique
+
+  @@index([status, requestedAt])
+  @@index([userId])
+  @@map("balance_adjustment_requests")
+}
+
+enum AdjustmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model AdminUser {
@@ -223,15 +269,13 @@ model AdminUser {
   name         String
   isActive     Boolean @default(true)
 
-  roleId String
-  role   AdminRole @relation(fields: [roleId], references: [id])
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  roleId      String
+  role        AdminRole @relation(fields: [roleId], references: [id])
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   auditLogs AuditLog[]
-
-  @@map("admin_users")
 
   /// Per-account brute-force defence. IP rate limiting does not help when the
   /// attempts arrive from a botnet, so the account itself counts and locks.
@@ -240,8 +284,12 @@ model AdminUser {
 
   /// An admin console is the highest-value target here, so 2FA matters more on
   /// this side than on the member side.
-  twoFactorSecret    String?
-  twoFactorEnabledAt DateTime?
+  twoFactorSecret      String?
+  twoFactorEnabledAt   DateTime?
+  adjustmentsRequested BalanceAdjustmentRequest[] @relation("AdjustmentRequestedBy")
+  adjustmentsDecided   BalanceAdjustmentRequest[] @relation("AdjustmentDecidedBy")
+
+  @@map("admin_users")
 }
 
 // ─────────────────────────── money ───────────────────────────
@@ -265,17 +313,17 @@ model WalletAccount {
 
 /// APPEND-ONLY. Never updated, never deleted. The audit trail of every cent.
 model LedgerEntry {
-  id       String @id @default(cuid())
+  id       String        @id @default(cuid())
   userId   String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   walletId String
   wallet   WalletAccount @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
-  direction LedgerDirection
-  category  LedgerCategory
-  amount    Decimal         @db.Decimal(38, 8)
+  direction    LedgerDirection
+  category     LedgerCategory
+  amount       Decimal         @db.Decimal(38, 8)
   /// Wallet balance immediately after this entry was applied.
-  balanceAfter Decimal      @db.Decimal(38, 8)
+  balanceAfter Decimal         @db.Decimal(38, 8)
 
   /// Idempotency key. A retried job reusing this reference is rejected by the
   /// unique index rather than double-crediting.
@@ -411,7 +459,7 @@ model Commission {
 
   kind    CommissionKind
   level   Int
-  percent Decimal @db.Decimal(10, 4)
+  percent Decimal        @db.Decimal(10, 4)
 
   baseAmount Decimal @db.Decimal(38, 8)
   amount     Decimal @db.Decimal(38, 8)
@@ -443,8 +491,8 @@ model BinaryLeg {
   leftVolume  Decimal @default(0) @db.Decimal(38, 8)
   rightVolume Decimal @default(0) @db.Decimal(38, 8)
 
-  leftTotal   Decimal @default(0) @db.Decimal(38, 8)
-  rightTotal  Decimal @default(0) @db.Decimal(38, 8)
+  leftTotal  Decimal @default(0) @db.Decimal(38, 8)
+  rightTotal Decimal @default(0) @db.Decimal(38, 8)
 
   /// Lifetime volume that has been matched and paid on.
   matchedTotal Decimal @default(0) @db.Decimal(38, 8)
@@ -491,7 +539,7 @@ model RankDefinition {
 /// (achievement, sequence), so a job that runs twice on the 1st collides on the
 /// unique index instead of paying twice.
 model RankRewardInstalment {
-  id            String @id @default(cuid())
+  id            String          @id @default(cuid())
   achievementId String
   achievement   RankAchievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
@@ -504,10 +552,10 @@ model RankRewardInstalment {
   sequence Int
   ofTotal  Int
 
-  amount Decimal @db.Decimal(38, 8)
+  amount Decimal   @db.Decimal(38, 8)
   /// The 1st of the month this becomes payable. Left in the past when a member
   /// was not ACTIVE on the day, which is what makes catch-up automatic.
-  dueOn  DateTime @db.Date
+  dueOn  DateTime  @db.Date
   paidAt DateTime?
 
   reference String @unique
@@ -521,9 +569,9 @@ model RankRewardInstalment {
 }
 
 model RankAchievement {
-  id     String @id @default(cuid())
+  id     String         @id @default(cuid())
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   rankId String
   rank   RankDefinition @relation(fields: [rankId], references: [id], onDelete: Cascade)
 
@@ -550,11 +598,11 @@ model TeamVolume {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  directBusiness   Decimal @default(0) @db.Decimal(38, 8)
+  directBusiness    Decimal @default(0) @db.Decimal(38, 8)
   totalTeamBusiness Decimal @default(0) @db.Decimal(38, 8)
-  powerLegVolume   Decimal @default(0) @db.Decimal(38, 8)
-  otherLegsVolume  Decimal @default(0) @db.Decimal(38, 8)
-  teamSize         Int     @default(0)
+  powerLegVolume    Decimal @default(0) @db.Decimal(38, 8)
+  otherLegsVolume   Decimal @default(0) @db.Decimal(38, 8)
+  teamSize          Int     @default(0)
 
   recalculatedAt DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -564,13 +612,13 @@ model TeamVolume {
 
 /// Roaming Club — two independent qualification tracks (FortuneX p16/p17).
 model RoamingClubTier {
-  id          String       @id @default(cuid())
-  track       RoamingTrack
-  destination String
-  selfRequirement Decimal  @db.Decimal(38, 8)
-  teamRequirement Decimal  @default(0) @db.Decimal(38, 8)
-  sortOrder   Int          @default(0)
-  isActive    Boolean      @default(true)
+  id              String       @id @default(cuid())
+  track           RoamingTrack
+  destination     String
+  selfRequirement Decimal      @db.Decimal(38, 8)
+  teamRequirement Decimal      @default(0) @db.Decimal(38, 8)
+  sortOrder       Int          @default(0)
+  isActive        Boolean      @default(true)
 
   createdAt DateTime @default(now())
 
@@ -581,16 +629,16 @@ model RoamingClubTier {
 }
 
 model RoamingClubAward {
-  id     String @id @default(cuid())
+  id     String          @id @default(cuid())
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   tierId String
   tier   RoamingClubTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
 
-  status     TxStatus @default(APPROVED)
-  achievedAt DateTime @default(now())
+  status      TxStatus  @default(APPROVED)
+  achievedAt  DateTime  @default(now())
   fulfilledAt DateTime?
-  notes      String?
+  notes       String?
 
   @@unique([userId, tierId])
   @@map("roaming_club_awards")
@@ -605,19 +653,19 @@ model RoamingClubAward {
 /// reconstructable, and replays are detected by looking here rather than by
 /// inferring from the state of the thing the callback was about.
 model GatewayEvent {
-  id       String @id @default(cuid())
-  provider String @default("oxapay")
+  id        String   @id @default(cuid())
+  provider  String   @default("oxapay")
   /// `payment` or `payout`.
-  kind     String
+  kind      String
   /// The gateway's own identifier for the invoice or payout.
-  trackId  String
-  status   String
+  trackId   String
+  status    String
   /// Whether the signature checked out. Failures are kept — a stream of them
   /// is the signal that someone is probing the endpoint.
-  verified Boolean
+  verified  Boolean
   /// Whether this callback actually changed anything, or was a duplicate.
-  applied  Boolean @default(false)
-  payload  Json
+  applied   Boolean  @default(false)
+  payload   Json
   createdAt DateTime @default(now())
 
   @@index([trackId, status])
@@ -626,13 +674,13 @@ model GatewayEvent {
 }
 
 model Deposit {
-  id     String @id @default(cuid())
+  id String @id @default(cuid())
 
   /// ── payment gateway ──────────────────────────────────────────────────
   /// Set when the deposit was raised as a gateway invoice rather than
   /// reported by hand. Unique so a replayed callback cannot create a second
   /// deposit for the same invoice.
-  gatewayTrackId String? @unique
+  gatewayTrackId String?   @unique
   gatewayStatus  String?
   paymentUrl     String?
   expiresAt      DateTime?
@@ -656,7 +704,7 @@ model Deposit {
 
 /// 5% fee, $10 min, $5,000 max, 48-hour SLA — FortuneX p18.
 model Withdrawal {
-  id     String @id @default(cuid())
+  id String @id @default(cuid())
 
   /// Set once the payout has been handed to the gateway.
   gatewayTrackId String? @unique
@@ -676,7 +724,7 @@ model Withdrawal {
   tax        Decimal @default(0) @db.Decimal(38, 8)
 
   /// What actually reaches the member: amount − fee − tax.
-  netAmount  Decimal @db.Decimal(38, 8)
+  netAmount Decimal @db.Decimal(38, 8)
 
   walletAddress String
   network       String   @default("BEP20")
@@ -685,8 +733,8 @@ model Withdrawal {
   status        TxStatus @default(PENDING)
 
   /// requestedAt + 48h. Drives the ageing report.
-  slaDueAt    DateTime
-  processedAt DateTime?
+  slaDueAt     DateTime
+  processedAt  DateTime?
   rejectReason String?
 
   createdAt DateTime @default(now())
@@ -708,11 +756,11 @@ model SupportTicket {
 
   /// Sorting a queue by age alone treats "cannot withdraw" the same as "how do
   /// I change my name". Members set this; operators can override it.
-  priority TicketPriority @default(NORMAL)
+  priority     TicketPriority @default(NORMAL)
   /// Routes the ticket and tells the reader what they are opening.
-  category TicketCategory @default(OTHER)
+  category     TicketCategory @default(OTHER)
   /// The operator who owns it, so two people do not answer the same ticket.
-  assignedTo String?
+  assignedTo   String?
   /// Stamped on the first staff reply — the number a support desk is judged on.
   firstReplyAt DateTime?
   closedAt     DateTime?
@@ -731,9 +779,9 @@ model TicketMessage {
   ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   ticketId String
 
-  body     String
-  isStaff  Boolean  @default(false)
-  authorId String?
+  body      String
+  isStaff   Boolean  @default(false)
+  authorId  String?
   createdAt DateTime @default(now())
 
   /// A screenshot answers in one image what a paragraph of description cannot.
@@ -818,8 +866,8 @@ model KycSubmission {
 
   /// Set on decision. reviewedBy is an AdminUser id, kept as a plain column so
   /// deleting an admin never erases who made a compliance decision.
-  reviewedAt     DateTime?
-  reviewedBy     String?
+  reviewedAt      DateTime?
+  reviewedBy      String?
   rejectionReason String?
 
   documents KycDocument[]
@@ -893,7 +941,7 @@ enum AuditAction {
 /// reads that are themselves sensitive (see AuditAction.VIEW).
 /// Nothing an operator does to a customer account should be untraceable.
 model AuditLog {
-  id      String @id @default(cuid())
+  id      String    @id @default(cuid())
   adminId String
   admin   AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
@@ -914,7 +962,6 @@ model AuditLog {
   @@index([entityType, entityId])
   @@map("audit_logs")
 }
-
 
 // ─────────────────────────── access control ───────────────────────────
 
@@ -1073,8 +1120,8 @@ model ActivityLog {
   /// Anything worth showing alongside the line — an amount, a masked address.
   meta    Json?
 
-  ip        String?
-  userAgent String?
+  ip           String?
+  userAgent    String?
   /// Set when an operator acted on the member's behalf, so it is never unclear
   /// whether the member did this themselves.
   actorAdminId String?
@@ -1118,18 +1165,18 @@ enum ActivityEvent {
 /// database leak must not hand someone a working code. Attempts are counted so
 /// a six-digit code cannot simply be guessed.
 model OtpChallenge {
-  id        String   @id @default(cuid())
-  purpose   OtpPurpose
+  id          String     @id @default(cuid())
+  purpose     OtpPurpose
   /// Member or admin, or neither: a password reset is requested before anyone
   /// has proved who they are.
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   /// Where the code was sent — kept so a reset can identify the account.
-  email     String
-  codeHash  String
+  email       String
+  codeHash    String
   /// Bound to the request that started the flow, so a code cannot be lifted
   /// from one member's email and completed by another.
-  challengeId String @unique
+  challengeId String     @unique
 
   attempts   Int       @default(0)
   consumedAt DateTime?
@@ -1215,7 +1262,7 @@ model DepositAddress {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  address String @unique
+  address         String @unique
   /// BIP-44 index. Unique so two members can never share an address.
   derivationIndex Int    @unique
   network         String @default("BEP20")
@@ -1261,8 +1308,8 @@ model OnChainTransfer {
   userId    String?
   note      String?
 
-  seenAt      DateTime  @default(now())
-  creditedAt  DateTime?
+  seenAt     DateTime  @default(now())
+  creditedAt DateTime?
 
   @@unique([txHash, logIndex])
   @@index([status])
@@ -1409,8 +1456,8 @@ model NotificationPreference {
   actorId   String
 
   category NotificationCategory
-  inApp    Boolean @default(true)
-  email    Boolean @default(true)
+  inApp    Boolean              @default(true)
+  email    Boolean              @default(true)
 
   updatedAt DateTime @updatedAt
 
@@ -1452,9 +1499,9 @@ enum NotificationSeverity {
 /// are about to send to everyone before it goes, which is not a thing you can
 /// do with an event.
 model Announcement {
-  id      String  @id @default(cuid())
-  title   String
-  body    String
+  id       String               @id @default(cuid())
+  title    String
+  body     String
   /// Sets the tone of the banner members see.
   severity NotificationSeverity @default(INFO)
 
@@ -1472,8 +1519,8 @@ model Announcement {
   publishedAt DateTime?
   expiresAt   DateTime?
   createdBy   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   /// How many members it was delivered to, recorded at publish time.
   deliveredTo Int @default(0)
@@ -1528,8 +1575,8 @@ model ConsentRecord {
   /// The published version accepted, e.g. "2026-08-01".
   version  String
 
-  ip        String?
-  userAgent String?
+  ip         String?
+  userAgent  String?
   acceptedAt DateTime @default(now())
 
   @@unique([userId, document, version])
@@ -1553,7 +1600,7 @@ model RewardTier {
   name String
 
   /// Cumulative investment that unlocks a card at this tier.
-  threshold Decimal @db.Decimal(38, 8)
+  threshold    Decimal @db.Decimal(38, 8)
   /// Paid as a percentage of the member's total invested, so a bigger investor
   /// gets a proportionally bigger card rather than a flat amount that means
   /// nothing to them.
@@ -1590,11 +1637,11 @@ model RewardCard {
   status RewardCardStatus @default(UNCLAIMED)
 
   /// The investment total that unlocked it, kept so a member can see why.
-  unlockedAt   DateTime @default(now())
-  unlockedAtVolume Decimal @db.Decimal(38, 8)
-  claimedAt    DateTime?
+  unlockedAt       DateTime  @default(now())
+  unlockedAtVolume Decimal   @db.Decimal(38, 8)
+  claimedAt        DateTime?
   /// Ledger reference of the payout, so the card and the money are linked.
-  reference    String?  @unique
+  reference        String?   @unique
 
   /// One card per member per tier, forever.
   @@unique([userId, tierId])
@@ -1619,7 +1666,7 @@ enum RewardCardStatus {
 /// result was fixed before entries closed, and that we did not pick winners
 /// after seeing who entered.
 model LotteryDraw {
-  id    String @id @default(cuid())
+  id    String  @id @default(cuid())
   name  String
   notes String?
 
@@ -1627,9 +1674,9 @@ model LotteryDraw {
 
   /// Cumulative investment that earns one ticket. Tickets are earned, never
   /// bought — a draw members pay into separately is a different regulated thing.
-  ticketThreshold Decimal @db.Decimal(38, 8)
+  ticketThreshold     Decimal @db.Decimal(38, 8)
   /// Tickets one member may hold, so a single large investor cannot own a draw.
-  maxTicketsPerMember Int @default(50)
+  maxTicketsPerMember Int     @default(50)
 
   opensAt  DateTime?
   closesAt DateTime?
@@ -1672,11 +1719,11 @@ model LotteryPrize {
   amount   Decimal @db.Decimal(38, 8)
 
   /// Set when the draw runs.
-  winnerTicketId String?       @unique
+  winnerTicketId String?        @unique
   winnerTicket   LotteryTicket? @relation(fields: [winnerTicketId], references: [id])
   claimedAt      DateTime?
   /// Ledger reference of the payout, linking prize to money.
-  reference      String?       @unique
+  reference      String?        @unique
 
   @@unique([drawId, position])
   @@map("lottery_prizes")
@@ -1695,10 +1742,10 @@ model LotteryTicket {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  number    String
-  issuedAt  DateTime @default(now())
+  number         String
+  issuedAt       DateTime @default(now())
   /// The investment total that earned it.
-  issuedAtVolume Decimal @db.Decimal(38, 8)
+  issuedAtVolume Decimal  @db.Decimal(38, 8)
 
   wonPrize LotteryPrize?
 
@@ -1730,14 +1777,14 @@ model SimulationRun {
   /// which is what makes two scenarios comparable.
   seed   String
 
-  progress      Int    @default(0)
+  progress      Int     @default(0)
   progressLabel String?
 
   /// Headline figures and the month-by-month series.
   summary Json?
   monthly Json?
 
-  memberCount Int    @default(0)
+  memberCount Int     @default(0)
   error       String?
 
   startedAt   DateTime?

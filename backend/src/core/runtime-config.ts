@@ -172,6 +172,13 @@ export const SPECS: SettingSpec[] = [
   },
 
   {
+    key: 'ADJUSTMENT_APPROVAL_ABOVE', group: 'Security', type: 'money', min: 0,
+    label: 'Second approval for adjustments above',
+    help: 'A manual balance adjustment larger than this is held until a DIFFERENT operator approves it, and no money moves until they do. An adjustment is the one place value is created rather than moved, so a single compromised operator account should not be able to do it alone. Set to 0 to require a second approval for every adjustment, however small.',
+    enforcedIn: 'Manual balance adjustment',
+  },
+
+  {
     key: 'REWARD_VESTING_MONTHS', group: 'Payouts', type: 'int', min: 0, max: 60,
     label: 'Rank reward instalments',
     help: 'Pay a rank reward in this many equal monthly parts, credited on the 1st. A $300 reward over 10 months credits $30 a month. Set to 0 to pay the whole reward at the moment the rank is achieved. Changing this never alters a schedule already running — a member who was promised ten payments still gets ten.',
@@ -236,6 +243,7 @@ export const DEFAULTS: Record<string, string> = {
   TAX_WITHHOLDING_PERCENT: '0',
   KYC_REQUIRED_FOR_WITHDRAWAL: 'true',
   KYC_REQUIRED_ABOVE: '0',
+  ADJUSTMENT_APPROVAL_ABOVE: '1000',
   REWARD_VESTING_MONTHS: '0',
   STEP_UP_TTL_MINUTES: '5',
   STEP_UP_TOTP_ABOVE: '1000',
@@ -263,6 +271,7 @@ export interface RuntimeConfig {
   taxWithholdingPercent: number;
   kycRequiredForWithdrawal: boolean;
   kycRequiredAbove: number;
+  adjustmentApprovalAbove: number;
   rewardVestingMonths: number;
   stepUpTtlMinutes: number;
   stepUpTotpAbove: number;
@@ -364,6 +373,7 @@ function build(stored: Record<string, string>): RuntimeConfig {
     taxWithholdingPercent: num('TAX_WITHHOLDING_PERCENT'),
     kycRequiredForWithdrawal: bool('KYC_REQUIRED_FOR_WITHDRAWAL'),
     kycRequiredAbove: num('KYC_REQUIRED_ABOVE'),
+    adjustmentApprovalAbove: num('ADJUSTMENT_APPROVAL_ABOVE'),
     rewardVestingMonths: num('REWARD_VESTING_MONTHS'),
     stepUpTtlMinutes: num('STEP_UP_TTL_MINUTES'),
     stepUpTotpAbove: num('STEP_UP_TOTP_ABOVE'),
