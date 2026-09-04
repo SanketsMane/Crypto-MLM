@@ -3,24 +3,42 @@ import { money } from '../../../core/money.js';
 
 /** Numbers an operator or owner actually asks for. */
 
+/**
+ * Reports count real members only.
+ *
+ * A dry run tags every member it creates with `simulationRunId` and the rest of
+ * the platform respects that — modelled members get no notifications, no
+ * activity trail, no operator alerts. The reports did not, so a run left
+ * un-erased was silently folded into the platform's own figures: with fifty
+ * modelled members present this dashboard reported $121,920 of payouts against
+ * a real $32,716, and the trial balance agreed with it.
+ *
+ * Applied at every aggregate rather than filtered afterwards, because a total
+ * that is 3x wrong is not a rounding problem — it is a number somebody reports
+ * to an investor or a tax authority.
+ */
+const REAL_USER = { simulationRunId: null } as const;
+/** For rows that hang off a user rather than being one. */
+const REAL_OWNER = { user: { simulationRunId: null } } as const;
+
 export async function overview() {
   const now = new Date();
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
   const [users, activeUsers, newToday, inv, payouts, deposits, withdrawals, monthPayouts] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { status: 'ACTIVE' } }),
-    prisma.user.count({ where: { createdAt: { gte: today } } }),
-    prisma.investment.aggregate({ _sum: { amount: true, capLimit: true, totalEarned: true }, _count: { _all: true } }),
+    prisma.user.count({ where: REAL_USER }),
+    prisma.user.count({ where: { ...REAL_USER, status: 'ACTIVE' } }),
+    prisma.user.count({ where: { ...REAL_USER, createdAt: { gte: today } } }),
+    prisma.investment.aggregate({ where: REAL_OWNER, _sum: { amount: true, capLimit: true, totalEarned: true }, _count: { _all: true } }),
     prisma.ledgerEntry.groupBy({
-      by: ['category'], where: { direction: 'CREDIT', category: { in: ['DAILY_ROI', 'DIRECT_BONUS', 'GENERATION_BONUS', 'RANK_BONUS'] } },
+      by: ['category'], where: { ...REAL_OWNER, direction: 'CREDIT', category: { in: ['DAILY_ROI', 'DIRECT_BONUS', 'GENERATION_BONUS', 'RANK_BONUS'] } },
       _sum: { amount: true },
     }),
-    prisma.deposit.aggregate({ where: { status: 'PROCESSED' }, _sum: { amount: true }, _count: { _all: true } }),
-    prisma.withdrawal.aggregate({ where: { status: 'PROCESSED' }, _sum: { amount: true, fee: true }, _count: { _all: true } }),
+    prisma.deposit.aggregate({ where: { ...REAL_OWNER, status: 'PROCESSED' }, _sum: { amount: true }, _count: { _all: true } }),
+    prisma.withdrawal.aggregate({ where: { ...REAL_OWNER, status: 'PROCESSED' }, _sum: { amount: true, fee: true }, _count: { _all: true } }),
     prisma.ledgerEntry.aggregate({
-      where: { direction: 'CREDIT', createdAt: { gte: monthStart }, category: { in: ['DAILY_ROI', 'DIRECT_BONUS', 'GENERATION_BONUS', 'RANK_BONUS'] } },
+      where: { ...REAL_OWNER, direction: 'CREDIT', createdAt: { gte: monthStart }, category: { in: ['DAILY_ROI', 'DIRECT_BONUS', 'GENERATION_BONUS', 'RANK_BONUS'] } },
       _sum: { amount: true },
     }),
   ]);
@@ -52,6 +70,7 @@ export async function overview() {
 
 export async function topEarners(take = 20) {
   const rows = await prisma.user.findMany({
+    where: REAL_USER,
     orderBy: { totalEarned: 'desc' }, take,
     select: { userCode: true, email: true, totalInvested: true, totalEarned: true, directCount: true,
               currentRank: { select: { name: true, level: true } } },
@@ -67,11 +86,13 @@ export async function topEarners(take = 20) {
 export async function incomeSeries(days = 30) {
   const from = new Date(Date.now() - days * 86_400_000);
   const rows = await prisma.$queryRaw<{ day: Date; category: string; total: string }[]>`
-    SELECT date_trunc('day', "createdAt") AS day, category::text AS category, SUM(amount)::text AS total
-      FROM ledger_entries
-     WHERE direction = 'CREDIT'
-       AND "createdAt" >= ${from}
-       AND category IN ('DAILY_ROI','DIRECT_BONUS','GENERATION_BONUS','RANK_BONUS')
+    SELECT date_trunc('day', l."createdAt") AS day, l.category::text AS category, SUM(l.amount)::text AS total
+      FROM ledger_entries l
+      JOIN users u ON u.id = l."userId"
+     WHERE l.direction = 'CREDIT'
+       AND u."simulationRunId" IS NULL
+       AND l."createdAt" >= ${from}
+       AND l.category IN ('DAILY_ROI','DIRECT_BONUS','GENERATION_BONUS','RANK_BONUS')
      GROUP BY 1, 2
      ORDER BY 1 ASC`;
   return rows.map((r) => ({ day: r.day, category: r.category, total: r.total }));
@@ -79,7 +100,7 @@ export async function incomeSeries(days = 30) {
 
 export async function capUtilisation() {
   const rows = await prisma.investment.groupBy({
-    by: ['status'], _count: { _all: true },
+    by: ['status'], where: REAL_OWNER, _count: { _all: true },
     _sum: { amount: true, capLimit: true, totalEarned: true },
   });
   return rows.map((r) => ({
@@ -167,12 +188,13 @@ export async function planPerformance() {
   const [byPlan, cappedByPlan] = await Promise.all([
     prisma.investment.groupBy({
       by: ['packageId'],
+      where: REAL_OWNER,
       _count: true,
       _sum: { amount: true, totalEarned: true },
     }),
     prisma.investment.groupBy({
       by: ['packageId'],
-      where: { status: 'CAPPED' },
+      where: { ...REAL_OWNER, status: 'CAPPED' },
       _count: true,
     }),
   ]);
@@ -217,14 +239,17 @@ export async function planPerformance() {
  */
 export async function solvency() {
   const [wallets, pendingWithdrawals, liability] = await Promise.all([
-    prisma.walletAccount.groupBy({ by: ['type'], _sum: { balance: true } }),
+    // Modelled wallets are not money the platform owes, and counting them
+    // here would tell an operator the treasury covers more than it does —
+    // on the one screen read before approving a large payout.
+    prisma.walletAccount.groupBy({ by: ['type'], where: REAL_OWNER, _sum: { balance: true } }),
     prisma.withdrawal.aggregate({
-      where: { status: 'PENDING' },
+      where: { ...REAL_OWNER, status: 'PENDING' },
       _sum: { netAmount: true },
       _count: true,
     }),
     prisma.investment.aggregate({
-      where: { status: 'ACTIVE' },
+      where: { ...REAL_OWNER, status: 'ACTIVE' },
       _sum: { capLimit: true, totalEarned: true },
     }),
   ]);
