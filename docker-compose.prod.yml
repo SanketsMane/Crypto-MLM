@@ -138,6 +138,12 @@ services:
         API_URL: ${NEXT_PUBLIC_API_URL:-}
     image: fortunex-web:${TAG:-latest}
     restart: unless-stopped
+    # The browser reaches the API through the proxy at a relative path; the
+    # Next server cannot, so it is told the API's address on the internal
+    # network. Runtime rather than a build arg, because it is not a
+    # NEXT_PUBLIC_* value and must never reach the browser bundle.
+    environment:
+      API_INTERNAL_URL: http://api:4000/api/v1
     depends_on:
       api: { condition: service_healthy }
     expose: ['3010']

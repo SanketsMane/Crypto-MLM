@@ -16,6 +16,9 @@
 # Anything that looks like key material, wherever it lands.
 *.pem
 *.key
+# A personal access token was being kept here. The name is not covered by any
+# rule above, so `git add .` would have committed it.
+gittoken.md
 *.p12
 *.keystore
 secrets/

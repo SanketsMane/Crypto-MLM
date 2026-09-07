@@ -28,7 +28,17 @@ COPY prisma.config.ts ./
 
 # `npm ci --omit=dev` skips the postinstall that generates the Prisma client,
 # so it is run explicitly against the schema copied above.
+#
+# The `prisma` CLI is a devDependency, so `--omit=dev` leaves it out — but the
+# compose `migrate` service runs `npx prisma migrate deploy` from THIS image.
+# Without the CLI present, npx would reach out to the registry at container
+# start, so the stack could not boot on a host with no egress to npm.
+#
+# Pinned to 7.9.1 to match @prisma/client. The lockfile resolves the CLI to
+# 7.10.0 against a 7.9.1 client, and Prisma expects the two to be the same
+# version. `--no-save` leaves package.json and the lockfile untouched.
 RUN npm ci --omit=dev --ignore-scripts \
+ && npm install --no-save --ignore-scripts prisma@7.9.1 \
  && npx prisma generate
 
 

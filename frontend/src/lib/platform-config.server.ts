@@ -17,8 +17,24 @@ import { DEPLOY_DEFAULTS, type PlatformConfig } from './platform-config';
  */
 const REVALIDATE_SECONDS = 60;
 
+/**
+ * Where the SERVER reaches the API — which is not where the browser does.
+ *
+ * Behind a reverse proxy `NEXT_PUBLIC_API_URL` is the browser's path ("/api/v1",
+ * resolved against the page origin). Node cannot fetch a relative path, and
+ * `localhost:4000` is not the API either: that port belongs to a different
+ * container. Both failures are swallowed by the catch below, so the public
+ * pages quietly render build-time defaults instead of the live plan — a wrong
+ * withdrawal fee on the terms page with nothing in the logs to say so.
+ *
+ * `API_INTERNAL_URL` names the API on the internal network and is checked
+ * first, so the two audiences no longer have to share one value.
+ */
 function apiOrigin(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (process.env.API_INTERNAL_URL) return process.env.API_INTERNAL_URL;
+  // Only an absolute URL is usable here; a relative one is for the browser.
+  const pub = process.env.NEXT_PUBLIC_API_URL;
+  if (pub && /^https?:\/\//.test(pub)) return pub;
   const port = process.env.API_PORT ?? '4000';
   return `http://localhost:${port}/api/v1`;
 }

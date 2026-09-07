@@ -22,6 +22,14 @@
 		Referrer-Policy           "strict-origin-when-cross-origin"
 		# The platform never needs any of these.
 		Permissions-Policy        "camera=(), microphone=(), geolocation=(), payment=()"
+
+		# Both JWTs live in localStorage, so any injected script can read them.
+		# `connect-src 'self'` is the control that matters here: it stops a
+		# stolen token being POSTed to an attacker's host. script-src keeps
+		# 'unsafe-inline'/'unsafe-eval' because Next's hydration bootstrap needs
+		# them and this build has no nonce plumbing — so this is a containment
+		# measure, not full XSS immunity.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
 		-Server
 	}
 
