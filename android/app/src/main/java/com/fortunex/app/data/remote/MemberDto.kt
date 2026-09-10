@@ -101,20 +101,30 @@ data class Dashboard(
     val team: TeamTotals = TeamTotals(),
 )
 
-/** One row of the member's own ledger. */
+/**
+ * One row of the member's own ledger — the passbook.
+ *
+ * `balanceAfter` is the running balance the server recorded at the moment the
+ * entry was written. Shown rather than recomputed on the client: the ledger is
+ * the authority, and a total derived here could disagree with it after any
+ * paging or filtering.
+ */
 @Serializable
-data class LedgerRow(
+data class LedgerEntry(
     val id: String = "",
-    val category: String = "",
+    val wallet: String = "",
     val direction: String = "CREDIT",
+    val category: String = "",
     val amount: String = "0",
-    val wallet: String? = null,
+    val balanceAfter: String = "0",
+    val reference: String? = null,
     val description: String? = null,
     val createdAt: String? = null,
 )
 
+/** The server names this list `entries`, not `rows`. */
 @Serializable
 data class LedgerPage(
     val total: Int = 0,
-    val rows: List<LedgerRow> = emptyList(),
+    val entries: List<LedgerEntry> = emptyList(),
 )

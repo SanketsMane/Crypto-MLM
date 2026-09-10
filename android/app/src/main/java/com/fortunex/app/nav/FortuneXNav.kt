@@ -9,7 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.fortunex.app.ui.auth.LoginScreen
 import com.fortunex.app.ui.auth.TwoFactorScreen
-import com.fortunex.app.ui.member.HomeScreen
+import com.fortunex.app.ui.member.MemberShell
 import com.fortunex.app.ui.onboarding.OnboardingScreen
 
 object Routes {
@@ -66,7 +66,7 @@ fun FortuneXNav(
             )
         }
 
-        composable(Routes.HOME) { HomeScreen() }
+        composable(Routes.HOME) { MemberShell() }
     }
 }
 
