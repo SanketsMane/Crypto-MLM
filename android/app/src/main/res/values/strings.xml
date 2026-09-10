@@ -32,4 +32,29 @@
     <string name="retry">Try again</string>
     <string name="dismiss">Dismiss</string>
     <string name="reference_is">Ref %1$s</string>
+    <!-- member area -->
+    <string name="nav_home">Home</string>
+    <string name="nav_wallet">Wallet</string>
+    <string name="nav_account">Account</string>
+    <string name="greeting">Hello, %1$s</string>
+    <string name="member_code">Member %1$s</string>
+    <string name="wallet_main">Main wallet</string>
+    <string name="wallet_fund">Fund wallet</string>
+    <string name="wallet_digital">Digital wallet</string>
+    <string name="available">Available</string>
+    <string name="locked">On hold</string>
+    <string name="total_invested">Invested</string>
+    <string name="total_earned">Earned</string>
+    <string name="earned_today">Earned today</string>
+    <string name="earning_ceiling">Earning ceiling</string>
+    <string name="ceiling_used">%1$s of %2$s used</string>
+    <string name="capped_notice">You have reached your earning ceiling. New income stops until you invest again.</string>
+    <string name="team_size">Team</string>
+    <string name="direct_referrals">Directs</string>
+    <string name="recent_activity">Recent activity</string>
+    <string name="no_activity">Nothing here yet.</string>
+    <string name="sign_out">Sign out</string>
+    <string name="refresh">Refresh</string>
+    <string name="rank_label">Rank</string>
+    <string name="unranked">Unranked</string>
 </resources>

@@ -28,3 +28,48 @@ data class LoginResponse(
     val tokens: Tokens? = null,
     val user: MemberSummary? = null,
 )
+
+/* ── session lifecycle ─────────────────────────────────────────────────────── */
+
+@Serializable
+data class RefreshRequest(val refreshToken: String)
+
+@Serializable
+data class LogoutRequest(val refreshToken: String)
+
+/**
+ * The second step of sign-in.
+ *
+ * The challenge token is not a session — it authorises exactly one thing,
+ * expires in five minutes, and is useless against any other endpoint.
+ */
+@Serializable
+data class TwoFactorRequest(val challengeToken: String, val code: String)
+
+/** `GET auth/me` — the signed-in member, richer than the login summary. */
+@Serializable
+data class MemberProfile(
+    val id: String? = null,
+    val userCode: String? = null,
+    val email: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val status: String? = null,
+    val affiliateMode: String? = null,
+    val walletAddress: String? = null,
+    val totalInvested: String? = null,
+    val totalEarned: String? = null,
+    val directCount: Int? = null,
+    val emailVerifiedAt: String? = null,
+    val twoFactorEnabled: Boolean = false,
+    val rank: RankSummary? = null,
+    val sponsorId: String? = null,
+    val createdAt: String? = null,
+)
+
+@Serializable
+data class RankSummary(
+    val code: String? = null,
+    val name: String? = null,
+    val level: Int? = null,
+)

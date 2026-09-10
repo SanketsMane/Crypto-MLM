@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -22,6 +24,36 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    /**
+     * Release signing, read from a properties file that is NEVER committed.
+     *
+     * An unsigned release APK is not installable, so without this `assembleRelease`
+     * produced a file that could only be thrown away. Credentials come from
+     * `keystore.properties` (or the matching environment variables, for CI), and
+     * the block is skipped entirely when neither is present — so a checkout with
+     * no keystore still builds debug rather than failing to configure.
+     *
+     * Keep the .jks and its passwords safe and permanent: Play Store updates must
+     * be signed with the same key, and losing it means publishing a new listing.
+     */
+    val keystoreProps = Properties().apply {
+        val f = rootProject.file("keystore.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+    val storePathValue = keystoreProps.getProperty("storeFile") ?: System.getenv("FX_STORE_FILE")
+    val hasKeystore = storePathValue != null && rootProject.file(storePathValue).exists()
+
+    signingConfigs {
+        if (hasKeystore) {
+            create("release") {
+                storeFile = rootProject.file(storePathValue!!)
+                storePassword = keystoreProps.getProperty("storePassword") ?: System.getenv("FX_STORE_PASSWORD")
+                keyAlias = keystoreProps.getProperty("keyAlias") ?: System.getenv("FX_KEY_ALIAS")
+                keyPassword = keystoreProps.getProperty("keyPassword") ?: System.getenv("FX_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -29,10 +61,15 @@ android {
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/api/v1/\"")
         }
         release {
+            if (hasKeystore) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            buildConfigField("String", "API_BASE_URL", "\"https://api.fortunex.com/api/v1/\"")
+            // The live platform. This previously named api.fortunex.com — a
+            // .com the project does not own and which does not resolve, so
+            // every request from a release build failed. The API is served by
+            // the same host as the site, behind Caddy at /api/*.
+            buildConfigField("String", "API_BASE_URL", "\"https://fortunex.cx/api/v1/\"")
         }
     }
 

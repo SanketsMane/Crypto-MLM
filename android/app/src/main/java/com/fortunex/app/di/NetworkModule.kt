@@ -1,6 +1,7 @@
 package com.fortunex.app.di
 
 import com.fortunex.app.BuildConfig
+import com.fortunex.app.data.auth.TokenAuthenticator
 import com.fortunex.app.data.auth.TokenStore
 import com.fortunex.app.data.remote.FortuneXApi
 import dagger.Module
@@ -28,9 +29,15 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun okHttp(tokens: TokenStore): OkHttpClient = OkHttpClient.Builder()
+    fun okHttp(
+        tokens: TokenStore,
+        authenticator: TokenAuthenticator,
+    ): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
+        // Renews the 15-minute access token off the back of a 401 and replays
+        // the request. Without it the app dies fifteen minutes after sign-in.
+        .authenticator(authenticator)
         .addInterceptor { chain ->
             val token = runBlocking { tokens.access() }
             val req = chain.request().newBuilder()

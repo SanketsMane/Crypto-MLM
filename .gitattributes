@@ -1,0 +1,20 @@
+# Default: let Git normalise text in the repository, and check it out native.
+* text=auto
+
+# These MUST stay LF whatever the platform.
+#
+# gradlew is a shell script. Checked out with CRLF on Windows and then run on
+# Linux — a CI runner, a Docker build — it fails with
+# "/bin/sh^M: bad interpreter: No such file or directory", which says nothing
+# about line endings to anyone reading it.
+gradlew            text eol=lf
+*.sh               text eol=lf
+
+# Binary; never touch.
+gradle-wrapper.jar binary
+*.jks              binary
+*.keystore         binary
+*.apk              binary
+*.png              binary
+*.jpg              binary
+*.pdf              binary
