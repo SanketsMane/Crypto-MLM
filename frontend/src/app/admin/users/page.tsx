@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Search } from 'lucide-react';
-import { adminGet, adminPost } from '@/lib/admin-api';
+import { Search, Trash2 } from 'lucide-react';
+import { adminDelete, adminGet, adminPost } from '@/lib/admin-api';
+import { useConfirm } from '@/components/ui/confirm';
 import { useMoneyMutation } from '@/lib/money-mutation';
 import { toastError } from '@/lib/toast';
 import { ActionDialog } from '@/components/ui/dialog';
@@ -66,6 +67,45 @@ export default function UsersPage() {
     onSuccess: done('switched'),
     onError: (e) => toastError(e),
   });
+
+  /**
+   * Deleting a member.
+   *
+   * The server refuses once an account has any financial history or downline,
+   * and says which — so the dialog does not try to predict that here. It asks
+   * once, in plain words, and lets the refusal be the authority.
+   */
+  const askConfirm = useConfirm();
+
+  const removeUser = useMutation({
+    mutationFn: (v: { id: string; reason: string }) =>
+      adminDelete<{ userCode: string }>(`/admin/users/${v.id}?reason=${encodeURIComponent(v.reason)}`),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      setSelected(new Set());
+      toast.success(`${r.userCode} deleted`);
+    },
+    onError: (e) => toastError(e),
+  });
+
+  const confirmDelete = async (u: Row) => {
+    const { ok, values } = await askConfirm({
+      title: `Delete ${u.userCode}?`,
+      body:
+        `This permanently erases ${u.email} and everything attached to the account. `
+        + 'It cannot be undone. If the member has ever moved money or sponsored anyone, '
+        + 'the server will refuse — block the account instead.',
+      confirmLabel: 'Delete permanently',
+      tone: 'danger',
+      fields: [{
+        name: 'reason', label: 'Reason', required: true, minLength: 3,
+        placeholder: 'e.g. bot signup, never verified',
+        help: 'Written to the audit log, which outlives the account.',
+      }],
+    });
+    if (!ok) return;
+    removeUser.mutate({ id: u.id, reason: values.reason });
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'users', q, status, page, size],
@@ -173,7 +213,21 @@ export default function UsersPage() {
               <span key="d" className="tabular-nums">{u.directCount}</span>,
               <span key="k" className="tabular-nums">{rankLabel(u.rankLevel)}</span>,
               <span key="j" className="text-ink-2">{shortDate(u.createdAt)}</span>,
-              <Link key="v" href={`/admin/users/${u.id}`} className="font-medium text-violet hover:underline">View</Link>,
+              <div key="v" className="flex items-center justify-end gap-3">
+                <Link href={`/admin/users/${u.id}`} className="font-medium text-violet hover:underline">View</Link>
+                {can('users.delete') && (
+                  <button
+                    type="button"
+                    onClick={() => void confirmDelete(u)}
+                    disabled={removeUser.isPending}
+                    title={`Delete ${u.userCode}`}
+                    aria-label={`Delete ${u.userCode}`}
+                    className="rounded p-1 text-ink-2 transition hover:bg-bad/10 hover:text-bad disabled:opacity-40"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>,
             ])}
           />
         )}

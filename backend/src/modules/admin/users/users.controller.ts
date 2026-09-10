@@ -5,6 +5,7 @@ import * as approval from './adjustment-approval.service.js';
 
 const statusSchema = z.object({ status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED', 'BLOCKED']) });
 const modeSchema = z.object({ affiliateMode: z.enum(['PASSIVE', 'ACTIVE']) });
+const deleteSchema = z.object({ reason: z.string().min(3).max(300) });
 const adjustSchema = z.object({
   walletType: z.enum(['MAIN', 'FUND', 'DIGITAL']),
   direction: z.enum(['CREDIT', 'DEBIT']),
@@ -34,6 +35,18 @@ export const setStatus = async (req: Request, res: Response) => {
 export const setMode = async (req: Request, res: Response) => {
   const { affiliateMode } = modeSchema.parse(req.body);
   res.json({ success: true, data: await service.setAffiliateMode(req.adminId!, String(req.params.id), affiliateMode, req) });
+};
+
+/**
+ * The reason travels as a query parameter, not a body.
+ *
+ * A DELETE with a body is legal but poorly supported — several proxies and
+ * fetch wrappers drop it silently, which would surface here as "a reason is
+ * required" on a request that plainly sent one.
+ */
+export const remove = async (req: Request, res: Response) => {
+  const { reason } = deleteSchema.parse({ reason: req.query.reason });
+  res.json({ success: true, data: await service.deleteMember(req.adminId!, String(req.params.id), reason, req) });
 };
 
 export const adjust = async (req: Request, res: Response) => {

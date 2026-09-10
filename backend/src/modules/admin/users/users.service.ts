@@ -452,3 +452,103 @@ export async function bulkAffiliateMode(
 
   return { requested: userIds.length, succeeded, failed };
 }
+/**
+ * Erase a member account permanently.
+ *
+ * Postgres cascades a user delete across 39 relations — wallets, sessions,
+ * KYC, notifications AND the ledger. That last one is the problem: the ledger
+ * is append-only by design, it is what the trial balance reconciles against,
+ * and a cascade would remove rows from it with nothing left to say they ever
+ * existed. So this refuses rather than trusting the operator to know.
+ *
+ * Two conditions block a delete, and neither is a warning:
+ *
+ *   1. ANY financial history — a ledger entry, investment, deposit,
+ *      withdrawal or commission. Money that moved has to stay reconcilable
+ *      even for an account nobody wants any more. Block the member instead;
+ *      that ends their access and keeps the books intact.
+ *
+ *   2. ANY downline. `sponsor` is `onDelete: SetNull`, so deleting a sponsor
+ *      quietly detaches their referrals — but every descendant's materialised
+ *      `path` still names the deleted id, so `getUpline` would walk to a user
+ *      that is not there and commissions would misattribute. The tree has no
+ *      repair path once this happens.
+ *
+ * What is left is what deletion is actually for: a signup that never became a
+ * member. A bot registration, a duplicate, a test account.
+ */
+export async function deleteMember(adminId: string, userId: string, reason: string, req?: Request) {
+  if (!reason?.trim() || reason.trim().length < 3) {
+    throw badRequest('A reason is required to delete a member account');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true, userCode: true, email: true, firstName: true, lastName: true,
+      status: true, sponsorId: true, createdAt: true,
+    },
+  });
+  if (!user) throw notFound('User not found');
+
+  // Counted in one round trip rather than five sequential queries.
+  const [ledger, investments, deposits, withdrawals, commissions, referrals] = await Promise.all([
+    prisma.ledgerEntry.count({ where: { userId } }),
+    prisma.investment.count({ where: { userId } }),
+    prisma.deposit.count({ where: { userId } }),
+    prisma.withdrawal.count({ where: { userId } }),
+    prisma.commission.count({ where: { userId } }),
+    prisma.user.count({ where: { sponsorId: userId } }),
+  ]);
+
+  const financial = { ledger, investments, deposits, withdrawals, commissions };
+  const moved = Object.values(financial).reduce((a, b) => a + b, 0);
+
+  if (moved > 0) {
+    const detail = Object.entries(financial)
+      .filter(([, n]) => n > 0)
+      .map(([k, n]) => `${n} ${k}`)
+      .join(', ');
+    throw badRequest(
+      `${user.userCode} has financial history (${detail}) and cannot be deleted — `
+      + 'the ledger is append-only and the trial balance reconciles against it. '
+      + 'Set the account to BLOCKED instead: that ends every session and stops '
+      + 'them signing in, without erasing the books.',
+      { financial, referrals },
+    );
+  }
+
+  if (referrals > 0) {
+    throw badRequest(
+      `${user.userCode} sponsored ${referrals} member${referrals === 1 ? '' : 's'} and cannot be deleted — `
+      + 'their downline would be detached while every descendant still carries this '
+      + 'account in their genealogy path, which nothing can repair afterwards. '
+      + 'Block the account instead.',
+      { financial, referrals },
+    );
+  }
+
+  /* The audit row outlives the member, so the snapshot is taken while there is
+     still something to snapshot. audit_logs stores entityId as a plain string
+     and is not cascaded, so it survives the delete below. */
+  await audit.record({
+    adminId, action: 'DELETE', entityType: 'user', entityId: userId,
+    summary: `Deleted member ${user.userCode} (${user.email}) — ${reason.trim()}`,
+    before: {
+      userCode: user.userCode, email: user.email,
+      name: [user.firstName, user.lastName].filter(Boolean).join(' '),
+      status: user.status, sponsorId: user.sponsorId,
+      createdAt: user.createdAt.toISOString(),
+    },
+    // No `after` — there is no row left to describe. The absence is the record.
+    req,
+  });
+
+  // Kill the sessions first. Between the delete and a token expiring there is
+  // otherwise a window where a signed-in member holds a token for a row that
+  // no longer exists.
+  await revokeAllFor('USER', userId, 'ACCOUNT_DELETED');
+  await prisma.user.delete({ where: { id: userId } });
+
+  return { id: userId, userCode: user.userCode, email: user.email, deleted: true };
+}

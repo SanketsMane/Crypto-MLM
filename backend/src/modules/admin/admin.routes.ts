@@ -66,6 +66,7 @@ r.post('/users',                         can('users.create'), asyncHandler(users
 r.get('/users/:id',                      can('users.view'),   asyncHandler(users.detail));
 r.patch('/users/:id/status',             can('users.status'), asyncHandler(users.setStatus));
 r.patch('/users/:id/affiliate-mode',     can('users.mode'),   asyncHandler(users.setMode));
+r.delete('/users/:id',                   can('users.delete'), asyncHandler(users.remove));
 r.post('/users/bulk/status',             can('users.status'), idempotent, asyncHandler(users.bulkStatus));
 r.post('/users/bulk/affiliate-mode',     can('users.mode'),   idempotent, asyncHandler(users.bulkAffiliateMode));
 r.post('/users/:id/impersonate',         can('users.impersonate'), asyncHandler(impersonation.start));

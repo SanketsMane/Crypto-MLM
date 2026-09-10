@@ -17,6 +17,7 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: 'users.recalc',        group: 'Users',     label: 'Recalculate team volume' },
   { key: 'users.create',        group: 'Users',     label: 'Create member accounts', description: 'Register a member on their behalf' },
   { key: 'users.password',      group: 'Users',     label: 'Reset member passwords' },
+  { key: 'users.delete',        group: 'Users',     label: 'Delete member accounts', description: 'Permanently erase an account. Refused once the member has any financial history or downline' },
 
   { key: 'deposits.view',       group: 'Finance',   label: 'View deposits' },
   { key: 'deposits.approve',    group: 'Finance',   label: 'Confirm deposits' },
@@ -68,8 +69,12 @@ export const DEFAULT_ROLES = [
   {
     name: 'Operations Manager', slug: 'operations-manager', level: 10, isSystem: false,
     description: 'Runs day-to-day operations but cannot change access or the plan.',
+    /* `users.delete` is withheld deliberately. Every other operator action is
+       reversible or leaves the row behind; erasing a member is neither, and
+       Postgres cascades it across 39 relations. It stays with the owner. */
     permissions: ALL_KEYS.filter((k) =>
-      !k.startsWith('roles.') && !k.startsWith('admins.') && k !== 'settings.edit' && k !== 'plan.edit'),
+      !k.startsWith('roles.') && !k.startsWith('admins.')
+      && k !== 'settings.edit' && k !== 'plan.edit' && k !== 'users.delete'),
   },
   {
     name: 'Finance Officer', slug: 'finance-officer', level: 20, isSystem: false,
