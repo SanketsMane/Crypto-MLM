@@ -135,4 +135,25 @@
     <string name="manage_on_web">Manage this on the website</string>
     <string name="kyc_not_started">Not started</string>
     <string name="sign_out_body">You will need to sign in again to reach your account.</string>
+    <!-- register + reset -->
+    <string name="create_account">Create an account</string>
+    <string name="first_name">First name</string>
+    <string name="last_name_optional">Last name (optional)</string>
+    <string name="email">Email</string>
+    <string name="phone_optional">Phone (optional)</string>
+    <string name="password_rule">At least 8 characters.</string>
+    <string name="sponsor_code_optional">Sponsor code (optional)</string>
+    <string name="sponsor_found">Joining under %1$s</string>
+    <string name="sponsor_not_found">That sponsor code does not match an account.</string>
+    <string name="checking">Checking…</string>
+    <string name="sponsor_blank_help">Leave blank if nobody referred you. This cannot be changed later.</string>
+    <string name="already_have_account">I already have an account</string>
+    <string name="reset_intro">Enter the email on your account and we will send you a six-digit code.</string>
+    <string name="reset_sent">If %1$s is registered, a code is on its way. Enter it below with your new password.</string>
+    <string name="send_code">Send code</string>
+    <string name="six_digit_code">Six-digit code</string>
+    <string name="new_password">New password</string>
+    <string name="set_new_password">Set new password</string>
+    <string name="password_changed">Password changed. You can sign in now.</string>
+    <string name="back_to_sign_in">Back to sign in</string>
 </resources>

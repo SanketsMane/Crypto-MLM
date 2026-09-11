@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.fortunex.app.ui.auth.LoginScreen
+import com.fortunex.app.ui.auth.RegisterScreen
+import com.fortunex.app.ui.auth.ResetPasswordScreen
 import com.fortunex.app.ui.auth.TwoFactorScreen
 import com.fortunex.app.ui.member.MemberShell
 import com.fortunex.app.ui.onboarding.OnboardingScreen
@@ -17,6 +19,8 @@ object Routes {
     const val LOGIN = "login"
     const val TWO_FACTOR = "two-factor/{challengeToken}"
     const val HOME = "home"
+    const val REGISTER = "register"
+    const val RESET_PASSWORD = "reset-password"
 
     fun twoFactor(token: String) = "two-factor/$token"
 }
@@ -53,7 +57,23 @@ fun FortuneXNav(
             LoginScreen(
                 onSignedIn = { navController.toHome() },
                 onNeedsTwoFactor = { token -> navController.navigate(Routes.twoFactor(token)) },
+                onRegister = { navController.navigate(Routes.REGISTER) },
+                onForgotPassword = { navController.navigate(Routes.RESET_PASSWORD) },
             )
+        }
+
+        composable(Routes.REGISTER) {
+            RegisterScreen(
+                // Registration returns a session, so it lands in the member area
+                // directly rather than sending someone to sign in again with
+                // credentials they typed thirty seconds ago.
+                onRegistered = { navController.toHome() },
+                onBackToSignIn = { navController.popBackStack() },
+            )
+        }
+
+        composable(Routes.RESET_PASSWORD) {
+            ResetPasswordScreen(onDone = { navController.popBackStack() })
         }
 
         composable(

@@ -37,6 +37,8 @@ import kotlinx.coroutines.flow.collectLatest
 fun LoginScreen(
     onSignedIn: () -> Unit = {},
     onNeedsTwoFactor: (String) -> Unit = {},
+    onRegister: () -> Unit = {},
+    onForgotPassword: () -> Unit = {},
     vm: LoginViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -177,11 +179,23 @@ fun LoginScreen(
 
             Spacer(Modifier.height(16.dp))
             TextButton(
-                onClick = { },
+                // Was a no-op placeholder: the link was on screen and did
+                // nothing, which reads as a broken app to anyone locked out.
+                onClick = onForgotPassword,
                 modifier = Modifier.heightIn(min = 48.dp),
             ) {
                 Text(
                     stringResource(R.string.forgot_password),
+                    style = FxTypography.labelLarge,
+                    color = TextSecondary,
+                )
+            }
+            TextButton(
+                onClick = onRegister,
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) {
+                Text(
+                    stringResource(R.string.create_account),
                     style = FxTypography.labelLarge,
                     color = TextSecondary,
                 )

@@ -2,7 +2,12 @@ package com.fortunex.app.data.auth
 
 import com.fortunex.app.data.remote.ApiResult
 import com.fortunex.app.data.remote.AppError
+import com.fortunex.app.data.remote.ForgotPasswordRequest
+import com.fortunex.app.data.remote.ForgotPasswordResponse
 import com.fortunex.app.data.remote.FortuneXApi
+import com.fortunex.app.data.remote.RegisterRequest
+import com.fortunex.app.data.remote.ResetPasswordRequest
+import com.fortunex.app.data.remote.SponsorLookup
 import com.fortunex.app.data.remote.LoginRequest
 import com.fortunex.app.data.remote.LoginResponse
 import com.fortunex.app.data.remote.LogoutRequest
@@ -74,6 +79,53 @@ class AuthRepository @Inject constructor(
                 }
             }
         }
+
+    /**
+     * Creates the account and stores the session it comes back with.
+     *
+     * Registration signs the member straight in — there is no separate login
+     * step, so the tokens are saved here exactly as they are for sign-in.
+     */
+    suspend fun register(body: RegisterRequest): ApiResult<LoginResponse> = withContext(io) {
+        when (val res = apiCall { api.register(body) }) {
+            is ApiResult.Err -> res
+            is ApiResult.Ok -> {
+                val data = res.value.data
+                    ?: return@withContext ApiResult.Err(AppError.Unexpected("register returned no data"))
+                data.tokens?.let { tokens.save(it.accessToken, it.refreshToken) }
+                ApiResult.Ok(data)
+            }
+        }
+    }
+
+    suspend fun lookupSponsor(code: String): ApiResult<SponsorLookup> = withContext(io) {
+        when (val res = apiCall { api.lookupSponsor(code.trim().uppercase()) }) {
+            is ApiResult.Err -> res
+            is ApiResult.Ok -> res.value.data
+                ?.let { ApiResult.Ok(it) }
+                ?: ApiResult.Err(AppError.Unexpected("sponsor lookup returned no data"))
+        }
+    }
+
+    suspend fun forgotPassword(email: String): ApiResult<ForgotPasswordResponse> = withContext(io) {
+        when (val res = apiCall { api.forgotPassword(ForgotPasswordRequest(email.trim())) }) {
+            is ApiResult.Err -> res
+            // The body may legitimately be empty: the server does not reveal
+            // whether an address is registered, so "sent" is all it can say.
+            is ApiResult.Ok -> ApiResult.Ok(res.value.data ?: ForgotPasswordResponse())
+        }
+    }
+
+    suspend fun resetPassword(
+        challengeId: String,
+        code: String,
+        newPassword: String,
+    ): ApiResult<Unit> = withContext(io) {
+        when (val res = apiCall { api.resetPassword(ResetPasswordRequest(challengeId, code.trim(), newPassword)) }) {
+            is ApiResult.Err -> res
+            is ApiResult.Ok -> ApiResult.Ok(Unit)
+        }
+    }
 
     suspend fun me(): ApiResult<MemberProfile> = withContext(io) {
         when (val res = apiCall { api.me() }) {

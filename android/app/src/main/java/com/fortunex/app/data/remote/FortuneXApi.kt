@@ -4,6 +4,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface FortuneXApi {
@@ -16,6 +17,26 @@ interface FortuneXApi {
     /** Second factor. Exchanges the challenge ticket for a real session. */
     @POST("auth/2fa/challenge")
     suspend fun completeTwoFactor(@Body body: TwoFactorRequest): ApiEnvelope<LoginResponse>
+
+    /** Creates the account and signs it in, in one step. */
+    @POST("auth/register")
+    suspend fun register(@Body body: RegisterRequest): ApiEnvelope<LoginResponse>
+
+    /**
+     * Confirms a referral code before registration commits to it.
+     *
+     * Worth a round trip: placement in the network is permanent, and a mistyped
+     * sponsor code cannot be corrected afterwards because every commission
+     * already paid depends on where the member sits.
+     */
+    @GET("auth/sponsor/{code}")
+    suspend fun lookupSponsor(@Path("code") code: String): ApiEnvelope<SponsorLookup>
+
+    @POST("auth/forgot-password")
+    suspend fun forgotPassword(@Body body: ForgotPasswordRequest): ApiEnvelope<ForgotPasswordResponse>
+
+    @POST("auth/reset-password")
+    suspend fun resetPassword(@Body body: ResetPasswordRequest): ApiEnvelope<Unit>
 
     /* ── session lifecycle ─────────────────────────────────────────────────── */
 

@@ -73,3 +73,45 @@ data class RankSummary(
     val name: String? = null,
     val level: Int? = null,
 )
+
+/* ── registration and recovery ─────────────────────────────────────────────── */
+
+@Serializable
+data class RegisterRequest(
+    val firstName: String,
+    val lastName: String? = null,
+    val email: String,
+    val phone: String? = null,
+    val password: String,
+    val sponsorCode: String? = null,
+    val walletAddress: String? = null,
+)
+
+/** Confirms a referral code before someone commits to registering under it. */
+@Serializable
+data class SponsorLookup(
+    val userCode: String = "",
+    val name: String = "",
+)
+
+@Serializable
+data class ForgotPasswordRequest(val email: String)
+
+/**
+ * The challenge id ties the code to the request that issued it.
+ *
+ * Without it a six-digit code would be guessable against every outstanding
+ * reset on the platform at once, rather than against one.
+ */
+@Serializable
+data class ResetPasswordRequest(
+    val challengeId: String,
+    val code: String,
+    val newPassword: String,
+)
+
+@Serializable
+data class ForgotPasswordResponse(
+    val challengeId: String? = null,
+    val expiresInSeconds: Long? = null,
+)
