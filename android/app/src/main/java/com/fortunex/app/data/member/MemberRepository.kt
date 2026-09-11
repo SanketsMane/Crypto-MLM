@@ -11,6 +11,12 @@ import com.fortunex.app.data.remote.KycState
 import com.fortunex.app.data.remote.KycSubmission
 import com.fortunex.app.data.remote.KycSubmitRequest
 import com.fortunex.app.data.remote.LedgerPage
+import com.fortunex.app.data.remote.MarkReadRequest
+import com.fortunex.app.data.remote.NewTicketRequest
+import com.fortunex.app.data.remote.NotificationPage
+import com.fortunex.app.data.remote.NotificationSummary
+import com.fortunex.app.data.remote.SupportTicket
+import com.fortunex.app.data.remote.TicketReplyRequest
 import com.fortunex.app.data.remote.StepUpRequest
 import com.fortunex.app.data.remote.StepUpTicket
 import com.fortunex.app.data.remote.Withdrawal
@@ -127,6 +133,45 @@ class MemberRepository @Inject constructor(
 
     suspend fun rank(): ApiResult<List<RankProgress>> = withContext(io) {
         unwrap(apiCall { api.rank() }, "rank")
+    }
+
+    /* ── notifications ─────────────────────────────────────────────────────── */
+
+    suspend fun notifications(take: Int = 30): ApiResult<NotificationPage> = withContext(io) {
+        unwrap(apiCall { api.notifications(take) }, "notifications")
+    }
+
+    suspend fun notificationSummary(): ApiResult<NotificationSummary> = withContext(io) {
+        unwrap(apiCall { api.notificationSummary() }, "notification summary")
+    }
+
+    suspend fun markRead(ids: List<String>): ApiResult<Unit> = withContext(io) {
+        when (val res = apiCall { api.markRead(MarkReadRequest(ids)) }) {
+            is ApiResult.Err -> res
+            is ApiResult.Ok -> ApiResult.Ok(Unit)
+        }
+    }
+
+    suspend fun markAllRead(): ApiResult<Unit> = withContext(io) {
+        when (val res = apiCall { api.markAllRead() }) {
+            is ApiResult.Err -> res
+            is ApiResult.Ok -> ApiResult.Ok(Unit)
+        }
+    }
+
+    /* ── support ───────────────────────────────────────────────────────────── */
+
+    suspend fun tickets(): ApiResult<List<SupportTicket>> = withContext(io) {
+        unwrap(apiCall { api.tickets() }, "tickets")
+    }
+
+    suspend fun createTicket(subject: String, body: String, category: String?): ApiResult<SupportTicket> =
+        withContext(io) {
+            unwrap(apiCall { api.createTicket(NewTicketRequest(subject, body, category)) }, "ticket")
+        }
+
+    suspend fun replyToTicket(id: String, body: String): ApiResult<SupportTicket> = withContext(io) {
+        unwrap(apiCall { api.replyToTicket(id, TicketReplyRequest(body)) }, "reply")
     }
 
     /* ── identity verification ─────────────────────────────────────────────── */

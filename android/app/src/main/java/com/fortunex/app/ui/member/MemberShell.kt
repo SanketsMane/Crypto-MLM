@@ -52,6 +52,8 @@ private const val ROUTE_WITHDRAW = "member/withdraw"
  * unused after the one time a member completes it.
  */
 private const val ROUTE_KYC = "member/kyc"
+private const val ROUTE_NOTIFICATIONS = "member/notifications"
+private const val ROUTE_SUPPORT = "member/support"
 
 /**
  * The signed-in shell.
@@ -105,8 +107,15 @@ fun MemberShell() {
                 composable(Tab.NETWORK.route) { NetworkScreen() }
 
                 composable(Tab.ACCOUNT.route) {
-                    AccountScreen(onVerifyIdentity = { nav.navigate(ROUTE_KYC) })
+                    AccountScreen(
+                        onVerifyIdentity = { nav.navigate(ROUTE_KYC) },
+                        onNotifications = { nav.navigate(ROUTE_NOTIFICATIONS) },
+                        onSupport = { nav.navigate(ROUTE_SUPPORT) },
+                    )
                 }
+
+                composable(ROUTE_NOTIFICATIONS) { NotificationsScreen() }
+                composable(ROUTE_SUPPORT) { SupportScreen() }
 
                 composable(ROUTE_DEPOSIT) { DepositScreen() }
 

@@ -1,5 +1,6 @@
 package com.fortunex.app.ui.member
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +23,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun AccountScreen(
     onVerifyIdentity: () -> Unit = {},
+    onNotifications: () -> Unit = {},
+    onSupport: () -> Unit = {},
     vm: AccountViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -111,6 +114,28 @@ fun AccountScreen(
                     if (state.kyc.status != "APPROVED" && state.kyc.status != "PENDING") {
                         TextButton(onClick = onVerifyIdentity) { Text(stringResource(R.string.start)) }
                     }
+                },
+            )
+
+            ListItem(
+                modifier = Modifier.clickable(onClick = onNotifications),
+                headlineContent = { Text(stringResource(R.string.notifications)) },
+                supportingContent = {
+                    Text(
+                        stringResource(R.string.notifications_help),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                },
+            )
+
+            ListItem(
+                modifier = Modifier.clickable(onClick = onSupport),
+                headlineContent = { Text(stringResource(R.string.support)) },
+                supportingContent = {
+                    Text(
+                        stringResource(R.string.support_help),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 },
             )
 

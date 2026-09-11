@@ -151,6 +151,35 @@ interface FortuneXApi {
     @GET("rank")
     suspend fun rank(): ApiEnvelope<List<RankProgress>>
 
+    /* ── notifications ─────────────────────────────────────────────────────── */
+
+    @GET("notifications")
+    suspend fun notifications(@Query("take") take: Int = 30): ApiEnvelope<NotificationPage>
+
+    @GET("notifications/summary")
+    suspend fun notificationSummary(): ApiEnvelope<NotificationSummary>
+
+    /** Ids here are RECIPIENT rows — see the note on the Notification type. */
+    @POST("notifications/read")
+    suspend fun markRead(@Body body: MarkReadRequest): ApiEnvelope<Unit>
+
+    @POST("notifications/read-all")
+    suspend fun markAllRead(): ApiEnvelope<Unit>
+
+    /* ── support ───────────────────────────────────────────────────────────── */
+
+    @GET("support")
+    suspend fun tickets(): ApiEnvelope<List<SupportTicket>>
+
+    @POST("support")
+    suspend fun createTicket(@Body body: NewTicketRequest): ApiEnvelope<SupportTicket>
+
+    @POST("support/{id}/reply")
+    suspend fun replyToTicket(
+        @Path("id") id: String,
+        @Body body: TicketReplyRequest,
+    ): ApiEnvelope<SupportTicket>
+
     @GET("kyc")
     suspend fun kyc(): ApiEnvelope<KycState>
 

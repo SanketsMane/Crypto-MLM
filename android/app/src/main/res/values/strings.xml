@@ -156,4 +156,19 @@
     <string name="set_new_password">Set new password</string>
     <string name="password_changed">Password changed. You can sign in now.</string>
     <string name="back_to_sign_in">Back to sign in</string>
+    <!-- notifications + support -->
+    <string name="notifications">Notifications</string>
+    <string name="notifications_help">Payouts, commissions and security alerts</string>
+    <string name="mark_all_read">Mark all read</string>
+    <string name="no_notifications">Nothing to show yet.</string>
+    <string name="support">Support</string>
+    <string name="support_help">Message our team and track your tickets</string>
+    <string name="new_ticket">New ticket</string>
+    <string name="no_tickets">You have not opened a ticket yet.</string>
+    <string name="subject">Subject</string>
+    <string name="how_can_we_help">How can we help?</string>
+    <string name="write_a_reply">Write a reply…</string>
+    <string name="send">Send</string>
+    <string name="back">Back</string>
+    <string name="ticket_closed">This ticket is closed. Open a new one if you still need help.</string>
 </resources>

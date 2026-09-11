@@ -356,3 +356,81 @@ data class RankProgress(
     val reward: String = "0",
     val percentComplete: Double = 0.0,
 )
+
+/* ── notifications ─────────────────────────────────────────────────────────── */
+
+/**
+ * `id` is the RECIPIENT row, not the notification.
+ *
+ * Read state hangs off the recipient, so the same announcement has a different
+ * id for every reader — marking one read must use this id, not the event's.
+ */
+@Serializable
+data class Notification(
+    val id: String = "",
+    val type: String = "",
+    val category: String = "",
+    val severity: String = "INFO",
+    val title: String = "",
+    val body: String = "",
+    val link: String? = null,
+    val readAt: String? = null,
+    val archivedAt: String? = null,
+    val createdAt: String? = null,
+)
+
+@Serializable
+data class NotificationPage(
+    val rows: List<Notification> = emptyList(),
+    val nextCursor: String? = null,
+)
+
+@Serializable
+data class NotificationSummary(
+    val unread: Int = 0,
+    val total: Int = 0,
+)
+
+@Serializable
+data class MarkReadRequest(val ids: List<String>)
+
+/* ── support ───────────────────────────────────────────────────────────────── */
+
+@Serializable
+data class TicketAttachment(
+    val id: String = "",
+    val fileName: String = "",
+    val mimeType: String = "",
+    val sizeBytes: Long = 0,
+)
+
+@Serializable
+data class TicketMessage(
+    val id: String = "",
+    val body: String = "",
+    val fromAdmin: Boolean = false,
+    val createdAt: String? = null,
+    val attachments: List<TicketAttachment> = emptyList(),
+)
+
+@Serializable
+data class SupportTicket(
+    val id: String = "",
+    val subject: String = "",
+    val status: String = "OPEN",
+    val priority: String = "NORMAL",
+    val category: String = "OTHER",
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val messages: List<TicketMessage> = emptyList(),
+)
+
+@Serializable
+data class NewTicketRequest(
+    val subject: String,
+    val body: String,
+    val category: String? = null,
+)
+
+@Serializable
+data class TicketReplyRequest(val body: String)
