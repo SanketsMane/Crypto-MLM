@@ -121,6 +121,15 @@ interface FortuneXApi {
 
     /* ── identity verification ─────────────────────────────────────────────── */
 
+    /* ── network ───────────────────────────────────────────────────────────── */
+
+    @GET("team")
+    suspend fun team(): ApiEnvelope<TeamSummary>
+
+    /** Every rung of the ladder, with the member's standing against each. */
+    @GET("rank")
+    suspend fun rank(): ApiEnvelope<List<RankProgress>>
+
     @GET("kyc")
     suspend fun kyc(): ApiEnvelope<KycState>
 

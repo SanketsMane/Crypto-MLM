@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowOutward
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -27,19 +27,29 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fortunex.app.R
 
+/**
+ * Five destinations, which is Material's ceiling for a bottom bar.
+ *
+ * Deposit and Withdraw are deliberately NOT tabs. They are things done TO a
+ * wallet rather than places, they would have pushed the bar to seven, and a
+ * crowded bar makes every destination harder to hit. They live one tap inside
+ * Wallet, where a member already is when they think about moving money.
+ */
 private enum class Tab(val route: String, val label: Int, val icon: ImageVector) {
     HOME("member/home", R.string.nav_home, Icons.Filled.Home),
     WALLET("member/wallet", R.string.nav_wallet, Icons.Filled.AccountBalanceWallet),
     INVEST("member/invest", R.string.nav_invest, Icons.Filled.TrendingUp),
-    DEPOSIT("member/deposit", R.string.nav_deposit, Icons.Filled.Add),
-    WITHDRAW("member/withdraw", R.string.nav_withdraw, Icons.Filled.ArrowOutward),
+    NETWORK("member/network", R.string.nav_network, Icons.Filled.Groups),
+    ACCOUNT("member/account", R.string.nav_account, Icons.Filled.Person),
 }
 
+private const val ROUTE_DEPOSIT = "member/deposit"
+private const val ROUTE_WITHDRAW = "member/withdraw"
+
 /**
- * Reached from the withdrawal gate, not from the bar.
- *
- * Verification is something a member does once, when the platform asks for it —
- * a permanent tab for it would take one of five slots to sit unused forever.
+ * Verification is reached from wherever it is demanded — the withdrawal gate or
+ * the account screen — rather than owning a permanent slot it would spend
+ * unused after the one time a member completes it.
  */
 private const val ROUTE_KYC = "member/kyc"
 
@@ -83,12 +93,27 @@ fun MemberShell() {
         Box(Modifier.fillMaxSize().padding(padding)) {
             NavHost(nav, startDestination = Tab.HOME.route) {
                 composable(Tab.HOME.route) { HomeScreen() }
-                composable(Tab.WALLET.route) { WalletScreen() }
+
+                composable(Tab.WALLET.route) {
+                    WalletScreen(
+                        onDeposit = { nav.navigate(ROUTE_DEPOSIT) },
+                        onWithdraw = { nav.navigate(ROUTE_WITHDRAW) },
+                    )
+                }
+
                 composable(Tab.INVEST.route) { InvestScreen() }
-                composable(Tab.DEPOSIT.route) { DepositScreen() }
-                composable(Tab.WITHDRAW.route) {
+                composable(Tab.NETWORK.route) { NetworkScreen() }
+
+                composable(Tab.ACCOUNT.route) {
+                    AccountScreen(onVerifyIdentity = { nav.navigate(ROUTE_KYC) })
+                }
+
+                composable(ROUTE_DEPOSIT) { DepositScreen() }
+
+                composable(ROUTE_WITHDRAW) {
                     WithdrawScreen(onVerifyIdentity = { nav.navigate(ROUTE_KYC) })
                 }
+
                 composable(ROUTE_KYC) { KycScreen(onDone = { nav.popBackStack() }) }
             }
         }

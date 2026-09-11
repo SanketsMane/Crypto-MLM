@@ -18,6 +18,8 @@ import com.fortunex.app.data.remote.WithdrawalQuote
 import com.fortunex.app.data.remote.WithdrawalRequest
 import com.fortunex.app.data.remote.PackagePlan
 import com.fortunex.app.data.remote.PurchaseRequest
+import com.fortunex.app.data.remote.RankProgress
+import com.fortunex.app.data.remote.TeamSummary
 import com.fortunex.app.data.remote.StartDepositRequest
 import com.fortunex.app.data.remote.WalletsResponse
 import com.fortunex.app.data.remote.apiCall
@@ -115,6 +117,16 @@ class MemberRepository @Inject constructor(
             },
             "withdrawal",
         )
+    }
+
+    /* ── network ───────────────────────────────────────────────────────────── */
+
+    suspend fun team(): ApiResult<TeamSummary> = withContext(io) {
+        unwrap(apiCall { api.team() }, "team")
+    }
+
+    suspend fun rank(): ApiResult<List<RankProgress>> = withContext(io) {
+        unwrap(apiCall { api.rank() }, "rank")
     }
 
     /* ── identity verification ─────────────────────────────────────────────── */

@@ -19,7 +19,11 @@ import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WalletScreen(vm: WalletViewModel = hiltViewModel()) {
+fun WalletScreen(
+    onDeposit: () -> Unit = {},
+    onWithdraw: () -> Unit = {},
+    vm: WalletViewModel = hiltViewModel(),
+) {
     val state by vm.state.collectAsStateWithLifecycle()
     val snackbars = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -70,6 +74,22 @@ fun WalletScreen(vm: WalletViewModel = hiltViewModel()) {
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.SemiBold,
                             )
+                        }
+                    }
+                }
+
+                item {
+                    // Moving money is an action on a wallet, so it lives here
+                    // rather than taking two more slots in the bottom bar.
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Button(onClick = onDeposit, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.nav_deposit))
+                        }
+                        OutlinedButton(onClick = onWithdraw, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.nav_withdraw))
                         }
                     }
                 }

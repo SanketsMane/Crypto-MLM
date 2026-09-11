@@ -299,3 +299,60 @@ data class KycSubmitRequest(
     val dateOfBirth: String? = null,
     val documents: List<KycUpload>,
 )
+
+/* ── network and rank ──────────────────────────────────────────────────────── */
+
+@Serializable
+data class TeamLeg(
+    val userCode: String? = null,
+    val name: String? = null,
+    val volume: String = "0",
+    val size: Int = 0,
+)
+
+@Serializable
+data class TeamSummary(
+    val totalTeamBusiness: String = "0",
+    val directBusiness: String = "0",
+    val powerLegVolume: String = "0",
+    val otherLegsVolume: String = "0",
+    val teamSize: Int = 0,
+    val directCount: Int = 0,
+    val legs: List<TeamLeg> = emptyList(),
+)
+
+@Serializable
+data class RankRequirement(
+    val selfCapital: String = "0",
+    val teamBusiness: String = "0",
+    val powerLegMax: String = "0",
+    val otherLegsMin: String = "0",
+)
+
+@Serializable
+data class RankActual(
+    val selfCapital: String = "0",
+    val teamBusiness: String = "0",
+    val powerLeg: String = "0",
+    val otherLegs: String = "0",
+)
+
+/**
+ * One rung of the ladder, with what it needs and where the member stands.
+ *
+ * `percentComplete` is computed server-side against team business. Recomputing
+ * it here would risk showing a different figure from the one the platform uses
+ * to decide whether the rank is actually achieved.
+ */
+@Serializable
+data class RankProgress(
+    val rankCode: String = "",
+    val rankName: String = "",
+    val level: Int = 0,
+    val required: RankRequirement = RankRequirement(),
+    val actual: RankActual = RankActual(),
+    val achieved: Boolean = false,
+    val achievedAt: String? = null,
+    val reward: String = "0",
+    val percentComplete: Double = 0.0,
+)

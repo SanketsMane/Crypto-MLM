@@ -114,4 +114,25 @@
     <string name="kyc_rejected">Your last submission was not accepted. Please try again with clearer documents.</string>
     <string name="kyc_rejected_because">Your last submission was not accepted: %1$s</string>
     <string name="kyc_privacy">Your documents are stored encrypted and are only ever seen by our verification team.</string>
+    <!-- network + account -->
+    <string name="nav_network">Network</string>
+    <string name="team_business">Team business</string>
+    <string name="direct_business">Direct business</string>
+    <string name="power_leg">Power leg</string>
+    <string name="other_legs">Other legs</string>
+    <string name="current_rank">Current rank</string>
+    <string name="rank_ladder">Rank ladder</string>
+    <string name="your_legs">Your legs</string>
+    <string name="members_count">%1$s members</string>
+    <string name="achieved">Achieved</string>
+    <string name="rank_needs">Needs %1$s of your own capital and %2$s team business</string>
+    <string name="rank_reward">Reward %1$s</string>
+    <string name="your_referral_code">Your referral code</string>
+    <string name="copy">Copy</string>
+    <string name="start">Start</string>
+    <string name="two_factor">Two-factor authentication</string>
+    <string name="enabled">Enabled</string>
+    <string name="manage_on_web">Manage this on the website</string>
+    <string name="kyc_not_started">Not started</string>
+    <string name="sign_out_body">You will need to sign in again to reach your account.</string>
 </resources>

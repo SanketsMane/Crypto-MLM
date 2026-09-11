@@ -130,21 +130,6 @@ private fun WalletCard(w: WalletBalance) {
 }
 
 @Composable
-private fun StatRow(vararg pairs: Pair<String, String>) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        pairs.forEach { (label, value) ->
-            OutlinedCard(Modifier.weight(1f)) {
-                Column(Modifier.padding(14.dp)) {
-                    Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(2.dp))
-                    Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun CeilingCard(used: String, limit: String, pct: Double, capped: Boolean) {
     OutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
