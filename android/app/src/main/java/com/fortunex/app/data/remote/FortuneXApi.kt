@@ -90,4 +90,40 @@ interface FortuneXApi {
         @Header("Idempotency-Key") key: String,
         @Body body: StartDepositRequest,
     ): ApiEnvelope<Deposit>
+
+    /* ── withdrawals ───────────────────────────────────────────────────────── */
+
+    /** Exchanges a password or authenticator code for a short-lived ticket. */
+    @POST("auth/step-up")
+    suspend fun stepUp(@Body body: StepUpRequest): ApiEnvelope<StepUpTicket>
+
+    /**
+     * Read-only pricing while the member is still typing — no ticket, no
+     * idempotency key, and none of the gates that guard the real request.
+     */
+    @GET("withdrawals/quote")
+    suspend fun withdrawalQuote(@Query("amount") amount: String): ApiEnvelope<WithdrawalQuote>
+
+    @GET("withdrawals")
+    suspend fun withdrawals(): ApiEnvelope<List<Withdrawal>>
+
+    /**
+     * The real thing. Carries BOTH an idempotency key and a step-up ticket:
+     * the key stops one intent becoming two payouts, the ticket proves the
+     * member is still at the handset.
+     */
+    @POST("withdrawals")
+    suspend fun requestWithdrawal(
+        @Header("Idempotency-Key") key: String,
+        @Header("X-Step-Up") stepUp: String,
+        @Body body: WithdrawalRequest,
+    ): ApiEnvelope<Withdrawal>
+
+    /* ── identity verification ─────────────────────────────────────────────── */
+
+    @GET("kyc")
+    suspend fun kyc(): ApiEnvelope<KycState>
+
+    @POST("kyc")
+    suspend fun submitKyc(@Body body: KycSubmitRequest): ApiEnvelope<KycSubmission>
 }

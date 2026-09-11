@@ -7,7 +7,15 @@ import com.fortunex.app.data.remote.Deposit
 import com.fortunex.app.data.remote.FortuneXApi
 import com.fortunex.app.data.remote.GatewayStatus
 import com.fortunex.app.data.remote.Investment
+import com.fortunex.app.data.remote.KycState
+import com.fortunex.app.data.remote.KycSubmission
+import com.fortunex.app.data.remote.KycSubmitRequest
 import com.fortunex.app.data.remote.LedgerPage
+import com.fortunex.app.data.remote.StepUpRequest
+import com.fortunex.app.data.remote.StepUpTicket
+import com.fortunex.app.data.remote.Withdrawal
+import com.fortunex.app.data.remote.WithdrawalQuote
+import com.fortunex.app.data.remote.WithdrawalRequest
 import com.fortunex.app.data.remote.PackagePlan
 import com.fortunex.app.data.remote.PurchaseRequest
 import com.fortunex.app.data.remote.StartDepositRequest
@@ -76,6 +84,47 @@ class MemberRepository @Inject constructor(
 
     suspend fun deposits(): ApiResult<List<Deposit>> = withContext(io) {
         unwrap(apiCall { api.deposits() }, "deposits")
+    }
+
+    /* ── withdrawals ───────────────────────────────────────────────────────── */
+
+    suspend fun stepUp(password: String?, code: String?): ApiResult<StepUpTicket> =
+        withContext(io) {
+            unwrap(apiCall { api.stepUp(StepUpRequest(password, code)) }, "step-up")
+        }
+
+    suspend fun withdrawalQuote(amount: String): ApiResult<WithdrawalQuote> = withContext(io) {
+        unwrap(apiCall { api.withdrawalQuote(amount) }, "quote")
+    }
+
+    suspend fun withdrawals(): ApiResult<List<Withdrawal>> = withContext(io) {
+        unwrap(apiCall { api.withdrawals() }, "withdrawals")
+    }
+
+    suspend fun requestWithdrawal(
+        amount: String,
+        walletAddress: String,
+        stepUpToken: String,
+        idempotencyKey: String,
+    ): ApiResult<Withdrawal> = withContext(io) {
+        unwrap(
+            apiCall {
+                api.requestWithdrawal(
+                    idempotencyKey, stepUpToken, WithdrawalRequest(amount, walletAddress),
+                )
+            },
+            "withdrawal",
+        )
+    }
+
+    /* ── identity verification ─────────────────────────────────────────────── */
+
+    suspend fun kyc(): ApiResult<KycState> = withContext(io) {
+        unwrap(apiCall { api.kyc() }, "kyc")
+    }
+
+    suspend fun submitKyc(body: KycSubmitRequest): ApiResult<KycSubmission> = withContext(io) {
+        unwrap(apiCall { api.submitKyc(body) }, "kyc submission")
     }
 
     /**

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Icon
@@ -31,7 +32,16 @@ private enum class Tab(val route: String, val label: Int, val icon: ImageVector)
     WALLET("member/wallet", R.string.nav_wallet, Icons.Filled.AccountBalanceWallet),
     INVEST("member/invest", R.string.nav_invest, Icons.Filled.TrendingUp),
     DEPOSIT("member/deposit", R.string.nav_deposit, Icons.Filled.Add),
+    WITHDRAW("member/withdraw", R.string.nav_withdraw, Icons.Filled.ArrowOutward),
 }
+
+/**
+ * Reached from the withdrawal gate, not from the bar.
+ *
+ * Verification is something a member does once, when the platform asks for it —
+ * a permanent tab for it would take one of five slots to sit unused forever.
+ */
+private const val ROUTE_KYC = "member/kyc"
 
 /**
  * The signed-in shell.
@@ -76,6 +86,10 @@ fun MemberShell() {
                 composable(Tab.WALLET.route) { WalletScreen() }
                 composable(Tab.INVEST.route) { InvestScreen() }
                 composable(Tab.DEPOSIT.route) { DepositScreen() }
+                composable(Tab.WITHDRAW.route) {
+                    WithdrawScreen(onVerifyIdentity = { nav.navigate(ROUTE_KYC) })
+                }
+                composable(ROUTE_KYC) { KycScreen(onDone = { nav.popBackStack() }) }
             }
         }
     }

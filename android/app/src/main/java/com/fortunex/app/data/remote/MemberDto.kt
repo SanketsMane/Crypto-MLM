@@ -189,3 +189,113 @@ data class GatewayStatus(
 
 @Serializable
 data class StartDepositRequest(val amount: String)
+
+/* ── step-up re-authentication ─────────────────────────────────────────────── */
+
+/**
+ * Proof the member is still present, for an action that moves money out.
+ *
+ * Either a password or an authenticator code — the server decides which is
+ * enough based on the amount, and says so when it is not.
+ */
+@Serializable
+data class StepUpRequest(
+    val password: String? = null,
+    val code: String? = null,
+)
+
+@Serializable
+data class StepUpTicket(
+    val token: String = "",
+    val method: String = "password",
+    val expiresInSeconds: Long = 0,
+)
+
+/* ── withdrawals ───────────────────────────────────────────────────────────── */
+
+/**
+ * What an amount would actually pay out.
+ *
+ * Served by the API rather than computed here, deliberately: the member must
+ * agree to the same figure the server will settle. The web app used to derive
+ * fee and withholding itself in floats while the server used Decimal rounding
+ * DOWN, so the number shown was permitted to disagree with the number paid.
+ */
+@Serializable
+data class WithdrawalQuote(
+    val amount: String = "0",
+    val fee: String = "0",
+    val feePercent: Double = 0.0,
+    val tax: String = "0",
+    val taxPercent: Double = 0.0,
+    val net: String = "0",
+)
+
+@Serializable
+data class WithdrawalRequest(
+    val amount: String,
+    val walletAddress: String,
+)
+
+@Serializable
+data class Withdrawal(
+    val id: String = "",
+    val reference: String = "",
+    val amount: String = "0",
+    val fee: String = "0",
+    val tax: String = "0",
+    val netAmount: String = "0",
+    val walletAddress: String = "",
+    val network: String? = null,
+    val status: String = "PENDING",
+    val txHash: String? = null,
+    val rejectReason: String? = null,
+    val slaDueAt: String? = null,
+    val createdAt: String? = null,
+)
+
+/* ── identity verification ─────────────────────────────────────────────────── */
+
+@Serializable
+data class KycDocument(
+    val id: String = "",
+    val type: String = "",
+    val mimeType: String = "",
+    val sizeBytes: Long = 0,
+)
+
+@Serializable
+data class KycSubmission(
+    val id: String = "",
+    val status: String = "PENDING",
+    val fullName: String? = null,
+    val documentNo: String? = null,
+    val countryCode: String? = null,
+    val rejectionReason: String? = null,
+    val reviewedAt: String? = null,
+    val documents: List<KycDocument> = emptyList(),
+)
+
+/** `NOT_STARTED` when nothing has ever been submitted. */
+@Serializable
+data class KycState(
+    val status: String = "NOT_STARTED",
+    val submission: KycSubmission? = null,
+)
+
+/** Documents travel base64-encoded inside the JSON body, up to four at a time. */
+@Serializable
+data class KycUpload(
+    val type: String,
+    val mimeType: String,
+    val data: String,
+)
+
+@Serializable
+data class KycSubmitRequest(
+    val fullName: String,
+    val documentNo: String,
+    val countryCode: String,
+    val dateOfBirth: String? = null,
+    val documents: List<KycUpload>,
+)
