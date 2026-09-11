@@ -2,6 +2,7 @@ package com.fortunex.app.data.remote
 
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
 
@@ -51,4 +52,42 @@ interface FortuneXApi {
         @Query("take") take: Int = 30,
         @Query("skip") skip: Int = 0,
     ): ApiEnvelope<LedgerPage>
+
+    /* ── plans and investments ─────────────────────────────────────────────── */
+
+    @GET("packages")
+    suspend fun packages(): ApiEnvelope<List<PackagePlan>>
+
+    @GET("investments")
+    suspend fun investments(): ApiEnvelope<List<Investment>>
+
+    /**
+     * Buying a plan moves money, so it carries an idempotency key.
+     *
+     * A double-tapped button otherwise produces two separate intents, each with
+     * its own reference, both of which look entirely legitimate to the server —
+     * and the member is charged twice. The key is generated once per submission
+     * and reused across retries, so the second arrival is answered from the
+     * stored response instead of executing again.
+     */
+    @POST("investments/purchase")
+    suspend fun purchase(
+        @Header("Idempotency-Key") key: String,
+        @Body body: PurchaseRequest,
+    ): ApiEnvelope<Investment>
+
+    /* ── deposits ──────────────────────────────────────────────────────────── */
+
+    @GET("deposits")
+    suspend fun deposits(): ApiEnvelope<List<Deposit>>
+
+    @GET("gateway/status")
+    suspend fun gatewayStatus(): ApiEnvelope<GatewayStatus>
+
+    /** Raises a checkout invoice and returns the URL the member pays at. */
+    @POST("gateway/deposit")
+    suspend fun startDeposit(
+        @Header("Idempotency-Key") key: String,
+        @Body body: StartDepositRequest,
+    ): ApiEnvelope<Deposit>
 }

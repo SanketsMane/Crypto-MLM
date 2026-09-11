@@ -57,4 +57,24 @@
     <string name="refresh">Refresh</string>
     <string name="rank_label">Rank</string>
     <string name="unranked">Unranked</string>
+    <!-- invest + deposit -->
+    <string name="nav_invest">Invest</string>
+    <string name="nav_deposit">Deposit</string>
+    <string name="my_investments">Your investments</string>
+    <string name="available_plans">Available plans</string>
+    <string name="invest_now">Invest</string>
+    <string name="invest_done">Investment active. Daily returns start on the next trading day.</string>
+    <string name="plan_terms">%1$s%% daily · ceiling %2$s</string>
+    <string name="holding_progress">%1$s earned of %2$s ceiling</string>
+    <string name="confirm_invest_title">Invest in %1$s?</string>
+    <string name="confirm_invest_body">%1$s will be taken from your Fund wallet. It returns %2$s%% each trading day, up to a ceiling of %3$s.</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="deposit_amount">How much would you like to add?</string>
+    <string name="continue_to_payment">Continue to payment</string>
+    <string name="deposit_help">You will be taken to our payment provider to pay in the coin of your choice. Your wallet is credited once the payment confirms on the network.</string>
+    <string name="deposit_history">Your deposits</string>
+    <string name="deposits_unavailable">Deposits are unavailable right now. Please try again later or contact support.</string>
+    <string name="pay_now">Pay</string>
+    <string name="no_browser">No browser is available to open the payment page.</string>
 </resources>

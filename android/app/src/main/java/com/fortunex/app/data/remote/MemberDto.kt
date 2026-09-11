@@ -128,3 +128,64 @@ data class LedgerPage(
     val total: Int = 0,
     val entries: List<LedgerEntry> = emptyList(),
 )
+
+/* ── plans and investments ─────────────────────────────────────────────────── */
+
+@Serializable
+data class PackagePlan(
+    val id: String = "",
+    val name: String = "",
+    val amount: String = "0",
+    val dailyRoiPercent: String = "0",
+    val capPercent: String = "0",
+    val sortOrder: Int = 0,
+    val isActive: Boolean = true,
+)
+
+@Serializable
+data class PackageRef(val name: String = "")
+
+@Serializable
+data class Investment(
+    val id: String = "",
+    val amount: String = "0",
+    val capLimit: String = "0",
+    val totalEarned: String = "0",
+    val dailyRoiPercent: String = "0",
+    val status: String = "ACTIVE",
+    val startedAt: String? = null,
+    val lastAccrualDate: String? = null,
+    val cappedAt: String? = null,
+    @kotlinx.serialization.SerialName("package")
+    val plan: PackageRef? = null,
+)
+
+@Serializable
+data class PurchaseRequest(val packageId: String)
+
+/* ── deposits ──────────────────────────────────────────────────────────────── */
+
+@Serializable
+data class Deposit(
+    val id: String = "",
+    val reference: String = "",
+    val amount: String = "0",
+    val status: String = "PENDING",
+    val network: String? = null,
+    val txHash: String? = null,
+    val paymentUrl: String? = null,
+    val gatewayStatus: String? = null,
+    val createdAt: String? = null,
+)
+
+/** Whether the app should offer gateway checkout, and which one is live. */
+@Serializable
+data class GatewayStatus(
+    val canCharge: Boolean = false,
+    val provider: String? = null,
+    val canPay: Boolean = false,
+    val sandbox: Boolean = false,
+)
+
+@Serializable
+data class StartDepositRequest(val amount: String)

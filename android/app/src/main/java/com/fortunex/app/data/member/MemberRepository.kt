@@ -3,8 +3,14 @@ package com.fortunex.app.data.member
 import com.fortunex.app.data.remote.ApiResult
 import com.fortunex.app.data.remote.AppError
 import com.fortunex.app.data.remote.Dashboard
+import com.fortunex.app.data.remote.Deposit
 import com.fortunex.app.data.remote.FortuneXApi
+import com.fortunex.app.data.remote.GatewayStatus
+import com.fortunex.app.data.remote.Investment
 import com.fortunex.app.data.remote.LedgerPage
+import com.fortunex.app.data.remote.PackagePlan
+import com.fortunex.app.data.remote.PurchaseRequest
+import com.fortunex.app.data.remote.StartDepositRequest
 import com.fortunex.app.data.remote.WalletsResponse
 import com.fortunex.app.data.remote.apiCall
 import com.fortunex.app.di.IoDispatcher
@@ -35,6 +41,41 @@ class MemberRepository @Inject constructor(
 
     suspend fun ledger(take: Int = 30, skip: Int = 0): ApiResult<LedgerPage> = withContext(io) {
         unwrap(apiCall { api.ledger(take, skip) }, "ledger")
+    }
+
+    suspend fun packages(): ApiResult<List<PackagePlan>> = withContext(io) {
+        unwrap(apiCall { api.packages() }, "packages")
+    }
+
+    suspend fun investments(): ApiResult<List<Investment>> = withContext(io) {
+        unwrap(apiCall { api.investments() }, "investments")
+    }
+
+    suspend fun gatewayStatus(): ApiResult<GatewayStatus> = withContext(io) {
+        unwrap(apiCall { api.gatewayStatus() }, "gateway status")
+    }
+
+    /**
+     * Money-moving calls take their idempotency key from the CALLER, not from
+     * here.
+     *
+     * Generating one inside this function would defeat the point: a retry would
+     * mint a fresh key, the server would read it as a new intent, and the member
+     * would be charged twice for one tap. The key belongs to the submission, so
+     * the ViewModel creates it once and reuses it across every attempt.
+     */
+    suspend fun purchase(packageId: String, idempotencyKey: String): ApiResult<Investment> =
+        withContext(io) {
+            unwrap(apiCall { api.purchase(idempotencyKey, PurchaseRequest(packageId)) }, "purchase")
+        }
+
+    suspend fun startDeposit(amount: String, idempotencyKey: String): ApiResult<Deposit> =
+        withContext(io) {
+            unwrap(apiCall { api.startDeposit(idempotencyKey, StartDepositRequest(amount)) }, "deposit")
+        }
+
+    suspend fun deposits(): ApiResult<List<Deposit>> = withContext(io) {
+        unwrap(apiCall { api.deposits() }, "deposits")
     }
 
     /**

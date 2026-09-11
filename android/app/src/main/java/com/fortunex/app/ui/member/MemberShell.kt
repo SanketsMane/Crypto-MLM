@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -27,6 +29,8 @@ import com.fortunex.app.R
 private enum class Tab(val route: String, val label: Int, val icon: ImageVector) {
     HOME("member/home", R.string.nav_home, Icons.Filled.Home),
     WALLET("member/wallet", R.string.nav_wallet, Icons.Filled.AccountBalanceWallet),
+    INVEST("member/invest", R.string.nav_invest, Icons.Filled.TrendingUp),
+    DEPOSIT("member/deposit", R.string.nav_deposit, Icons.Filled.Add),
 }
 
 /**
@@ -70,6 +74,8 @@ fun MemberShell() {
             NavHost(nav, startDestination = Tab.HOME.route) {
                 composable(Tab.HOME.route) { HomeScreen() }
                 composable(Tab.WALLET.route) { WalletScreen() }
+                composable(Tab.INVEST.route) { InvestScreen() }
+                composable(Tab.DEPOSIT.route) { DepositScreen() }
             }
         }
     }
