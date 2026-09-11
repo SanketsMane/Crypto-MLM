@@ -11,7 +11,8 @@ const startSchema = z.object({
 /** Whether the member app should offer gateway payment at all. */
 export const status = async (_req: Request, res: Response) => {
   const s = gatewayState();
-  res.json({ success: true, data: { canCharge: s.canCharge, canPay: s.canPay, sandbox: s.sandbox } });
+  const chosen = gateway.depositGateway();
+  res.json({ success: true, data: { canCharge: chosen.provider !== null, provider: chosen.provider, canPay: s.canPay, sandbox: s.sandbox } });
 };
 
 /** Raise an invoice and hand the member the payment link. */
@@ -51,3 +52,20 @@ const callback = (kind: 'payment' | 'payout') => async (req: Request, res: Respo
 
 export const paymentCallback = callback('payment');
 export const payoutCallback = callback('payout');
+
+/**
+ * NOWPayments IPN.
+ *
+ * Uses the PARSED body, not `rawBody`. NOWPayments re-serialises the JSON with
+ * sorted keys before signing, so hashing the bytes we received would never
+ * match — the opposite of the OxaPay handler above, which must use the raw
+ * bytes for exactly the same reason in reverse.
+ *
+ * Answered 200 whatever happens: a gateway that receives an error retries, and
+ * retrying a forged or malformed callback achieves nothing but noise. The
+ * outcome is recorded either way.
+ */
+export const nowPaymentsIpn = async (req: Request, res: Response) => {
+  await gateway.handleNowPaymentsIpn(req.body, req.get('x-nowpayments-sig') ?? undefined);
+  res.status(200).type('text/plain').send('ok');
+};

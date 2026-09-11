@@ -4,6 +4,7 @@ import { logger } from '../logger.js';
 import { badRequest, notFound, AppError } from '../errors.js';
 import { env } from '../../config/env.js';
 import * as oxapay from './oxapay.js';
+import * as nowpayments from './nowpayments.js';
 import * as deposits from '../../modules/deposit/deposit.service.js';
 import * as activity from '../activity.js';
 import { notifyAdmins, notifyMember } from '../notify.js';
@@ -39,11 +40,57 @@ const callbackUrl = (kind: 'payment' | 'payout') => {
  * the payload. If the gateway then refuses, the row is removed rather than
  * left as a phantom PENDING deposit an operator would later have to explain.
  */
+/**
+ * Which checkout raises the invoice.
+ *
+ * Named outright by `DEPOSIT_GATEWAY`; inferred when unset so a deployment with
+ * one provider configured needs nothing. With BOTH configured and neither named
+ * this refuses rather than picking — the same reasoning as the payout rail. The
+ * consequence here is milder than a double payout, but a member sent to a
+ * checkout whose callbacks the other provider's verifier will reject pays real
+ * money into a deposit that can never be credited.
+ */
+export type DepositGateway = 'nowpayments' | 'oxapay';
+
+export function depositGateway(): { provider: DepositGateway | null; reasons: string[] } {
+  const now = nowpayments.state();
+  const oxa = oxapay.gatewayState();
+  const named = process.env.DEPOSIT_GATEWAY?.trim().toLowerCase();
+
+  if (named === 'nowpayments') {
+    return now.canCharge
+      ? { provider: 'nowpayments', reasons: [] }
+      : { provider: null, reasons: now.reasons };
+  }
+  if (named === 'oxapay') {
+    return oxa.canCharge
+      ? { provider: 'oxapay', reasons: [] }
+      : { provider: null, reasons: oxa.reasons };
+  }
+
+  if (now.canCharge && oxa.canCharge) {
+    return {
+      provider: null,
+      reasons: ['Both NOWPayments and OxaPay are configured and DEPOSIT_GATEWAY does not say which to use.'],
+    };
+  }
+  if (now.canCharge) return { provider: 'nowpayments', reasons: [] };
+  if (oxa.canCharge) return { provider: 'oxapay', reasons: [] };
+  return { provider: null, reasons: [...now.reasons, ...oxa.reasons] };
+}
+
+/** Public origin a gateway calls back to. */
+const nowCallbackUrl = () => {
+  const base = (env.NOWPAYMENTS_CALLBACK_BASE || env.WEB_URL || '').replace(/\/$/, '');
+  if (!base) throw new AppError('NOWPAYMENTS_CALLBACK_BASE is not set', 503, 'GATEWAY_UNAVAILABLE');
+  return `${base}/api/v1/gateway/nowpayments/ipn`;
+};
+
 export async function startDeposit(userId: string, amount: string, email?: string) {
-  const state = oxapay.gatewayState();
-  if (!state.canCharge) {
+  const chosen = depositGateway();
+  if (!chosen.provider) {
     throw new AppError(
-      `Card and crypto deposits are unavailable right now (${state.reasons.join('; ')})`,
+      `Card and crypto deposits are unavailable right now (${chosen.reasons.join('; ')})`,
       503, 'GATEWAY_UNAVAILABLE',
     );
   }
@@ -54,14 +101,22 @@ export async function startDeposit(userId: string, amount: string, email?: strin
   const deposit = await deposits.create(userId, value.toString());
 
   try {
-    const invoice = await oxapay.createInvoice({
-      amount: Number(value.toString()),
-      orderId: deposit.id,
-      callbackUrl: callbackUrl('payment'),
-      returnUrl: env.WEB_URL ? `${env.WEB_URL}/wallet` : undefined,
-      email,
-      description: `FortuneX deposit ${deposit.reference}`,
-    });
+    const invoice = chosen.provider === 'nowpayments'
+      ? await nowpayments.createInvoice({
+          amount: Number(value.toString()),
+          orderId: deposit.id,
+          callbackUrl: nowCallbackUrl(),
+          returnUrl: env.WEB_URL ? `${env.WEB_URL}/wallet` : undefined,
+          description: `FortuneX deposit ${deposit.reference}`,
+        }).then((i) => ({ ...i, expiresAt: null as Date | null }))
+      : await oxapay.createInvoice({
+          amount: Number(value.toString()),
+          orderId: deposit.id,
+          callbackUrl: callbackUrl('payment'),
+          returnUrl: env.WEB_URL ? `${env.WEB_URL}/wallet` : undefined,
+          email,
+          description: `FortuneX deposit ${deposit.reference}`,
+        });
 
     return prisma.deposit.update({
       where: { id: deposit.id },
@@ -153,7 +208,7 @@ export async function handleCallback(
   }
 
   const applied = kind === 'payment'
-    ? await applyPayment(trackId, status, payload)
+    ? await applyPayment(trackId, status, payload, oxapay.paymentOutcome(status))
     : await applyPayout(trackId, status, payload);
 
   await record(kind, status, trackId, true, payload, applied);
@@ -168,7 +223,23 @@ const record = (
     data: { kind, status, trackId, verified, applied, payload: payload as never },
   }).catch((cause) => { logger.error({ cause }, 'could not record gateway event'); });
 
-async function applyPayment(trackId: string, status: string, payload: Record<string, unknown>): Promise<boolean> {
+/**
+ * The outcome is passed in rather than derived here.
+ *
+ * Two gateways describe the same journey with different words — OxaPay says
+ * `paid`, NOWPayments says `finished` — and only the provider module knows
+ * which of its own statuses mean the money is actually ours. Mapping them here
+ * would put that knowledge in the one place that must stay provider-agnostic,
+ * and the failure mode is crediting a wallet on a status that can still fail.
+ */
+type PaymentOutcome = 'paid' | 'underpaid' | 'dead' | 'pending';
+
+async function applyPayment(
+  trackId: string,
+  status: string,
+  payload: Record<string, unknown>,
+  outcome: PaymentOutcome,
+): Promise<boolean> {
   if (!trackId) return false;
 
   const deposit = await prisma.deposit.findUnique({ where: { gatewayTrackId: trackId } });
@@ -179,7 +250,7 @@ async function applyPayment(trackId: string, status: string, payload: Record<str
 
   await prisma.deposit.update({ where: { id: deposit.id }, data: { gatewayStatus: status } });
 
-  switch (oxapay.paymentOutcome(status)) {
+  switch (outcome) {
     case 'paid': {
       if (deposit.status === 'PROCESSED') return false; // replay
       const txHash = firstTxHash(payload);
@@ -296,4 +367,45 @@ function firstTxHash(payload: Record<string, unknown>): string | undefined {
   if (!Array.isArray(txs) || !txs.length) return undefined;
   const hash = (txs[0] as Record<string, unknown>)?.tx_hash;
   return typeof hash === 'string' ? hash : undefined;
+}
+
+/* ── NOWPayments IPN ──────────────────────────────────────────────────────── */
+
+/**
+ * Handle one NOWPayments callback.
+ *
+ * Takes the PARSED body, not the raw bytes — the opposite of the OxaPay path
+ * above, and not an oversight. NOWPayments re-serialises the JSON with sorted
+ * keys before signing, so the raw bytes are the one thing that will never
+ * reproduce their signature.
+ *
+ * Everything else is the same contract: recorded whatever happens (a run of
+ * failed verifications is the only warning that someone is probing the
+ * endpoint), matched against an invoice WE raised, and credited from OUR
+ * recorded amount rather than from anything the payload claims.
+ */
+export async function handleNowPaymentsIpn(
+  body: unknown,
+  signature: string | undefined,
+): Promise<CallbackResult> {
+  const payload = (body ?? {}) as Record<string, unknown>;
+
+  /* `invoice_id` is what we stored as the track id when the invoice was raised;
+     `payment_id` identifies an individual attempt against it. Preferring the
+     invoice means a member who starts over on the same invoice still lands on
+     the same deposit row. */
+  const trackId = String(payload.invoice_id ?? payload.payment_id ?? '');
+  const status = String(payload.payment_status ?? '');
+
+  if (!nowpayments.verifySignature(payload, signature)) {
+    await record('nowpayments', status, trackId, false, payload, false);
+    logger.warn({ trackId }, 'nowpayments callback failed signature verification');
+    return { ok: false, applied: false, reason: 'bad signature' };
+  }
+
+  const applied = await applyPayment(
+    trackId, status, payload, nowpayments.paymentOutcome(status),
+  );
+  await record('nowpayments', status, trackId, true, payload, applied);
+  return { ok: true, applied, reason: applied ? 'applied' : 'no change' };
 }

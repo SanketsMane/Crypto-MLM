@@ -9,6 +9,7 @@ const r = Router();
    before `requireAuth` so no token is ever demanded of the gateway. */
 r.post('/oxapay/payment', asyncHandler(c.paymentCallback));
 r.post('/oxapay/payout', asyncHandler(c.payoutCallback));
+r.post('/nowpayments/ipn', asyncHandler(c.nowPaymentsIpn));
 
 r.get('/status', requireAuth, asyncHandler(c.status));
 r.post('/deposit', requireAuth, asyncHandler(c.start));
