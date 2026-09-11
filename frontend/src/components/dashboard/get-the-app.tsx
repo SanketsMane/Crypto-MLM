@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Download, Smartphone, X } from 'lucide-react';
+import { Download, Smartphone } from 'lucide-react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/primitives';
+import { Modal } from '@/components/ui/modal';
 
 /**
  * Where the build lives, and the manifest that describes it.
@@ -17,7 +18,14 @@ import { Button } from '@/components/ui/primitives';
 const APK_URL = '/download/fortunex.apk';
 const MANIFEST_URL = '/download/app.json';
 
-const DISMISS_KEY = 'fx_app_banner_dismissed';
+/**
+ * Remembered per BUILD, not per member.
+ *
+ * Keying on the version means dismissing this release does not also silence
+ * the next one — but re-announcing the same build every sign-in would be
+ * nagging, and nagging is how people learn to close a dialog without reading it.
+ */
+const dismissKey = (version: string) => `fx_app_promo_dismissed_${version}`;
 
 interface AppManifest {
   version: string;
@@ -30,19 +38,8 @@ interface AppManifest {
 const mb = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
 export function GetTheApp() {
-  const [dismissed, setDismissed] = useState(true); // assume hidden until read
+  const [open, setOpen] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
-
-  /* Read on the client only. Deciding this during render would differ between
-     the server pass and the browser, which React reports as a hydration
-     mismatch and resolves by flashing the banner at someone who closed it. */
-  useEffect(() => {
-    try {
-      setDismissed(localStorage.getItem(DISMISS_KEY) === '1');
-    } catch {
-      setDismissed(false); // private mode: showing it is the safer default
-    }
-  }, []);
 
   const manifest = useQuery<AppManifest>({
     queryKey: ['app-manifest'],
@@ -51,92 +48,111 @@ export function GetTheApp() {
       if (!res.ok) throw new Error('no manifest');
       return res.json();
     },
-    // A missing manifest means no build has been published; the banner then
-    // stays hidden rather than offering a download that 404s.
+    // A missing manifest means no build has been published; nothing is shown
+    // rather than offering a download that 404s.
     retry: false,
     staleTime: 5 * 60_000,
   });
 
+  const version = manifest.data?.version;
+
+  /* Opened from an effect, never during render. Reading localStorage inline
+     differs between the server pass and the browser, which React resolves by
+     flashing the dialog at somebody who already closed it. */
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!version) return;
+    let seen = false;
+    try {
+      seen = localStorage.getItem(dismissKey(version)) === '1';
+    } catch {
+      seen = false; // private mode: showing it once is the safer default
+    }
+    if (!seen) setOpen(true);
+  }, [version]);
+
+  useEffect(() => {
+    if (!open || typeof window === 'undefined') return;
     QRCode.toDataURL(`${window.location.origin}${APK_URL}`, {
       margin: 1,
-      width: 320,
+      width: 360,
       color: { dark: '#0B1220', light: '#FFFFFF' },
     })
       .then(setQr)
       .catch(() => setQr(null));
-  }, []);
+  }, [open]);
 
   const close = () => {
-    setDismissed(true);
-    try { localStorage.setItem(DISMISS_KEY, '1'); } catch { /* nothing to do */ }
+    setOpen(false);
+    if (!version) return;
+    try { localStorage.setItem(dismissKey(version), '1'); } catch { /* nothing to do */ }
   };
 
-  if (dismissed || !manifest.data) return null;
   const m = manifest.data;
+  if (!m) return null;
 
   return (
-    <section
-      aria-labelledby="get-the-app-heading"
-      className="relative overflow-hidden rounded-[14px] border border-line bg-gradient-to-br from-violet/[0.07] via-card to-card p-5"
-    >
-      <button
-        type="button"
-        onClick={close}
-        aria-label="Dismiss"
-        className="absolute right-3 top-3 rounded-lg p-1.5 text-ink-3 transition hover:bg-canvas hover:text-ink"
-      >
-        <X size={15} />
-      </button>
-
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-[12px] bg-violet/10 text-violet">
-          <Smartphone size={22} />
+    <Modal
+      open={open}
+      onClose={close}
+      width="lg"
+      title="FortuneX for Android"
+      description="Check your balance, deposit, invest and withdraw from your phone. Your account, plan and network are exactly as they are here — signing in on the app changes nothing about how your account works."
+      icon={
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[11px] bg-violet/10 text-violet">
+          <Smartphone size={20} />
         </div>
-
-        <div className="min-w-0 flex-1">
-          <h2 id="get-the-app-heading" className="text-[15px] font-semibold tracking-[-0.01em] text-ink">
-            FortuneX for Android
-          </h2>
-          <p className="mt-1 max-w-prose text-[12.5px] leading-relaxed text-ink-2">
-            Check your balance, deposit, invest and withdraw from your phone. Your account, plan and
-            network are exactly as they are here — signing in on the app changes nothing about how your
-            account works.
-          </p>
-          <p className="mt-1.5 text-[11.5px] text-ink-3">
-            Version {m.version} · {mb(m.sizeBytes)} · Android {m.minAndroid} or later
-          </p>
-
-          <div className="mt-3.5 flex flex-wrap items-center gap-2.5">
-            {/* A plain anchor, not a fetch-and-blob: the browser streams it
-                straight to storage, shows its own progress, and can resume —
-                none of which a JavaScript download gets right on a phone. */}
-            <a href={APK_URL} download>
-              <Button className="h-10">
-                <Download size={15} /> Download for Android
-              </Button>
-            </a>
-            <span className="text-[11.5px] text-ink-3">
-              Not on the Play Store yet — you may need to allow installs from your browser.
-            </span>
+      }
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={close}
+            className="rounded-lg px-3 py-2 text-[12.5px] text-ink-2 transition hover:text-ink"
+          >
+            Maybe later
+          </button>
+          {/* A plain anchor, not a fetch-and-blob: the browser streams it
+              straight to storage, shows its own progress and can resume — none
+              of which a JavaScript download gets right on a phone.
+              `onClick` closes the dialog so the member is not left staring at
+              it while the download runs behind. */}
+          <a href={APK_URL} download onClick={close}>
+            <Button size="sm">
+              <Download size={15} /> Download for Android
+            </Button>
+          </a>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+            <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">This release</p>
+            <p className="mt-0.5 text-[13px] font-semibold text-ink">
+              Version {m.version} · {mb(m.sizeBytes)}
+            </p>
+            <p className="text-[11.5px] text-ink-3">Requires Android {m.minAndroid} or later</p>
           </div>
+          <p className="text-[11.5px] leading-relaxed text-ink-3">
+            Not on the Play Store yet, so your phone will ask permission to install it from your
+            browser. That prompt is normal for apps installed this way.
+          </p>
         </div>
 
         {/* Scanning beats emailing yourself a link. Hidden on small screens,
             where the phone in question is the device already reading this. */}
         {qr && (
-          <div className="hidden shrink-0 flex-col items-center gap-1.5 lg:flex">
+          <div className="hidden shrink-0 flex-col items-center gap-1.5 sm:flex">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qr}
               alt="QR code to download the FortuneX Android app"
-              className="size-[104px] rounded-[10px] border border-line bg-white p-1.5"
+              className="size-[112px] rounded-[10px] border border-line bg-white p-1.5"
             />
             <span className="text-[10.5px] text-ink-3">Scan to install</span>
           </div>
         )}
       </div>
-    </section>
+    </Modal>
   );
 }

@@ -61,8 +61,8 @@ export default function MemberDashboard() {
     <>
       <WelcomeHeader firstName={data?.profile.name?.split(' ')[0]} />
 
-      {/* Sits directly under the greeting: seen on arrival, above the fold,
-          and dismissible so it never becomes furniture. */}
+      {/* Renders a dialog, so its position here does not matter — it overlays
+          rather than taking a slot in the page flow. */}
       <GetTheApp />
 
       {/* Account overview. The wallet is the hero and sizes to its own
