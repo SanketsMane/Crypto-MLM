@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Layers, Package, TrendingUp, Users } from 'lucide-react';
 import { get } from '@/lib/api';
 import { WelcomeHeader } from '@/components/dashboard/welcome-header';
+import { GetTheApp } from '@/components/dashboard/get-the-app';
 import { MemberSummary } from '@/components/dashboard/member-summary';
 import { BalancePanel } from '@/components/dashboard/balance-panel';
 import { NoPackageCta } from '@/components/dashboard/no-package-cta';
@@ -59,6 +60,10 @@ export default function MemberDashboard() {
   return (
     <>
       <WelcomeHeader firstName={data?.profile.name?.split(' ')[0]} />
+
+      {/* Sits directly under the greeting: seen on arrival, above the fold,
+          and dismissible so it never becomes furniture. */}
+      <GetTheApp />
 
       {/* Account overview. The wallet is the hero and sizes to its own
           content, so the identity card and the onboarding step share the left
