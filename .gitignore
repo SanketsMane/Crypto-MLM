@@ -77,3 +77,7 @@ research/
 # own, not source, so it stays out of the history. Re-create it with
 # Doc/reference/fyntrust/mirror.py if it is needed again.
 Doc/reference/fyntrust/
+
+# Published app builds. The APK is a build artefact served off the server, not
+# source — and at several megabytes it has no business in the history.
+ops/downloads/

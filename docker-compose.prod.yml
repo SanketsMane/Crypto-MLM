@@ -157,6 +157,9 @@ services:
       DOMAIN: ${DOMAIN:?set DOMAIN}
     volumes:
       - ./ops/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Published app builds. Read-only, and outside the web image so a new
+      # APK is a file copy rather than a rebuild and redeploy.
+      - ./ops/downloads:/srv/downloads:ro
       - caddydata:/data
       - caddyconfig:/config
     depends_on: [api, web]

@@ -1,17 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMoneyMutation } from '../../../lib/money-mutation';
 import { toast } from 'sonner';
 import { toastError } from '@/lib/toast';
-import { AlertCircle, ArrowDownToLine, Check, Copy } from 'lucide-react';
-import { get, post, apiErrorMessage } from '@/lib/api';
+import { AlertCircle, ArrowDownToLine, Check, Copy, CreditCard, ExternalLink } from 'lucide-react';
+import { get, post } from '@/lib/api';
 import { usePlatformConfig } from '@/features/config/use-config';
 import { Card, CardHead, Table, Badge, toneFor, Button, Skeleton, controlCls } from '@/components/ui/primitives';
 import { usd, shortDate } from '@/lib/format';
 
-interface Deposit { id: string; amount: string; network: string; txHash: string | null; reference: string; status: string; createdAt: string }
+interface Deposit {
+  id: string; amount: string; network: string; txHash: string | null;
+  reference: string; status: string; createdAt: string;
+  /** Present only on gateway deposits, and only while they are still payable. */
+  paymentUrl?: string | null;
+  gatewayStatus?: string | null;
+}
 
 const QUICK = [110, 270, 530, 1100, 2650];
 
@@ -24,13 +30,32 @@ interface DepositTarget {
   confirmations: number | null;
 }
 
+/** What the server will actually accept right now, and through which provider. */
+interface GatewayStatus {
+  canCharge: boolean;
+  provider: string | null;
+  canPay: boolean;
+  sandbox: boolean;
+}
+
 export default function DepositPage() {
   const qc = useQueryClient();
   const [amount, setAmount] = useState('');
   const [txHash, setTxHash] = useState('');
   const [copied, setCopied] = useState(false);
+  /**
+   * Recording a transfer you already made is a different job from paying now,
+   * and showing both forms at once invites someone to fill the wrong one. The
+   * manual path stays one click away rather than on screen by default.
+   */
+  const [manualMode, setManualMode] = useState(false);
 
-  /** The member's own address, or a clear "not configured" when it is off. */
+  const gateway = useQuery<GatewayStatus>({
+    queryKey: ['gateway-status'],
+    queryFn: () => get('/gateway/status'),
+  });
+
+  /** The member's own on-chain address, or a clear "not configured" when off. */
   const deposit = useQuery<DepositTarget>({
     queryKey: ['deposit-address'],
     queryFn: () => get('/deposits/address'),
@@ -48,23 +73,57 @@ export default function DepositPage() {
 
   const list = useQuery({ queryKey: ['member', 'deposits'], queryFn: () => get<Deposit[]>('/deposits') });
 
-  const create = useMoneyMutation({
+  /**
+   * Raise a checkout invoice and send the member to pay it.
+   *
+   * The idempotency key comes from useMoneyMutation, so a double-submit or a
+   * retry after a dropped connection reuses the same intent rather than leaving
+   * a second unpaid invoice behind for an operator to explain.
+   */
+  const checkout = useMoneyMutation({
+    mutationFn: (_: void, key) =>
+      post<{ id: string; paymentUrl: string | null }>('/gateway/deposit', { amount }, key),
+    onSuccess: (d) => {
+      qc.invalidateQueries({ queryKey: ['member'] });
+      if (!d.paymentUrl) {
+        // An invoice with no URL is nothing anyone can pay. Saying so beats a
+        // blank tab and a deposit row that never resolves.
+        toast.error('The checkout link did not come back. Please try again.');
+        return;
+      }
+      setAmount('');
+      window.location.href = d.paymentUrl;
+    },
+    onError: (e) => toastError(e),
+  });
+
+  const recordManual = useMoneyMutation({
     mutationFn: (_: void, key) => post('/deposits', { amount, ...(txHash ? { txHash } : {}) }, key),
     onSuccess: () => {
-      toast.success('Deposit submitted — it will credit once confirmed');
+      toast.success('Deposit recorded — it will credit once confirmed');
       setAmount(''); setTxHash('');
       qc.invalidateQueries({ queryKey: ['member'] });
     },
     onError: (e) => toastError(e),
   });
 
+  const canCharge = gateway.data?.canCharge === true;
+  const amountTooSmall = !amount || Number(amount) < (minimum || 0.01);
+  const busy = checkout.isPending || recordManual.isPending;
+
   return (
     <div className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-12">
       <div className="lg:col-span-7">
         <Card>
           <CardHead title="New deposit" />
-          <form className="space-y-4 px-5 pb-5"
-                onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
+          <form
+            className="space-y-4 px-5 pb-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (manualMode || !canCharge) recordManual.mutate();
+              else checkout.mutate();
+            }}
+          >
             <div>
               <label className="mb-1.5 block text-[12.5px] font-medium text-ink">Amount (USDT)</label>
               <input type="number" min={minimum || 1} step="0.01" required value={amount}
@@ -80,18 +139,38 @@ export default function DepositPage() {
               </div>
             </div>
 
-            <div>
-              <label className="mb-1.5 block text-[12.5px] font-medium text-ink">
-                Transaction hash <span className="font-normal text-ink-3">(optional — speeds up confirmation)</span>
-              </label>
-              <input value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="0x…"
-                     className={`${controlCls} h-11 w-full`} />
-            </div>
+            {/* The transaction hash only means anything when recording a transfer
+                that has already happened. On the checkout path there is nothing
+                to paste yet. */}
+            {(manualMode || !canCharge) && (
+              <div>
+                <label className="mb-1.5 block text-[12.5px] font-medium text-ink">
+                  Transaction hash <span className="font-normal text-ink-3">(optional — speeds up confirmation)</span>
+                </label>
+                <input value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="0x…"
+                       className={`${controlCls} h-11 w-full`} />
+              </div>
+            )}
 
-            <Button type="submit" className="h-12 w-full text-[14px]" loading={create.isPending}
-                    disabled={!amount || Number(amount) < (minimum || 0.01)}>
-              <ArrowDownToLine size={16} /> Submit deposit
-            </Button>
+            {gateway.isLoading ? (
+              <Skeleton className="h-12" />
+            ) : (
+              <Button type="submit" className="h-12 w-full text-[14px]" loading={busy}
+                      disabled={amountTooSmall}>
+                {manualMode || !canCharge
+                  ? (<><ArrowDownToLine size={16} /> Record deposit</>)
+                  : (<><CreditCard size={16} /> Continue to payment</>)}
+              </Button>
+            )}
+
+            {canCharge && (
+              <button type="button" onClick={() => setManualMode((v) => !v)}
+                      className="w-full text-center text-[12px] text-ink-2 underline-offset-2 hover:underline">
+                {manualMode
+                  ? 'Pay with the checkout instead'
+                  : 'Already sent USDT yourself? Record it manually'}
+              </button>
+            )}
           </form>
         </Card>
       </div>
@@ -100,53 +179,79 @@ export default function DepositPage() {
         <Card>
           <CardHead title="How to fund" />
           <div className="space-y-3 px-5 pb-5">
-            <p className="text-[12.5px] leading-relaxed text-ink-2">
-              Send <span className="font-semibold text-ink">USDT on the BEP-20 network</span> to the platform
-              address, then record the amount here. Funds land in your Fund wallet once an operator confirms
-              the transaction on-chain.
-            </p>
-
-            <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
-              <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">Network</p>
-              <p className="mt-0.5 text-[13px] font-semibold text-ink">BEP-20 (Binance Smart Chain)</p>
-            </div>
-
-            {deposit.isLoading ? (
-              <Skeleton className="h-[70px]" />
-            ) : deposit.data?.configured ? (
-              <div className="flex items-center gap-2 rounded-[10px] border border-line bg-canvas px-3 py-2.5">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">
-                    Your deposit address
-                  </p>
-                  <p className="mt-0.5 break-all font-mono text-[12.5px] text-ink">
-                    {deposit.data.address}
+            {canCharge && !manualMode ? (
+              <>
+                <p className="text-[12.5px] leading-relaxed text-ink-2">
+                  Enter an amount and you will be taken to our payment provider, where you can pay in{' '}
+                  <span className="font-semibold text-ink">any supported coin</span>. Your Fund wallet is
+                  credited automatically once the payment confirms on the network.
+                </p>
+                <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+                  <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">Payment is handled by</p>
+                  <p className="mt-0.5 text-[13px] font-semibold capitalize text-ink">
+                    {gateway.data?.provider ?? 'our payment provider'}
+                    {gateway.data?.sandbox ? ' (sandbox)' : ''}
                   </p>
                 </div>
-                <button type="button" onClick={copyAddress}
-                        className="shrink-0 rounded-md p-1.5 text-ink-2 transition hover:bg-line/40 hover:text-ink"
-                        title="Copy address">
-                  {copied ? <Check size={15} className="text-good" /> : <Copy size={15} />}
-                </button>
-              </div>
-            ) : (
-              /* No address is shown rather than a placeholder that looks like
-                 one — funds sent to a fake address are gone for good. */
-              <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
-                <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">Deposit address</p>
-                <p className="mt-0.5 text-[12.5px] text-ink-2">
-                  Automatic deposits are not switched on yet. Contact support to fund your account.
+                <p className="flex gap-2 rounded-[10px] bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-warn">
+                  <AlertCircle size={15} className="mt-0.5 shrink-0" />
+                  Pay the exact amount shown at the checkout. An underpayment is held for review rather
+                  than credited automatically.
                 </p>
-              </div>
-            )}
+              </>
+            ) : (
+              <>
+                <p className="text-[12.5px] leading-relaxed text-ink-2">
+                  Send <span className="font-semibold text-ink">USDT on the BEP-20 network</span> to the platform
+                  address, then record the amount here. Funds land in your Fund wallet once an operator confirms
+                  the transaction on-chain.
+                </p>
 
-            <p className="flex gap-2 rounded-[10px] bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-warn">
-              <AlertCircle size={15} className="mt-0.5 shrink-0" />
-              Only send USDT on BEP-20. Funds sent on another network cannot be recovered.
-              {deposit.data?.configured && deposit.data.confirmations
-                ? ` Deposits are credited automatically after ${deposit.data.confirmations} confirmations.`
-                : ''}
-            </p>
+                <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+                  <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">Network</p>
+                  <p className="mt-0.5 text-[13px] font-semibold text-ink">BEP-20 (Binance Smart Chain)</p>
+                </div>
+
+                {deposit.isLoading ? (
+                  <Skeleton className="h-[70px]" />
+                ) : deposit.data?.configured ? (
+                  <div className="flex items-center gap-2 rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">
+                        Your deposit address
+                      </p>
+                      <p className="mt-0.5 break-all font-mono text-[12.5px] text-ink">
+                        {deposit.data.address}
+                      </p>
+                    </div>
+                    <button type="button" onClick={copyAddress}
+                            className="shrink-0 rounded-md p-1.5 text-ink-2 transition hover:bg-line/40 hover:text-ink"
+                            title="Copy address">
+                      {copied ? <Check size={15} className="text-good" /> : <Copy size={15} />}
+                    </button>
+                  </div>
+                ) : (
+                  /* No address is shown rather than a placeholder that looks like
+                     one — funds sent to a fake address are gone for good. */
+                  <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+                    <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">Deposit address</p>
+                    <p className="mt-0.5 text-[12.5px] text-ink-2">
+                      {canCharge
+                        ? 'On-chain deposits are not switched on. Use the checkout instead.'
+                        : 'Automatic deposits are not switched on yet. Contact support to fund your account.'}
+                    </p>
+                  </div>
+                )}
+
+                <p className="flex gap-2 rounded-[10px] bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-warn">
+                  <AlertCircle size={15} className="mt-0.5 shrink-0" />
+                  Only send USDT on BEP-20. Funds sent on another network cannot be recovered.
+                  {deposit.data?.configured && deposit.data.confirmations
+                    ? ` Deposits are credited automatically after ${deposit.data.confirmations} confirmations.`
+                    : ''}
+                </p>
+              </>
+            )}
           </div>
         </Card>
       </div>
@@ -155,7 +260,7 @@ export default function DepositPage() {
         <Card>
           <CardHead title={`Deposit history — ${list.data?.length ?? 0}`} />
           <Table
-            head={['Date', 'Amount', 'Network', 'Transaction', 'Status']}
+            head={['Date', 'Amount', 'Network', 'Transaction', 'Status', '']}
             empty="You have not made a deposit yet."
             rows={(list.data ?? []).map((d) => [
               <span key="a" className="text-ink-2">{shortDate(d.createdAt)}</span>,
@@ -163,6 +268,15 @@ export default function DepositPage() {
               d.network,
               <span key="d" className="text-ink-2">{d.txHash ? `${d.txHash.slice(0, 14)}…` : '—'}</span>,
               <Badge key="e" tone={toneFor(d.status)}>{d.status}</Badge>,
+              /* A pending invoice keeps its checkout link, so someone who closed
+                 the tab can finish paying instead of starting again and leaving
+                 a second unpaid row behind. */
+              d.status === 'PENDING' && d.paymentUrl ? (
+                <a key="f" href={d.paymentUrl} target="_blank" rel="noopener noreferrer"
+                   className="inline-flex items-center gap-1 font-medium text-violet hover:underline">
+                  Pay <ExternalLink size={12} />
+                </a>
+              ) : <span key="f" />,
             ])}
           />
         </Card>

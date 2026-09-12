@@ -48,6 +48,29 @@
 		}
 	}
 
+	# ── app builds ──────────────────────────────────────────────────────────
+	#
+	# Served straight off disk rather than from inside the web image, so
+	# publishing a new build is a file copy — no rebuild, no redeploy, and the
+	# version the dashboard advertises can never drift from the file people
+	# actually receive.
+	handle /download/* {
+		root * /srv/downloads
+		uri strip_prefix /download
+
+		# Android does not recognise the default octet-stream reliably, and a
+		# browser that renders an APK inline instead of saving it leaves the
+		# member with a blank tab and no file.
+		@apk path *.apk
+		header @apk Content-Type "application/vnd.android.package-archive"
+		header @apk Content-Disposition "attachment"
+
+		# Five minutes: long enough to survive a reload mid-download, short
+		# enough that a new build is picked up without anyone clearing a cache.
+		header Cache-Control "public, max-age=300"
+		file_server
+	}
+
 	# ── everything else is the web app ──────────────────────────────────────
 	handle {
 		reverse_proxy web:3010
