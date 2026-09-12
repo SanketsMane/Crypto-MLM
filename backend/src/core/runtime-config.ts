@@ -2,6 +2,7 @@ import { prisma } from './db.js';
 import { env } from '../config/env.js';
 import { badRequest } from './errors.js';
 import { PLAN_STRUCTURE_CODES, isPlanStructure, PLAN_STRUCTURES } from './plan-structure.js';
+import type { GatewaySwitches } from './gateway/switches.js';
 
 /**
  * Runtime configuration — the business rules an operator is allowed to tune
@@ -24,7 +25,7 @@ export type SettingType = 'percent' | 'money' | 'int' | 'bool' | 'weekdays' | 't
 
 export interface SettingSpec {
   key: string;
-  group: 'Payouts' | 'Withdrawals' | 'Investments' | 'Compliance' | 'Security' | 'Platform';
+  group: 'Payouts' | 'Withdrawals' | 'Investments' | 'Compliance' | 'Security' | 'Platform' | 'Gateways';
   label: string;
   help: string;
   type: SettingType;
@@ -223,6 +224,38 @@ export const SPECS: SettingSpec[] = [
     help: 'Turn off to stop new sign-ups. Existing members can still sign in.',
     enforcedIn: 'Customer registration',
   },
+
+  /**
+   * Gateway switches.
+   *
+   * These can only ever turn a rail OFF. Credentials still come from the
+   * environment, and a gateway with no key — or with its `*_ENABLED` variable
+   * off — stays unavailable however these are set. That asymmetry is the point:
+   * an operator needs to be able to stop a gateway in seconds, from a phone,
+   * without a deploy; nobody should be able to switch one live from a console
+   * session without the keys having been deliberately installed first.
+   *
+   * They default to on, so adding them changes nothing about a running
+   * deployment until somebody decides otherwise.
+   */
+  {
+    key: 'GATEWAY_NOWPAYMENTS_DEPOSITS', group: 'Gateways', type: 'bool',
+    label: 'NOWPayments deposits',
+    help: 'Turn off to stop offering NOWPayments at checkout. Invoices already raised stay payable and still credit when they confirm — this only stops new ones. Has no effect unless NOWPayments is configured in the environment.',
+    enforcedIn: 'Member deposit · Checkout',
+  },
+  {
+    key: 'GATEWAY_OXAPAY_DEPOSITS', group: 'Gateways', type: 'bool',
+    label: 'OxaPay deposits',
+    help: 'Turn off to stop offering OxaPay at checkout. Invoices already raised stay payable and still credit when they confirm — this only stops new ones. Has no effect unless OxaPay is configured in the environment.',
+    enforcedIn: 'Member deposit · Checkout',
+  },
+  {
+    key: 'GATEWAY_OXAPAY_PAYOUTS', group: 'Gateways', type: 'bool',
+    label: 'OxaPay payouts',
+    help: 'Turn off to stop sending approved withdrawals through OxaPay. Approvals continue and fall back to being paid by hand, so nothing is stranded — but nothing leaves automatically either. NOWPayments has no payout support in this platform, so there is no equivalent switch for it.',
+    enforcedIn: 'Withdrawal approval',
+  },
 ];
 
 export const SPEC_BY_KEY = new Map(SPECS.map((s) => [s.key, s]));
@@ -254,6 +287,11 @@ export const DEFAULTS: Record<string, string> = {
   MAINTENANCE_MESSAGE: 'We are carrying out scheduled maintenance and will be back shortly. Your balances and investments are unaffected.',
   REGISTRATION_OPEN: 'true',
   WITHDRAWALS_OPEN: 'true',
+  // On by default: these exist to take a rail out of service, so adding them
+  // must not change the behaviour of a deployment that never touches them.
+  GATEWAY_NOWPAYMENTS_DEPOSITS: 'true',
+  GATEWAY_OXAPAY_DEPOSITS: 'true',
+  GATEWAY_OXAPAY_PAYOUTS: 'true',
 };
 
 export interface RuntimeConfig {
@@ -282,6 +320,14 @@ export interface RuntimeConfig {
   maintenanceMessage: string;
   registrationOpen: boolean;
   withdrawalsOpen: boolean;
+  /**
+   * Operator switches for the payment rails.
+   *
+   * Grouped rather than loose so they can be passed as one value to the
+   * gateway modules, which stay synchronous and environment-driven — see
+   * `GatewaySwitches` in core/gateway/switches.ts.
+   */
+  gateways: GatewaySwitches;
 }
 
 /**
@@ -384,6 +430,11 @@ function build(stored: Record<string, string>): RuntimeConfig {
     maintenanceMessage: v('MAINTENANCE_MESSAGE'),
     registrationOpen: bool('REGISTRATION_OPEN'),
     withdrawalsOpen: bool('WITHDRAWALS_OPEN'),
+    gateways: {
+      nowpaymentsDeposits: bool('GATEWAY_NOWPAYMENTS_DEPOSITS'),
+      oxapayDeposits: bool('GATEWAY_OXAPAY_DEPOSITS'),
+      oxapayPayouts: bool('GATEWAY_OXAPAY_PAYOUTS'),
+    },
   };
 
   // A corrupt row must never silently disable payouts.

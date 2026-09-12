@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { env } from '../../config/env.js';
 import { logger } from '../logger.js';
 import { AppError } from '../errors.js';
+import { SWITCHES_ALL_ON, type GatewaySwitches } from './switches.js';
 
 /**
  * OxaPay — the crypto payment gateway.
@@ -45,7 +46,16 @@ const readFlag = (name: string, fallback: boolean) => {
   return raw === undefined ? fallback : /^(1|true|yes|on)$/i.test(raw.trim());
 };
 
-export function gatewayState(): GatewayState {
+/**
+ * `switches` is passed in rather than read here.
+ *
+ * The credentials are environment state and readable synchronously; the
+ * operator switches live in the database and are not. Taking them as an
+ * argument keeps this function callable with nothing behind it — at boot, or
+ * in a test — and leaves exactly one place (gateway.service) responsible for
+ * fetching the live values.
+ */
+export function gatewayState(switches: GatewaySwitches = SWITCHES_ALL_ON): GatewayState {
   const merchant = readKey('OXAPAY_MERCHANT_KEY', env.OXAPAY_MERCHANT_KEY);
   const payout = readKey('OXAPAY_PAYOUT_KEY', env.OXAPAY_PAYOUT_KEY);
   const enabled = readFlag('OXAPAY_ENABLED', env.OXAPAY_ENABLED);
@@ -55,9 +65,19 @@ export function gatewayState(): GatewayState {
   if (!merchant) reasons.push('OXAPAY_MERCHANT_KEY is not set — invoices cannot be raised');
   if (!payout) reasons.push('OXAPAY_PAYOUT_KEY is not set — payouts stay manual');
 
+  /* Reported separately from the environment reasons above. An operator who
+     turned a rail off in the console needs to see that decision named back to
+     them, not a line about a variable they never touched. */
+  if (enabled && merchant && !switches.oxapayDeposits) {
+    reasons.push('OxaPay deposits are switched off in the console');
+  }
+  if (enabled && payout && !switches.oxapayPayouts) {
+    reasons.push('OxaPay payouts are switched off in the console');
+  }
+
   return {
-    canCharge: Boolean(enabled && merchant),
-    canPay: Boolean(enabled && payout),
+    canCharge: Boolean(enabled && merchant && switches.oxapayDeposits),
+    canPay: Boolean(enabled && payout && switches.oxapayPayouts),
     sandbox: readFlag('OXAPAY_SANDBOX', env.OXAPAY_SANDBOX),
     reasons,
   };

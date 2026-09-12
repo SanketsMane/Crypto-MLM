@@ -1,4 +1,6 @@
 import { prisma } from '../db.js';
+import { config } from '../runtime-config.js';
+import type { GatewaySwitches } from './switches.js';
 import { money } from '../money.js';
 import { logger } from '../logger.js';
 import { badRequest, notFound, AppError } from '../errors.js';
@@ -54,26 +56,42 @@ const LABELS: Record<DepositGateway, string> = {
 };
 
 /**
+ * The live operator switches.
+ *
+ * This module is the only one that fetches them. The gateway modules take them
+ * as an argument and stay synchronous, so there is exactly one place where a
+ * database read can go missing, and a failure there falls back to the
+ * environment rather than to "everything off".
+ */
+export async function gatewaySwitches(): Promise<GatewaySwitches> {
+  return (await config()).gateways;
+}
+
+/**
  * Every checkout a member may currently choose from.
  *
  * This used to resolve exactly ONE provider per deployment and refuse outright
  * when both were configured. That was right while the platform picked for the
  * member; it cannot express a choice made per deposit, which is what is needed
- * now. So the responsibilities split three ways:
+ * now. So the responsibilities split four ways:
  *
- *   the operator decides which gateways are ENABLED — by configuring keys
- *   the member decides which enabled gateway to USE — per deposit
- *   the server refuses anything not enabled          — see startDeposit
+ *   the deployment decides which gateways CAN charge — by installing keys
+ *   the operator decides which of those are OFFERED  — by the console switches
+ *   the member decides which offered gateway to USE  — per deposit
+ *   the server refuses anything not offered          — see startDeposit
  *
  * That last line is the one that matters. The provider arrives from a client,
  * so it is a request and not an instruction: without re-checking it here, a
  * crafted call could route a deposit through a provider whose callbacks nothing
  * can verify, and the member would pay real money into a deposit that can never
- * be credited.
+ * be credited. The switch is re-read on every deposit for the same reason — a
+ * gateway turned off must stop taking money immediately, not once some client
+ * happens to refresh.
  */
-export function enabledGateways(): GatewayOption[] {
-  const now = nowpayments.state();
-  const oxa = oxapay.gatewayState();
+export async function enabledGateways(): Promise<GatewayOption[]> {
+  const switches = await gatewaySwitches();
+  const now = nowpayments.state(switches);
+  const oxa = oxapay.gatewayState(switches);
   const out: GatewayOption[] = [];
   if (now.canCharge) out.push({ id: 'nowpayments', label: LABELS.nowpayments, sandbox: false });
   if (oxa.canCharge) out.push({ id: 'oxapay', label: LABELS.oxapay, sandbox: oxa.sandbox });
@@ -93,8 +111,9 @@ export function pinnedGateway(): DepositGateway | null {
 }
 
 /** Why nothing can be charged, when nothing can. */
-export function gatewayReasons(): string[] {
-  return [...nowpayments.state().reasons, ...oxapay.gatewayState().reasons];
+export async function gatewayReasons(): Promise<string[]> {
+  const switches = await gatewaySwitches();
+  return [...nowpayments.state(switches).reasons, ...oxapay.gatewayState(switches).reasons];
 }
 
 /** Public origin a gateway calls back to. */
@@ -113,11 +132,16 @@ const nowCallbackUrl = () => {
  * available the answer is obvious; with several it is not, and guessing would
  * send somebody to a checkout they did not pick.
  */
-function resolveProvider(requested?: string | null): DepositGateway {
-  const options = enabledGateways();
+async function resolveProvider(requested?: string | null): Promise<DepositGateway> {
+  const options = await enabledGateways();
   if (options.length === 0) {
+    /* The reasons are logged, not returned. They name environment variables
+       and which rails an operator has switched off — detail that helps
+       whoever is on call and helps nobody else, least of all the member
+       staring at the message. */
+    logger.warn({ reasons: await gatewayReasons() }, 'deposit refused — no gateway can charge');
     throw new AppError(
-      `Card and crypto deposits are unavailable right now (${gatewayReasons().join('; ')})`,
+      'Card and crypto deposits are temporarily unavailable. Please try again shortly or contact support.',
       503, 'GATEWAY_UNAVAILABLE',
     );
   }
@@ -125,8 +149,11 @@ function resolveProvider(requested?: string | null): DepositGateway {
   const pin = pinnedGateway();
   if (pin) {
     if (!options.some((o) => o.id === pin)) {
+      // Same reasoning as above: the misconfiguration goes to the log, the
+      // member gets a message they can act on.
+      logger.error({ pin }, 'DEPOSIT_GATEWAY names a provider that cannot charge');
       throw new AppError(
-        `DEPOSIT_GATEWAY names ${pin}, which is not configured to charge.`,
+        'Card and crypto deposits are temporarily unavailable. Please try again shortly or contact support.',
         503, 'GATEWAY_UNAVAILABLE',
       );
     }
@@ -157,7 +184,7 @@ export async function startDeposit(
   provider?: string | null,
   email?: string,
 ) {
-  const chosen = resolveProvider(provider);
+  const chosen = await resolveProvider(provider);
 
   const value = money(amount);
   if (value.lte(0)) throw badRequest('Amount must be positive');
@@ -211,7 +238,7 @@ export async function startDeposit(
  * than silently reversing a decision they made.
  */
 export async function sendPayout(withdrawalId: string) {
-  const state = oxapay.gatewayState();
+  const state = oxapay.gatewayState(await gatewaySwitches());
   if (!state.canPay) {
     logger.warn({ withdrawalId, reasons: state.reasons }, 'payout gateway unavailable — staying manual');
     return null;

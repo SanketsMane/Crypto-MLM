@@ -3,7 +3,8 @@ import { prisma } from '../../../core/db.js';
 import { money } from '../../../core/money.js';
 import * as oxapay from '../../../core/gateway/oxapay.js';
 import * as nowpayments from '../../../core/gateway/nowpayments.js';
-import { enabledGateways, pinnedGateway, gatewayReasons } from '../../../core/gateway/gateway.service.js';
+import { enabledGateways, pinnedGateway, gatewayReasons, gatewaySwitches } from '../../../core/gateway/gateway.service.js';
+import { SWITCHES_ALL_ON } from '../../../core/gateway/switches.js';
 import { payoutRail } from '../../../core/payout-rail.js';
 
 /**
@@ -57,10 +58,47 @@ async function readProvider(
 }
 
 export const overview = async (_req: Request, res: Response) => {
-  const enabled = enabledGateways();
-  const isEnabled = (id: string) => enabled.some((g) => g.id === id);
-  const oxaState = oxapay.gatewayState();
-  const nowState = nowpayments.state();
+  const switches = await gatewaySwitches();
+  const enabled = await enabledGateways();
+  const oxaState = oxapay.gatewayState(switches);
+  const nowState = nowpayments.state(switches);
+
+  /**
+   * Capability and switch are reported separately.
+   *
+   * "Off" is not one state. A rail with no key installed cannot be turned on
+   * from this console at all, and showing an operator a toggle that silently
+   * does nothing is worse than showing none — so the console needs to know
+   * which of the two is holding, and say so.
+   */
+  const controls = [
+    {
+      id: 'nowpayments',
+      deposits: {
+        key: 'GATEWAY_NOWPAYMENTS_DEPOSITS',
+        on: switches.nowpaymentsDeposits,
+        configured: nowpayments.state(SWITCHES_ALL_ON).canCharge,
+      },
+      /* NOWPayments payouts are not implemented in this platform — there is no
+         createPayout for it. A toggle here would be wired to nothing, which
+         would read as "payouts will flow through NOWPayments once I enable
+         this". They will not. */
+      payouts: null,
+    },
+    {
+      id: 'oxapay',
+      deposits: {
+        key: 'GATEWAY_OXAPAY_DEPOSITS',
+        on: switches.oxapayDeposits,
+        configured: oxapay.gatewayState(SWITCHES_ALL_ON).canCharge,
+      },
+      payouts: {
+        key: 'GATEWAY_OXAPAY_PAYOUTS',
+        on: switches.oxapayPayouts,
+        configured: oxapay.gatewayState(SWITCHES_ALL_ON).canPay,
+      },
+    },
+  ];
 
   const [providers, wallets, deposits, withdrawals, pendingWithdrawals, investments, byProvider] =
     await Promise.all([
@@ -99,8 +137,10 @@ export const overview = async (_req: Request, res: Response) => {
       gateways: {
         enabled: enabled.map((g) => g.id),
         pinned: pinnedGateway(),
-        reasons: enabled.length === 0 ? gatewayReasons() : [],
-        payoutRail: payoutRail(),
+        reasons: enabled.length === 0 ? await gatewayReasons() : [],
+        // The live rail, switches applied — not the boot-time view.
+        payoutRail: payoutRail(switches),
+        controls,
       },
       liability: {
         memberBalances: held.toString(),

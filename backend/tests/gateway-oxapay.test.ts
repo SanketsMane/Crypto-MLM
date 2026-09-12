@@ -28,12 +28,25 @@ const sign = (body: string, key: string) =>
   crypto.createHmac('sha512', key).update(body).digest('hex');
 
 /** A deposit that already has an invoice against it. */
-async function invoiced(amount = 500, trackId = `trk-${Math.random().toString(36).slice(2)}`) {
+async function invoiced(
+  amount = 500,
+  trackId = `trk-${Math.random().toString(36).slice(2)}`,
+  provider = 'oxapay',
+) {
   const u = await makeUser();
   const dep = await deposits.create(u.id, String(amount));
   await prisma.deposit.update({
     where: { id: dep.id },
-    data: { gatewayTrackId: trackId, gatewayStatus: 'waiting', paymentUrl: 'https://pay.test/x' },
+    data: {
+      gatewayTrackId: trackId,
+      /* Written together with the track id, exactly as startDeposit does. A
+         track id is unique only within the gateway that minted it, so the
+         callback matches on both — a row carrying one without the other is a
+         shape the real code cannot produce. */
+      gatewayProvider: provider,
+      gatewayStatus: 'waiting',
+      paymentUrl: 'https://pay.test/x',
+    },
   });
   return { user: u, deposit: dep, trackId };
 }
@@ -102,6 +115,26 @@ describe('handling a payment callback', () => {
     const r = await gateway.handleCallback('payment', body, sign(body, MERCHANT));
     expect(r.ok).toBe(true);
     expect(await balanceOf(user.id, 'FUND')).toBeCloseTo(500, 6);
+  });
+
+  /**
+   * The mismatch that a track id alone cannot prevent.
+   *
+   * Two gateways can mint the same track id independently, so an OxaPay
+   * callback carrying a value that happens to match a NOWPayments invoice must
+   * not credit it. Nobody would notice quickly: the money never arrived at
+   * OxaPay, and the wrong member's balance went up.
+   */
+  it('refuses to credit a deposit belonging to a different provider', async () => {
+    const { user, trackId } = await invoiced(500, 'collision-1', 'nowpayments');
+    const body = paymentBody(trackId, 'paid');
+
+    const r = await gateway.handleCallback('payment', body, sign(body, MERCHANT));
+    // The signature is genuine, so the callback itself is accepted...
+    expect(r.ok).toBe(true);
+    // ...but it matched no OxaPay invoice, so nothing was credited.
+    expect(r.applied).toBe(false);
+    expect(await balanceOf(user.id, 'FUND')).toBeCloseTo(0, 6);
   });
 
   it('credits nothing when the signature is wrong', async () => {

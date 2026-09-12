@@ -118,7 +118,7 @@ export async function approveWithdrawal(adminId: string, id: string, txHash: str
    * This used to call both rails unconditionally, which paid the member twice
    * wherever both were configured. See core/payout-rail.ts.
    */
-  const rail = assertPayoutRail();
+  const rail = assertPayoutRail(await gateway.gatewaySwitches());
 
   const w = await withdrawalService.approve(id, txHash);
   await audit.record({

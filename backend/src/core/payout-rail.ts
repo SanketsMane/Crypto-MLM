@@ -1,6 +1,7 @@
 import { chainState } from './chain/config.js';
 import { gatewayState } from './gateway/oxapay.js';
 import { AppError } from './errors.js';
+import { SWITCHES_ALL_ON, type GatewaySwitches } from './gateway/switches.js';
 
 /**
  * Which rail actually sends an approved withdrawal.
@@ -43,9 +44,21 @@ const named = (): PayoutRail | null => {
   return raw === 'chain' || raw === 'gateway' || raw === 'manual' ? raw : null;
 };
 
-export function payoutRail(): RailDecision {
+/**
+ * `switches` defaults to all-on, which makes this the environment-only view.
+ *
+ * That default is what the boot check in server.ts uses: it asks whether the
+ * DEPLOYMENT could double-send, which is a question about configuration and
+ * not about what an operator switched off this morning. Every live decision —
+ * the approval guard, the console — passes the real switches, because an
+ * operator turning OxaPay payouts off must actually stop money leaving.
+ *
+ * A switch can only ever remove a rail's ability to send, so passing them can
+ * resolve an ambiguity but never create one.
+ */
+export function payoutRail(switches: GatewaySwitches = SWITCHES_ALL_ON): RailDecision {
   const chain = chainState().canPay;
-  const gateway = gatewayState().canPay;
+  const gateway = gatewayState(switches).canPay;
   const choice = named();
 
   if (choice === 'manual') {
@@ -65,9 +78,17 @@ export function payoutRail(): RailDecision {
   }
 
   if (choice === 'gateway') {
-    return gateway
-      ? { rail: 'gateway', ambiguous: false, reason: 'PAYOUT_RAIL=gateway' }
-      : { rail: 'manual', ambiguous: false, reason: 'PAYOUT_RAIL=gateway, but the gateway is not configured — pay this one manually' };
+    if (gateway) return { rail: 'gateway', ambiguous: false, reason: 'PAYOUT_RAIL=gateway' };
+    /* Two different situations, and telling them apart is the whole value of
+       the message: one is a deployment that was never finished, the other is a
+       switch somebody threw on purpose and may have forgotten. */
+    return {
+      rail: 'manual',
+      ambiguous: false,
+      reason: switches.oxapayPayouts
+        ? 'PAYOUT_RAIL=gateway, but the gateway is not configured — pay this one manually'
+        : 'PAYOUT_RAIL=gateway, but OxaPay payouts are switched off in the console — pay this one manually, or switch them back on',
+    };
   }
 
   // Nothing named. Infer, and refuse rather than guess when both could send.
@@ -91,8 +112,8 @@ export function payoutRail(): RailDecision {
  * claimed, so an ambiguous configuration leaves the request PENDING and
  * re-approvable rather than stranding it approved-but-unpaid.
  */
-export function assertPayoutRail(): RailDecision {
-  const decision = payoutRail();
+export function assertPayoutRail(switches: GatewaySwitches = SWITCHES_ALL_ON): RailDecision {
+  const decision = payoutRail(switches);
   if (decision.ambiguous) {
     throw new AppError(decision.reason, 503, 'PAYOUT_RAIL_AMBIGUOUS');
   }

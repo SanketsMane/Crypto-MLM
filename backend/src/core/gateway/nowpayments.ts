@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { env } from '../../config/env.js';
 import { logger } from '../logger.js';
 import { AppError } from '../errors.js';
+import { SWITCHES_ALL_ON, type GatewaySwitches } from './switches.js';
 
 /**
  * NOWPayments — crypto checkout.
@@ -37,7 +38,8 @@ const readFlag = (name: string, fallback: boolean) => {
   return raw === undefined ? fallback : /^(1|true|yes|on)$/i.test(raw.trim());
 };
 
-export function state(): NowPaymentsState {
+/** `switches` is passed in, not read here — see the note in oxapay.ts. */
+export function state(switches: GatewaySwitches = SWITCHES_ALL_ON): NowPaymentsState {
   const apiKey = readKey('NOWPAYMENTS_API_KEY', env.NOWPAYMENTS_API_KEY);
   const ipnSecret = readKey('NOWPAYMENTS_IPN_SECRET', env.NOWPAYMENTS_IPN_SECRET);
   const enabled = readFlag('NOWPAYMENTS_ENABLED', env.NOWPAYMENTS_ENABLED);
@@ -53,7 +55,13 @@ export function state(): NowPaymentsState {
    */
   if (!ipnSecret) reasons.push('NOWPAYMENTS_IPN_SECRET is not set — callbacks cannot be verified');
 
-  return { canCharge: Boolean(enabled && apiKey && ipnSecret), reasons };
+  /* Named as an operator decision, not as a configuration fault — whoever
+     turned it off needs to recognise their own action in this list. */
+  if (enabled && apiKey && ipnSecret && !switches.nowpaymentsDeposits) {
+    reasons.push('NOWPayments deposits are switched off in the console');
+  }
+
+  return { canCharge: Boolean(enabled && apiKey && ipnSecret && switches.nowpaymentsDeposits), reasons };
 }
 
 async function call<T>(path: string, init: { method: 'GET' | 'POST'; body?: unknown }): Promise<T> {

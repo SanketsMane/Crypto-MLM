@@ -20,8 +20,9 @@ const startSchema = z.object({
  * those — it must not break because the server learned about a second gateway.
  */
 export const status = async (_req: Request, res: Response) => {
-  const s = gatewayState();
-  const providers = gateway.enabledGateways();
+  const switches = await gateway.gatewaySwitches();
+  const s = gatewayState(switches);
+  const providers = await gateway.enabledGateways();
   const pinned = gateway.pinnedGateway();
 
   res.json({
@@ -35,7 +36,22 @@ export const status = async (_req: Request, res: Response) => {
       provider: pinned ?? (providers.length === 1 ? providers[0]!.id : null),
       canPay: s.canPay,
       sandbox: s.sandbox,
-      reasons: providers.length === 0 ? gateway.gatewayReasons() : [],
+      /**
+       * Deliberately NOT the internal reasons.
+       *
+       * This is a member endpoint. The reason list names environment
+       * variables — `OXAPAY_MERCHANT_KEY is not set` — and now also which
+       * rails an operator has switched off, none of which is a member's
+       * business, and all of which tells an attacker how the deployment is
+       * wired. It is also useless to the person reading it: knowing a payout
+       * key is missing does not help them deposit.
+       *
+       * Operators get the full list, with the payout rails separated out, on
+       * GET /admin/treasury.
+       */
+      reasons: providers.length === 0
+        ? ['Card and crypto deposits are temporarily unavailable. Please try again later or contact support.']
+        : [],
     },
   });
 };

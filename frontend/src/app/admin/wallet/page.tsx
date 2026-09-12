@@ -1,9 +1,14 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { clsx } from 'clsx';
 import {
   AlertTriangle, ArrowDownToLine, ArrowUpFromLine, Landmark, Percent, Wallet,
 } from 'lucide-react';
-import { adminGet } from '@/lib/admin-api';
+import { adminGet, adminPut } from '@/lib/admin-api';
+import { toastError } from '@/lib/toast';
+import { useConfirmOk } from '@/components/ui/confirm';
+import { useAdmin } from '@/features/admin/use-admin';
 import { Card, CardHead, PageHeader, Table, Badge, Skeleton } from '@/components/ui/primitives';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { usd, num, titleCase } from '@/lib/format';
@@ -40,12 +45,34 @@ interface Provider {
   canPay: boolean;
 }
 
+/**
+ * One switchable rail.
+ *
+ * `configured` and `on` are separate because "off" is not one state. A rail
+ * with no key installed cannot be switched on from here at all, and a toggle
+ * that silently does nothing is worse than no toggle — so the two are reported
+ * apart and rendered differently.
+ */
+interface Switch {
+  key: string;
+  on: boolean;
+  configured: boolean;
+}
+
+interface GatewayControl {
+  id: string;
+  deposits: Switch;
+  /** Null where the integration has no payout support at all. */
+  payouts: Switch | null;
+}
+
 interface Treasury {
   providers: Provider[];
   gateways: {
     enabled: string[];
     pinned: string | null;
     reasons: string[];
+    controls: GatewayControl[];
     payoutRail: {
       rail: string;
       /** Configuration could not be resolved safely — nothing may be sent. */
@@ -74,6 +101,14 @@ const ROLE: Record<string, string> = {
 };
 
 export default function WalletPage() {
+  const qc = useQueryClient();
+  const askConfirm = useConfirmOk();
+  /* Gated on the permission the API actually enforces for the write, not on
+     the one that let them open this page — a reports-only operator can read
+     the treasury and must not be handed switches that 403 on click. */
+  const { can } = useAdmin();
+  const maySwitch = can('settings.edit');
+
   const summary = useQuery({
     queryKey: ['admin', 'wallet-summary'],
     queryFn: () => adminGet<Summary>('/admin/wallet-summary'),
@@ -93,6 +128,56 @@ export default function WalletPage() {
 
   const t = treasury.data;
   const s = summary.data;
+
+  /**
+   * The switches write straight through to the settings endpoint.
+   *
+   * No staged "save" step: this is the control an operator reaches for when a
+   * gateway is misbehaving and money is moving the wrong way, and a second
+   * click between them and stopping it is a second too many. Both queries are
+   * invalidated afterwards, because turning a rail off changes what the rest of
+   * this page is reporting.
+   */
+  const flip = useMutation({
+    mutationFn: ({ key, on }: { key: string; on: boolean; label: string }) =>
+      adminPut(`/admin/settings/${key}`, { value: String(on) }),
+    onSuccess: (_d, v) => {
+      toast.success(`${v.label} ${v.on ? 'switched on' : 'switched off'} — live immediately`);
+      qc.invalidateQueries({ queryKey: ['admin', 'treasury'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'settings'] });
+    },
+    onError: (e) => toastError(e),
+  });
+
+  /**
+   * Confirmation is asked for only where the consequence is not on screen.
+   *
+   * Turning a rail back on restores service and needs no ceremony. Turning one
+   * of two deposit gateways off is reversible and members keep the other. The
+   * two cases worth stopping for are the ones whose blast radius is invisible
+   * from the toggle itself: taking away the LAST checkout, which stops deposits
+   * platform-wide, and stopping payouts, which leaves approvals to be paid by
+   * hand without anything on this page saying so.
+   */
+  const toggle = async (sw: Switch, label: string, kind: 'deposits' | 'payouts') => {
+    const next = !sw.on;
+    if (!next) {
+      const lastCheckout = kind === 'deposits' && (t?.gateways.enabled.length ?? 0) <= 1;
+      const body = lastCheckout
+        ? `${label} is the only checkout members can currently use. Switching it off stops all deposits platform-wide until you switch one back on. Invoices already raised stay payable.`
+        : kind === 'payouts'
+          ? `Approved withdrawals will stop being sent automatically and will need paying by hand. Nothing already in flight is cancelled, and approvals continue.`
+          : `${label} will no longer be offered at checkout. Invoices already raised stay payable and still credit when they confirm.`;
+
+      if (!(await askConfirm({
+        title: `Switch off ${label}?`,
+        body,
+        confirmLabel: 'Switch off',
+        tone: lastCheckout || kind === 'payouts' ? 'danger' : 'primary',
+      }))) return;
+    }
+    flip.mutate({ key: sw.key, on: next, label });
+  };
   const net = Number(s?.depositsIn ?? 0) - Number(s?.withdrawalsOut ?? 0);
   const accountsFor = (type: string) => s?.byWallet.find((w) => w.type === type)?.accounts;
 
@@ -150,10 +235,12 @@ export default function WalletPage() {
         {/* ── what is actually held ─────────────────────────────────────── */}
         <div className="lg:col-span-7">
           <Card>
-            <CardHead title="What the gateways hold"
-                      subtitle="Read live from each provider. Listed per coin, never converted." />
+            <CardHead title="Gateways"
+                      subtitle="Switch a rail on or off, and see what each provider is holding. Balances are listed per coin, never converted." />
             <div className="space-y-2.5 px-5 pb-5">
-              {treasury.isLoading ? <Skeleton className="h-[132px]" /> : (t?.providers ?? []).map((p) => (
+              {treasury.isLoading ? <Skeleton className="h-[132px]" /> : (t?.providers ?? []).map((p) => {
+                const ctl = t?.gateways.controls.find((c) => c.id === p.id);
+                return (
                 <div key={p.id} className="rounded-[10px] border border-line bg-canvas px-3.5 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[13px] font-semibold text-ink">{p.label}</span>
@@ -166,6 +253,38 @@ export default function WalletPage() {
                       </Badge>
                     </span>
                   </div>
+
+                  {/* The controls, beside the thing they control. */}
+                  {ctl && (
+                    <div className="mt-2.5 space-y-1.5 border-t border-line pt-2.5">
+                      <SwitchRow
+                        label="Deposits"
+                        hint="Offered to members at checkout"
+                        sw={ctl.deposits}
+                        busy={flip.isPending}
+                        editable={maySwitch}
+                        onToggle={() => toggle(ctl.deposits, `${p.label} deposits`, 'deposits')}
+                      />
+                      {ctl.payouts ? (
+                        <SwitchRow
+                          label="Payouts"
+                          hint="Sends approved withdrawals automatically"
+                          sw={ctl.payouts}
+                          busy={flip.isPending}
+                          editable={maySwitch}
+                          onToggle={() => toggle(ctl.payouts!, `${p.label} payouts`, 'payouts')}
+                        />
+                      ) : (
+                        /* Stated rather than shown as a dead toggle: there is no
+                           payout support for this provider in the platform, so a
+                           switch here would promise something that cannot happen. */
+                        <div className="flex items-baseline justify-between gap-3">
+                          <span className="text-[12px] text-ink-2">Payouts</span>
+                          <span className="text-[11.5px] text-ink-2">Not supported by this integration</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* An unreadable account says so. A zero here would be
                       indistinguishable from an empty one, and would make a
@@ -190,7 +309,8 @@ export default function WalletPage() {
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
         </div>
@@ -299,6 +419,56 @@ export default function WalletPage() {
         </div>
       </Card>
     </>
+  );
+}
+
+/**
+ * One rail's on/off control.
+ *
+ * An unconfigured rail gets no switch at all, only the reason it has none.
+ * Rendering a disabled toggle would invite an operator to click it and
+ * conclude the console is broken, when what is actually missing is a key in
+ * the deployment they cannot set from here.
+ */
+function SwitchRow(
+  { label, hint, sw, busy, editable, onToggle }:
+  { label: string; hint: string; sw: Switch; busy: boolean; editable: boolean; onToggle: () => void },
+) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="min-w-0">
+        <span className="block text-[12px] font-medium text-ink">{label}</span>
+        <span className="block text-[11px] text-ink-2">
+          {sw.configured ? hint : 'No credentials installed — set them in the deployment first'}
+        </span>
+      </span>
+
+      {!editable ? (
+        /* Read-only: the state still matters to anyone looking at this page,
+           it is just not theirs to change. */
+        <Badge tone={sw.on ? 'good' : 'neutral'}>{sw.on ? 'on' : 'off'}</Badge>
+      ) : sw.configured ? (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={sw.on}
+          aria-label={`${label} ${sw.on ? 'on' : 'off'}`}
+          disabled={busy}
+          onClick={onToggle}
+          className={clsx(
+            'relative h-6 w-11 shrink-0 rounded-full border transition disabled:opacity-50',
+            sw.on ? 'border-good bg-good' : 'border-line bg-line/50',
+          )}
+        >
+          <span className={clsx(
+            'absolute top-[2px] h-[18px] w-[18px] rounded-full bg-card shadow-sm transition-all',
+            sw.on ? 'left-[22px]' : 'left-[2px]',
+          )} />
+        </button>
+      ) : (
+        <Badge tone="neutral">unavailable</Badge>
+      )}
+    </div>
   );
 }
 
