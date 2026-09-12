@@ -134,3 +134,11 @@ calling it done; OxaPay deserves the same.
 - **Existing rows** have `gatewayProvider = NULL`. The callback path must treat
   NULL as "match on track_id alone", or in-flight deposits raised before the
   migration would stop resolving.
+
+---
+
+**Correction (after shipping).** The last bullet above is wrong. Treating a NULL
+`gatewayProvider` as "match on track_id alone" protects nothing and reopens the
+cross-provider mismatch it was meant to avoid — see `04-outcome.md` for why the
+NULL case cannot occur. The shipped code matches on track id AND provider, with
+no fallback.

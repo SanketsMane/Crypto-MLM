@@ -19,8 +19,17 @@ android {
         // reliable biometric prompt, and both are load-bearing for a step-up.
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        /**
+         * Bumped whenever a build is published, not only on a release.
+         *
+         * Android identifies a build by `versionCode` alone. Two different APKs
+         * sharing one are indistinguishable to the package installer, so a
+         * phone carrying the old build has no way to recognise this as an
+         * update — and some installers refuse it outright as a same-version
+         * install rather than replacing what is there.
+         */
+        versionCode = 2
+        versionName = "1.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

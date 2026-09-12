@@ -311,22 +311,23 @@ async function applyPayment(
   if (!trackId) return false;
 
   /**
-   * Matched on track id AND provider.
+   * Matched on track id AND provider, with no fallback.
    *
    * A track id is only unique within the gateway that issued it — two
    * providers can mint the same value independently. Matching on the id alone
    * was safe while one gateway existed and is not safe now: an OxaPay callback
    * could land on a NOWPayments deposit and credit the wrong member.
    *
-   * NULL is accepted as a match because rows raised before the provider column
-   * existed have none, and refusing those would strand deposits that are still
-   * in flight.
+   * A null-provider row is deliberately NOT accepted. It looks like it would
+   * protect deposits raised before the column existed, but it cannot: the
+   * migration backfilled every row that has a track id, and a row gets its
+   * track id and its provider in one write — so no row can hold one without
+   * the other. All the clause could ever match is a legacy row whose id
+   * happens to collide across providers, which is precisely the mismatch this
+   * check exists to prevent.
    */
   const deposit = await prisma.deposit.findFirst({
-    where: {
-      gatewayTrackId: trackId,
-      OR: [{ gatewayProvider: provider }, { gatewayProvider: null }],
-    },
+    where: { gatewayTrackId: trackId, gatewayProvider: provider },
   });
   if (!deposit) {
     logger.warn({ trackId, provider }, 'payment callback for an unknown invoice');
