@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { toastError } from '@/lib/toast';
 import { adminPost, adminError } from '@/lib/admin-api';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/modal';
 
@@ -20,8 +21,14 @@ export function NewMemberDialog({ open, onClose }: { open: boolean; onClose: () 
   const qc = useQueryClient();
   const empty = { email: '', firstName: '', lastName: '', phone: '', password: '', sponsorCode: '' };
   const [form, setForm] = useState(empty);
+  const [showPw, setShowPw] = useState(false);
 
-  useEffect(() => { if (open) setForm(empty); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [open]);
+  // Reopening starts clean, and the password goes back to hidden — otherwise
+  // the next member's password is on screen because the last one was revealed.
+  useEffect(() => {
+    if (open) { setForm(empty); setShowPw(false); }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [open]);
 
   const create = useMutation({
     mutationFn: () => adminPost<{ userCode: string }>('/admin/users', {
@@ -52,6 +59,9 @@ export function NewMemberDialog({ open, onClose }: { open: boolean; onClose: () 
       open={open}
       onClose={onClose}
       width="lg"
+      // A half-filled form must not vanish to a stray click beside the panel.
+      // The X and Cancel both still close it.
+      closeOnBackdrop={false}
       title="New member"
       description="Creates an active account immediately. The member can sign in with the password you set here — send it to them over a channel you trust, and ask them to change it."
       footer={
@@ -71,16 +81,38 @@ export function NewMemberDialog({ open, onClose }: { open: boolean; onClose: () 
           ['phone', 'Phone', 'tel', '+91…'],
           ['password', 'Temporary password *', 'password', 'at least 8 characters'],
           ['sponsorCode', 'Sponsor code', 'text', 'FX100001 — optional'],
-        ] as const).map(([key, label, type, placeholder]) => (
-          <label key={key} className="block">
-            <span className="mb-1 block text-[12px] font-medium text-ink-2">{label}</span>
-            <input
-              type={type} value={form[key]} placeholder={placeholder} className={field}
-              autoComplete={type === 'password' ? 'new-password' : 'off'}
-              onChange={(e) => set(key, e.target.value)}
-            />
-          </label>
-        ))}
+        ] as const).map(([key, label, type, placeholder]) => {
+          const isPassword = key === 'password';
+          return (
+            <label key={key} className="block">
+              <span className="mb-1 block text-[12px] font-medium text-ink-2">{label}</span>
+              <div className="relative">
+                <input
+                  /* Revealed as plain text while `showPw` is on, so the operator
+                     can check what they are about to send the member. */
+                  type={isPassword && showPw ? 'text' : type}
+                  value={form[key]}
+                  placeholder={placeholder}
+                  className={isPassword ? `${field} pr-10` : field}
+                  autoComplete={type === 'password' ? 'new-password' : 'off'}
+                  onChange={(e) => set(key, e.target.value)}
+                />
+                {isPassword && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPw((v) => !v)}
+                    aria-label={showPw ? 'Hide password' : 'Show password'}
+                    aria-pressed={showPw}
+                    title={showPw ? 'Hide password' : 'Show password'}
+                    className="absolute inset-y-0 right-0 grid w-10 place-items-center text-ink-3 transition hover:text-ink"
+                  >
+                    {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                )}
+              </div>
+            </label>
+          );
+        })}
       </div>
       <p className="mt-3 text-[11.5px] text-ink-3">
         Leaving the sponsor blank places the member at the root of the network, outside anyone&apos;s downline.

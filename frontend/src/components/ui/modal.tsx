@@ -11,6 +11,7 @@ import { X } from 'lucide-react';
  */
 export function Modal({
   open, onClose, title, description, children, footer, width = 'md', icon,
+  closeOnBackdrop = true,
 }: {
   open: boolean;
   onClose: () => void;
@@ -20,6 +21,15 @@ export function Modal({
   footer?: React.ReactNode;
   width?: 'md' | 'lg';
   icon?: React.ReactNode;
+  /**
+   * Whether a click on the backdrop dismisses the dialog.
+   *
+   * Off for anything holding typed input. A stray click beside the panel is
+   * indistinguishable from a click inside it right up until the form is gone,
+   * and there is no undo — the operator retypes everything. Escape and the X
+   * both still close it, so there is no way to get stuck.
+   */
+  closeOnBackdrop?: boolean;
 }) {
   const headingId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -45,7 +55,11 @@ export function Modal({
 
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center overflow-y-auto p-4">
-      <div className="fixed inset-0 bg-navy/55 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
+      <div
+        className="fixed inset-0 bg-navy/55 backdrop-blur-[2px]"
+        onClick={closeOnBackdrop ? onClose : undefined}
+        aria-hidden
+      />
       <div
         ref={panelRef}
         role="dialog"
