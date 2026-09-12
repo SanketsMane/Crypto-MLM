@@ -8,3 +8,9 @@ local.properties
 *.iml
 captures/
 .cxx/
+
+# Release signing. The keystore and its passwords must never reach the history:
+# anyone holding them can publish an update that Play will accept as genuine.
+keystore.properties
+*.jks
+*.keystore

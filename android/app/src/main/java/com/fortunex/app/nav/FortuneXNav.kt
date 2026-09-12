@@ -2,22 +2,34 @@ package com.fortunex.app.nav
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.fortunex.app.ui.auth.LoginScreen
+import com.fortunex.app.ui.auth.RegisterScreen
+import com.fortunex.app.ui.auth.ResetPasswordScreen
+import com.fortunex.app.ui.auth.TwoFactorScreen
+import com.fortunex.app.ui.member.MemberShell
 import com.fortunex.app.ui.onboarding.OnboardingScreen
 
 object Routes {
     const val ONBOARDING = "onboarding"
     const val LOGIN = "login"
+    const val TWO_FACTOR = "two-factor/{challengeToken}"
+    const val HOME = "home"
+    const val REGISTER = "register"
+    const val RESET_PASSWORD = "reset-password"
+
+    fun twoFactor(token: String) = "two-factor/$token"
 }
 
 /**
  * The start destination is decided before this composes, from the persisted
- * flag — not navigated to afterwards. Routing on arrival would show the
- * introduction for a frame to a returning member, and a flicker on the first
- * screen of a financial app is the wrong first impression.
+ * flag and the stored session — not navigated to afterwards. Routing on arrival
+ * would show the introduction for a frame to a returning member, and a flicker
+ * on the first screen of a financial app is the wrong first impression.
  */
 @Composable
 fun FortuneXNav(
@@ -40,11 +52,54 @@ fun FortuneXNav(
                 },
             )
         }
+
         composable(Routes.LOGIN) {
             LoginScreen(
-                onSignedIn = { /* the member area lands in the next slice */ },
-                onNeedsTwoFactor = { /* two-factor screen lands in the next slice */ },
+                onSignedIn = { navController.toHome() },
+                onNeedsTwoFactor = { token -> navController.navigate(Routes.twoFactor(token)) },
+                onRegister = { navController.navigate(Routes.REGISTER) },
+                onForgotPassword = { navController.navigate(Routes.RESET_PASSWORD) },
             )
         }
+
+        composable(Routes.REGISTER) {
+            RegisterScreen(
+                // Registration returns a session, so it lands in the member area
+                // directly rather than sending someone to sign in again with
+                // credentials they typed thirty seconds ago.
+                onRegistered = { navController.toHome() },
+                onBackToSignIn = { navController.popBackStack() },
+            )
+        }
+
+        composable(Routes.RESET_PASSWORD) {
+            ResetPasswordScreen(onDone = { navController.popBackStack() })
+        }
+
+        composable(
+            route = Routes.TWO_FACTOR,
+            arguments = listOf(navArgument("challengeToken") { type = NavType.StringType }),
+        ) { entry ->
+            TwoFactorScreen(
+                challengeToken = entry.arguments?.getString("challengeToken").orEmpty(),
+                onSignedIn = { navController.toHome() },
+            )
+        }
+
+        composable(Routes.HOME) { MemberShell() }
+    }
+}
+
+/**
+ * Entering the member area clears the sign-in stack.
+ *
+ * Without this, Back from the dashboard returns to a login form belonging to a
+ * session that already exists — and on a two-factor sign-in, to a spent
+ * challenge screen that can only fail.
+ */
+private fun NavHostController.toHome() {
+    navigate(Routes.HOME) {
+        popUpTo(graph.startDestinationId) { inclusive = true }
+        launchSingleTop = true
     }
 }

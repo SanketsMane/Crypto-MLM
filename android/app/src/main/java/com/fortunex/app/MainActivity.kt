@@ -2,13 +2,14 @@ package com.fortunex.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.viewModels
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import com.fortunex.app.data.auth.AuthRepository
 import com.fortunex.app.data.prefs.OnboardingPrefs
 import com.fortunex.app.nav.FortuneXNav
 import com.fortunex.app.nav.Routes
@@ -28,14 +29,28 @@ import javax.inject.Inject
 @HiltViewModel
 class StartViewModel @Inject constructor(
     private val prefs: OnboardingPrefs,
+    private val auth: AuthRepository,
 ) : ViewModel() {
     private val _start = MutableStateFlow<String?>(null)
     val start: StateFlow<String?> = _start
 
     init {
         viewModelScope.launch {
-            val seen = prefs.hasSeenOnboarding.first()
-            _start.value = if (seen) Routes.LOGIN else Routes.ONBOARDING
+            /**
+             * A stored session skips sign-in entirely.
+             *
+             * Read once, here, rather than observed: the gate decides where the
+             * app opens, and re-evaluating it live would yank a member out of
+             * whatever they were doing the moment a background call happened to
+             * 401. Sign-out navigates deliberately instead.
+             */
+            val signedIn = auth.isSignedIn.first()
+            val seenIntro = prefs.hasSeenOnboarding.first()
+            _start.value = when {
+                signedIn -> Routes.HOME
+                seenIntro -> Routes.LOGIN
+                else -> Routes.ONBOARDING
+            }
         }
     }
 
@@ -55,9 +70,9 @@ class MainActivity : ComponentActivity() {
          *
          * This is what makes the splash do real work rather than pad the launch
          * with a timer: the platform keeps painting the brand plate while the
-         * persisted flag is read, and the first Compose frame is already the
-         * correct screen. A fixed delay would be slower for everyone and would
-         * still not guarantee the answer had arrived.
+         * persisted flag and the session are read, and the first Compose frame
+         * is already the correct screen. A fixed delay would be slower for
+         * everyone and would still not guarantee the answer had arrived.
          */
         val splash = installSplashScreen()
         splash.setKeepOnScreenCondition { vm.start.value == null }
