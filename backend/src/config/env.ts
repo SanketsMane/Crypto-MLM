@@ -65,6 +65,17 @@ const schema = z.object({
   /** Public origin OxaPay calls back to. Must be reachable from the internet. */
   OXAPAY_CALLBACK_BASE: z.string().optional(),
 
+  /* ── NOWPayments ─────────────────────────────────────────────────────
+     An alternative crypto checkout. Unlike OxaPay there is one API key for
+     charging, plus a separate IPN secret used ONLY to verify callbacks —
+     it never authorises anything, so it is not interchangeable with the
+     API key and must not be substituted for it. */
+  NOWPAYMENTS_ENABLED: z.coerce.boolean().default(false),
+  NOWPAYMENTS_API_KEY: z.string().optional(),
+  NOWPAYMENTS_IPN_SECRET: z.string().optional(),
+  /** Public origin NOWPayments calls back to. Falls back to WEB_URL. */
+  NOWPAYMENTS_CALLBACK_BASE: z.string().optional(),
+
   /**
    * Which rail sends an approved withdrawal: 'chain', 'gateway' or 'manual'.
    *
