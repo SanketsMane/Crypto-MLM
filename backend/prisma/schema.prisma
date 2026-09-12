@@ -682,6 +682,15 @@ model Deposit {
   /// deposit for the same invoice.
   gatewayTrackId String?   @unique
   gatewayStatus  String?
+  /// Which checkout raised this invoice: 'nowpayments' | 'oxapay'.
+  ///
+  /// Recorded because `gatewayTrackId` is only unique within a provider —
+  /// two gateways can mint the same id independently, and a callback that
+  /// matched the wrong row would credit the wrong deposit. It is also the
+  /// only way an operator looking at a pending row can tell which checkout
+  /// the member was sent to. NULL on rows raised before this column existed,
+  /// and on manually reported deposits, which have no gateway at all.
+  gatewayProvider String?
   paymentUrl     String?
   expiresAt      DateTime?
 

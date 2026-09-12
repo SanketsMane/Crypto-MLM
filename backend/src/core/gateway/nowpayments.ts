@@ -172,3 +172,45 @@ export const paymentOutcome = (status: string): 'paid' | 'underpaid' | 'dead' | 
   : status === 'partially_paid' ? 'underpaid'
   : ['failed', 'refunded', 'expired'].includes(status) ? 'dead'
   : 'pending';
+
+/* ── treasury ─────────────────────────────────────────────────────────────── */
+
+/**
+ * What NOWPayments is holding for us.
+ *
+ * Their balance endpoint is IP-restricted: it answers 403 ENDPOINT_NOT_ALLOWED
+ * from any address not on the account's whitelist, and names the address it saw.
+ * That is a configuration step in their dashboard, not a credential problem, so
+ * it is reported as such rather than surfacing as a generic failure an operator
+ * would waste time treating as a broken key.
+ */
+export async function accountBalance(): Promise<Record<string, number>> {
+  const apiKey = readKey('NOWPAYMENTS_API_KEY', env.NOWPAYMENTS_API_KEY);
+  if (!apiKey) throw new AppError('NOWPAYMENTS_API_KEY is not set', 503, 'GATEWAY_UNAVAILABLE');
+
+  const res = await fetch(`${BASE}/balance`, {
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+    signal: AbortSignal.timeout(15_000),
+  });
+  const payload = (await res.json().catch(() => ({}))) as {
+    balances?: Record<string, { amount?: number }>;
+    code?: string;
+    message?: string;
+  };
+
+  if (!res.ok) {
+    if (res.status === 403 || payload.code === 'ENDPOINT_NOT_ALLOWED') {
+      throw new AppError(
+        `NOWPayments refuses balance reads from this server's address. Add it to the IP whitelist in their dashboard. (${payload.message ?? 'no detail'})`,
+        503, 'GATEWAY_IP_NOT_WHITELISTED',
+      );
+    }
+    throw new AppError(payload.message ?? `HTTP ${res.status}`, 502, 'GATEWAY_ERROR');
+  }
+
+  const out: Record<string, number> = {};
+  for (const [coin, v] of Object.entries(payload.balances ?? {})) {
+    out[coin.toUpperCase()] = Number(v?.amount ?? 0);
+  }
+  return out;
+}

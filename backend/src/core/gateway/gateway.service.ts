@@ -40,43 +40,61 @@ const callbackUrl = (kind: 'payment' | 'payout') => {
  * the payload. If the gateway then refuses, the row is removed rather than
  * left as a phantom PENDING deposit an operator would later have to explain.
  */
-/**
- * Which checkout raises the invoice.
- *
- * Named outright by `DEPOSIT_GATEWAY`; inferred when unset so a deployment with
- * one provider configured needs nothing. With BOTH configured and neither named
- * this refuses rather than picking — the same reasoning as the payout rail. The
- * consequence here is milder than a double payout, but a member sent to a
- * checkout whose callbacks the other provider's verifier will reject pays real
- * money into a deposit that can never be credited.
- */
 export type DepositGateway = 'nowpayments' | 'oxapay';
 
-export function depositGateway(): { provider: DepositGateway | null; reasons: string[] } {
+export interface GatewayOption {
+  id: DepositGateway;
+  label: string;
+  sandbox: boolean;
+}
+
+const LABELS: Record<DepositGateway, string> = {
+  nowpayments: 'NOWPayments',
+  oxapay: 'OxaPay',
+};
+
+/**
+ * Every checkout a member may currently choose from.
+ *
+ * This used to resolve exactly ONE provider per deployment and refuse outright
+ * when both were configured. That was right while the platform picked for the
+ * member; it cannot express a choice made per deposit, which is what is needed
+ * now. So the responsibilities split three ways:
+ *
+ *   the operator decides which gateways are ENABLED — by configuring keys
+ *   the member decides which enabled gateway to USE — per deposit
+ *   the server refuses anything not enabled          — see startDeposit
+ *
+ * That last line is the one that matters. The provider arrives from a client,
+ * so it is a request and not an instruction: without re-checking it here, a
+ * crafted call could route a deposit through a provider whose callbacks nothing
+ * can verify, and the member would pay real money into a deposit that can never
+ * be credited.
+ */
+export function enabledGateways(): GatewayOption[] {
   const now = nowpayments.state();
   const oxa = oxapay.gatewayState();
+  const out: GatewayOption[] = [];
+  if (now.canCharge) out.push({ id: 'nowpayments', label: LABELS.nowpayments, sandbox: false });
+  if (oxa.canCharge) out.push({ id: 'oxapay', label: LABELS.oxapay, sandbox: oxa.sandbox });
+  return out;
+}
+
+/**
+ * An operator override that removes the choice.
+ *
+ * Set `DEPOSIT_GATEWAY` and that provider is forced and no selector is offered
+ * — which is what keeps every existing single-gateway deployment behaving
+ * exactly as it did. Unset, members choose.
+ */
+export function pinnedGateway(): DepositGateway | null {
   const named = process.env.DEPOSIT_GATEWAY?.trim().toLowerCase();
+  return named === 'nowpayments' || named === 'oxapay' ? named : null;
+}
 
-  if (named === 'nowpayments') {
-    return now.canCharge
-      ? { provider: 'nowpayments', reasons: [] }
-      : { provider: null, reasons: now.reasons };
-  }
-  if (named === 'oxapay') {
-    return oxa.canCharge
-      ? { provider: 'oxapay', reasons: [] }
-      : { provider: null, reasons: oxa.reasons };
-  }
-
-  if (now.canCharge && oxa.canCharge) {
-    return {
-      provider: null,
-      reasons: ['Both NOWPayments and OxaPay are configured and DEPOSIT_GATEWAY does not say which to use.'],
-    };
-  }
-  if (now.canCharge) return { provider: 'nowpayments', reasons: [] };
-  if (oxa.canCharge) return { provider: 'oxapay', reasons: [] };
-  return { provider: null, reasons: [...now.reasons, ...oxa.reasons] };
+/** Why nothing can be charged, when nothing can. */
+export function gatewayReasons(): string[] {
+  return [...nowpayments.state().reasons, ...oxapay.gatewayState().reasons];
 }
 
 /** Public origin a gateway calls back to. */
@@ -86,14 +104,60 @@ const nowCallbackUrl = () => {
   return `${base}/api/v1/gateway/nowpayments/ipn`;
 };
 
-export async function startDeposit(userId: string, amount: string, email?: string) {
-  const chosen = depositGateway();
-  if (!chosen.provider) {
+/**
+ * Resolve the provider for ONE deposit.
+ *
+ * A pin wins outright. Otherwise the member's choice is honoured, but only
+ * after being checked against what is actually enabled — the value came from a
+ * client and is not to be trusted. With nothing requested and one option
+ * available the answer is obvious; with several it is not, and guessing would
+ * send somebody to a checkout they did not pick.
+ */
+function resolveProvider(requested?: string | null): DepositGateway {
+  const options = enabledGateways();
+  if (options.length === 0) {
     throw new AppError(
-      `Card and crypto deposits are unavailable right now (${chosen.reasons.join('; ')})`,
+      `Card and crypto deposits are unavailable right now (${gatewayReasons().join('; ')})`,
       503, 'GATEWAY_UNAVAILABLE',
     );
   }
+
+  const pin = pinnedGateway();
+  if (pin) {
+    if (!options.some((o) => o.id === pin)) {
+      throw new AppError(
+        `DEPOSIT_GATEWAY names ${pin}, which is not configured to charge.`,
+        503, 'GATEWAY_UNAVAILABLE',
+      );
+    }
+    return pin;
+  }
+
+  const asked = requested?.trim().toLowerCase();
+  if (asked) {
+    const match = options.find((o) => o.id === asked);
+    if (!match) {
+      throw badRequest(
+        `That payment method is not available. Choose one of: ${options.map((o) => o.label).join(', ')}.`,
+        { available: options.map((o) => o.id) },
+      );
+    }
+    return match.id;
+  }
+
+  if (options.length === 1) return options[0]!.id;
+  throw badRequest('Choose a payment method to continue.', {
+    available: options.map((o) => o.id),
+  });
+}
+
+export async function startDeposit(
+  userId: string,
+  amount: string,
+  provider?: string | null,
+  email?: string,
+) {
+  const chosen = resolveProvider(provider);
 
   const value = money(amount);
   if (value.lte(0)) throw badRequest('Amount must be positive');
@@ -101,7 +165,7 @@ export async function startDeposit(userId: string, amount: string, email?: strin
   const deposit = await deposits.create(userId, value.toString());
 
   try {
-    const invoice = chosen.provider === 'nowpayments'
+    const invoice = chosen === 'nowpayments'
       ? await nowpayments.createInvoice({
           amount: Number(value.toString()),
           orderId: deposit.id,
@@ -123,6 +187,9 @@ export async function startDeposit(userId: string, amount: string, email?: strin
       data: {
         gatewayTrackId: invoice.trackId,
         gatewayStatus: 'new',
+        // Recorded now, while we still know: a track id is unique only within
+        // a provider, so the callback path needs this to match the right row.
+        gatewayProvider: chosen,
         paymentUrl: invoice.paymentUrl,
         expiresAt: invoice.expiresAt,
       },
@@ -208,7 +275,7 @@ export async function handleCallback(
   }
 
   const applied = kind === 'payment'
-    ? await applyPayment(trackId, status, payload, oxapay.paymentOutcome(status))
+    ? await applyPayment(trackId, status, payload, oxapay.paymentOutcome(status), 'oxapay')
     : await applyPayout(trackId, status, payload);
 
   await record(kind, status, trackId, true, payload, applied);
@@ -239,12 +306,30 @@ async function applyPayment(
   status: string,
   payload: Record<string, unknown>,
   outcome: PaymentOutcome,
+  provider: DepositGateway,
 ): Promise<boolean> {
   if (!trackId) return false;
 
-  const deposit = await prisma.deposit.findUnique({ where: { gatewayTrackId: trackId } });
+  /**
+   * Matched on track id AND provider.
+   *
+   * A track id is only unique within the gateway that issued it — two
+   * providers can mint the same value independently. Matching on the id alone
+   * was safe while one gateway existed and is not safe now: an OxaPay callback
+   * could land on a NOWPayments deposit and credit the wrong member.
+   *
+   * NULL is accepted as a match because rows raised before the provider column
+   * existed have none, and refusing those would strand deposits that are still
+   * in flight.
+   */
+  const deposit = await prisma.deposit.findFirst({
+    where: {
+      gatewayTrackId: trackId,
+      OR: [{ gatewayProvider: provider }, { gatewayProvider: null }],
+    },
+  });
   if (!deposit) {
-    logger.warn({ trackId }, 'payment callback for an unknown invoice');
+    logger.warn({ trackId, provider }, 'payment callback for an unknown invoice');
     return false;
   }
 
@@ -404,7 +489,7 @@ export async function handleNowPaymentsIpn(
   }
 
   const applied = await applyPayment(
-    trackId, status, payload, nowpayments.paymentOutcome(status),
+    trackId, status, payload, nowpayments.paymentOutcome(status), 'nowpayments',
   );
   await record('nowpayments', status, trackId, true, payload, applied);
   return { ok: true, applied, reason: applied ? 'applied' : 'no change' };

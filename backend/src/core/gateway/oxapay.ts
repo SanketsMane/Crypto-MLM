@@ -97,7 +97,21 @@ async function call<T>(path: string, header: 'merchant_api_key' | 'payout_api_ke
 
   const payload = (await res.json().catch(() => ({}))) as Envelope<T>;
 
-  if (!res.ok || payload.error || !payload.data) {
+  /**
+   * An EMPTY `error` object means success.
+   *
+   * OxaPay sends `"error": {}` on a perfectly good response, and `{}` is
+   * truthy — so testing `payload.error` alone rejected every successful call
+   * and reported the failure as `Operation completed successfully!`, which is
+   * the message OxaPay puts in `message` when nothing is wrong. It reads as a
+   * gateway fault and is in fact our own check. Only an error carrying actual
+   * detail counts as one.
+   */
+  // `!payload.data` stays inside the condition so the compiler can narrow
+  // `payload.data` to non-undefined on the way out.
+  const described = Boolean(payload.error && Object.keys(payload.error).length > 0);
+
+  if (!res.ok || described || !payload.data) {
     const detail = payload.error?.message ?? payload.message ?? `HTTP ${res.status}`;
     // The key must never reach a log line or an error surface.
     logger.error({ path, status: res.status, detail }, 'oxapay rejected the request');
@@ -222,3 +236,26 @@ export const payoutOutcome = (status: string): 'confirmed' | 'failed' | 'pending
   status === 'confirmed' ? 'confirmed'
   : ['canceled', 'cancelled', 'rejected'].includes(status) ? 'failed'
   : 'pending';
+
+/* ── treasury ─────────────────────────────────────────────────────────────── */
+
+/**
+ * What OxaPay is actually holding for us.
+ *
+ * Read with the GENERAL key, not the merchant key — OxaPay scopes its three
+ * keys to different endpoints, and balance sits under `general`. The merchant
+ * key returns 401 here, which looks like a bad credential rather than the wrong
+ * one being used.
+ */
+export async function accountBalance(): Promise<Record<string, number>> {
+  const key = readKey('OXAPAY_GENERAL_KEY', env.OXAPAY_GENERAL_KEY);
+  if (!key) throw new AppError('OXAPAY_GENERAL_KEY is not set', 503, 'GATEWAY_UNAVAILABLE');
+
+  const res = await fetch(`${BASE}/general/account/balance`, {
+    headers: { 'Content-Type': 'application/json', general_api_key: key },
+    signal: AbortSignal.timeout(15_000),
+  });
+  const payload = (await res.json().catch(() => ({}))) as { data?: Record<string, number>; message?: string };
+  if (!res.ok) throw new AppError(payload.message ?? `HTTP ${res.status}`, 502, 'GATEWAY_ERROR');
+  return payload.data ?? {};
+}

@@ -60,6 +60,8 @@ const schema = z.object({
   OXAPAY_ENABLED: z.coerce.boolean().default(false),
   OXAPAY_MERCHANT_KEY: z.string().optional(),
   OXAPAY_PAYOUT_KEY: z.string().optional(),
+  /** Reads balances and prices. Authorises no movement of money. */
+  OXAPAY_GENERAL_KEY: z.string().optional(),
   /** Sandbox raises test invoices that never move real funds. */
   OXAPAY_SANDBOX: z.coerce.boolean().default(false),
   /** Public origin OxaPay calls back to. Must be reachable from the internet. */

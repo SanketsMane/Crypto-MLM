@@ -12,6 +12,7 @@ import * as audit from './audit/audit.controller.js';
 import * as support from './support/support.controller.js';
 import * as kyc from './kyc/kyc.controller.js';
 import * as chain from './chain/chain.controller.js';
+import * as treasury from './treasury/treasury.controller.js';
 import { notificationRoutes } from '../notification/notification.routes.js';
 import { searchRoutes } from '../search/search.routes.js';
 import * as announcements from '../announcement/announcement.controller.js';
@@ -108,6 +109,10 @@ r.get('/transactions',  can('users.view'),      asyncHandler(ledger.transactions
 r.get('/commissions',   can('users.view'),      asyncHandler(ledger.commissions));
 r.get('/investments',   can('users.view'),      asyncHandler(ledger.investments));
 r.get('/wallet-summary',can('deposits.view'),   asyncHandler(ledger.walletSummary));
+/* Liability against what the gateways actually hold. Gated on reports.view
+   rather than deposits.view: it exposes platform solvency, not one member's
+   money. */
+r.get('/treasury',      can('reports.view'),    asyncHandler(treasury.overview));
 r.get('/network-levels',can('users.view'),      asyncHandler(ledger.networkLevels));
 r.get('/network/genealogy', can('users.view'),  asyncHandler(ledger.genealogy));
 

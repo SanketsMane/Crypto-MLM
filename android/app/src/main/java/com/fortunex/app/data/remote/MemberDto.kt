@@ -178,17 +178,41 @@ data class Deposit(
     val createdAt: String? = null,
 )
 
-/** Whether the app should offer gateway checkout, and which one is live. */
+/** One gateway the member may pay through. */
+@Serializable
+data class GatewayOption(
+    val id: String = "",
+    val label: String = "",
+    val sandbox: Boolean = false,
+)
+
+/**
+ * Whether the app should offer gateway checkout, and through which provider.
+ *
+ * `providers` and `chooseable` arrived with the second gateway; `canCharge` and
+ * `provider` are older and kept meaning exactly what they did, because a build
+ * already on someone's phone reads those and must not break. Every field has a
+ * default, so a server that stops sending one of them still decodes.
+ */
 @Serializable
 data class GatewayStatus(
     val canCharge: Boolean = false,
     val provider: String? = null,
+    val providers: List<GatewayOption> = emptyList(),
+    val pinned: String? = null,
+    val chooseable: Boolean = false,
     val canPay: Boolean = false,
     val sandbox: Boolean = false,
 )
 
+/**
+ * `provider` is omitted when null — see `explicitNulls = false` in NetworkModule.
+ * That matters: the server's schema accepts the field missing but rejects an
+ * explicit null, so serialising one would turn every single-gateway deposit
+ * into a validation error.
+ */
 @Serializable
-data class StartDepositRequest(val amount: String)
+data class StartDepositRequest(val amount: String, val provider: String? = null)
 
 /* ── step-up re-authentication ─────────────────────────────────────────────── */
 

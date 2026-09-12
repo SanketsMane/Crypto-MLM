@@ -30,8 +30,19 @@ interface DepositTarget {
   confirmations: number | null;
 }
 
+interface GatewayOption {
+  id: string;
+  label: string;
+  sandbox: boolean;
+}
+
 /** What the server will actually accept right now, and through which provider. */
 interface GatewayStatus {
+  /** Every gateway that can take money at this moment. */
+  providers: GatewayOption[];
+  /** An operator pin, which removes the choice entirely. */
+  pinned: string | null;
+  chooseable: boolean;
   canCharge: boolean;
   provider: string | null;
   canPay: boolean;
@@ -49,6 +60,14 @@ export default function DepositPage() {
    * manual path stays one click away rather than on screen by default.
    */
   const [manualMode, setManualMode] = useState(false);
+  /**
+   * Nothing is pre-selected while more than one gateway is open.
+   *
+   * A default would decide for the member where their money goes, and the two
+   * providers do not carry the same coins — choosing for them would land some
+   * people on a checkout that cannot take what they actually hold.
+   */
+  const [provider, setProvider] = useState<string | null>(null);
 
   const gateway = useQuery<GatewayStatus>({
     queryKey: ['gateway-status'],
@@ -73,6 +92,19 @@ export default function DepositPage() {
 
   const list = useQuery({ queryKey: ['member', 'deposits'], queryFn: () => get<Deposit[]>('/deposits') });
 
+  const canCharge = gateway.data?.canCharge === true;
+  const providers = gateway.data?.providers ?? [];
+  const chooseable = gateway.data?.chooseable === true;
+  /**
+   * The provider this deposit will actually go through.
+   *
+   * An operator pin beats anything the page could offer, and a lone gateway
+   * needs no choosing — so the member's selection only counts when there is
+   * genuinely something to select.
+   */
+  const chosen = gateway.data?.pinned ?? (providers.length === 1 ? providers[0]!.id : provider);
+  const chosenOption = providers.find((p) => p.id === chosen) ?? null;
+
   /**
    * Raise a checkout invoice and send the member to pay it.
    *
@@ -82,7 +114,11 @@ export default function DepositPage() {
    */
   const checkout = useMoneyMutation({
     mutationFn: (_: void, key) =>
-      post<{ id: string; paymentUrl: string | null }>('/gateway/deposit', { amount }, key),
+      post<{ id: string; paymentUrl: string | null }>(
+        '/gateway/deposit',
+        { amount, ...(chosen ? { provider: chosen } : {}) },
+        key,
+      ),
     onSuccess: (d) => {
       qc.invalidateQueries({ queryKey: ['member'] });
       if (!d.paymentUrl) {
@@ -107,7 +143,10 @@ export default function DepositPage() {
     onError: (e) => toastError(e),
   });
 
-  const canCharge = gateway.data?.canCharge === true;
+  /* Submitting an amount with no provider is a 400 from the server, so the
+     button stays down until the choice has been made rather than failing on
+     submit and leaving the member to guess why. */
+  const needsChoice = canCharge && !manualMode && chooseable && !chosen;
   const amountTooSmall = !amount || Number(amount) < (minimum || 0.01);
   const busy = checkout.isPending || recordManual.isPending;
 
@@ -139,6 +178,46 @@ export default function DepositPage() {
               </div>
             </div>
 
+            {/* Two gateways, so the member picks. Rendered only when the choice
+                is real — one provider, or an operator pin, leaves nothing to
+                decide and a single-option radio group is just noise. */}
+            {canCharge && !manualMode && chooseable && (
+              <div>
+                <label className="mb-1.5 block text-[12.5px] font-medium text-ink">Payment method</label>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {providers.map((p) => {
+                    const active = chosen === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => setProvider(p.id)}
+                        className={`rounded-[10px] border px-3 py-2.5 text-left transition ${
+                          active
+                            ? 'border-violet bg-violet/[0.06] ring-1 ring-violet/30'
+                            : 'border-line hover:border-violet/40'
+                        }`}
+                      >
+                        <span className="flex items-center justify-between gap-2 text-[13px] font-semibold text-ink">
+                          {p.label}
+                          {active && <Check size={14} className="shrink-0 text-violet" />}
+                        </span>
+                        <span className="mt-0.5 block text-[11px] text-ink-2">
+                          {p.sandbox ? 'Sandbox mode' : 'Pay in any supported coin'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {needsChoice && (
+                  <p className="mt-1.5 text-[11.5px] text-ink-2">
+                    Choose a payment method to continue.
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* The transaction hash only means anything when recording a transfer
                 that has already happened. On the checkout path there is nothing
                 to paste yet. */}
@@ -156,7 +235,7 @@ export default function DepositPage() {
               <Skeleton className="h-12" />
             ) : (
               <Button type="submit" className="h-12 w-full text-[14px]" loading={busy}
-                      disabled={amountTooSmall}>
+                      disabled={amountTooSmall || needsChoice}>
                 {manualMode || !canCharge
                   ? (<><ArrowDownToLine size={16} /> Record deposit</>)
                   : (<><CreditCard size={16} /> Continue to payment</>)}
@@ -188,9 +267,12 @@ export default function DepositPage() {
                 </p>
                 <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
                   <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">Payment is handled by</p>
-                  <p className="mt-0.5 text-[13px] font-semibold capitalize text-ink">
-                    {gateway.data?.provider ?? 'our payment provider'}
-                    {gateway.data?.sandbox ? ' (sandbox)' : ''}
+                  {/* Named only once it is settled. Before that it reads as the
+                      pending choice, not as a provider already decided on. */}
+                  <p className="mt-0.5 text-[13px] font-semibold text-ink">
+                    {chosenOption
+                      ? `${chosenOption.label}${chosenOption.sandbox ? ' (sandbox)' : ''}`
+                      : 'Your selected payment provider'}
                   </p>
                 </div>
                 <p className="flex gap-2 rounded-[10px] bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-warn">

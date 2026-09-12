@@ -24,13 +24,36 @@ data class DepositUiState(
     val gateway: GatewayStatus = GatewayStatus(),
     val history: List<Deposit> = emptyList(),
     val amount: String = "",
+    /**
+     * What the member tapped, which is not the same as what will be charged.
+     *
+     * Left null until they choose: the two providers do not carry the same
+     * coins, so picking a default for them would send some people to a checkout
+     * that cannot take what they hold.
+     */
+    val selectedProvider: String? = null,
     val submitting: Boolean = false,
     val error: UiMessage? = null,
 ) {
     val amountValid: Boolean
         get() = runCatching { BigDecimal(amount).signum() == 1 }.getOrDefault(false)
 
-    val canSubmit: Boolean get() = amountValid && gateway.canCharge && !submitting
+    /**
+     * The provider this deposit will go through.
+     *
+     * An operator pin beats anything the screen offers, and a lone gateway
+     * needs no choosing — the tap only counts when there is a real choice.
+     */
+    val provider: String?
+        get() = gateway.pinned
+            ?: gateway.providers.singleOrNull()?.id
+            ?: selectedProvider
+
+    /** True only while a choice is genuinely outstanding. */
+    val needsChoice: Boolean get() = gateway.canCharge && gateway.chooseable && provider == null
+
+    val canSubmit: Boolean
+        get() = amountValid && gateway.canCharge && !needsChoice && !submitting
 }
 
 @HiltViewModel
@@ -77,6 +100,10 @@ class DepositViewModel @Inject constructor(
         _state.value = _state.value.copy(amount = cleaned.take(12))
     }
 
+    fun onProvider(id: String) {
+        _state.value = _state.value.copy(selectedProvider = id)
+    }
+
     fun submit() {
         val s = _state.value
         if (!s.canSubmit) return
@@ -84,7 +111,7 @@ class DepositViewModel @Inject constructor(
         _state.value = s.copy(submitting = true)
 
         viewModelScope.launch {
-            when (val res = member.startDeposit(s.amount, key)) {
+            when (val res = member.startDeposit(s.amount, s.provider, key)) {
                 is ApiResult.Ok -> {
                     idempotencyKey = null
                     _state.value = _state.value.copy(submitting = false, amount = "")

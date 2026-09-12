@@ -85,6 +85,38 @@ fun DepositScreen(vm: DepositViewModel = hiltViewModel()) {
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             )
+                            /* Shown only when the choice is real. One provider,
+                               or an operator pin, leaves nothing to decide and
+                               a one-button segmented row is just furniture. */
+                            if (state.gateway.chooseable && state.gateway.providers.size > 1) {
+                                Spacer(Modifier.height(12.dp))
+                                Text(
+                                    stringResource(R.string.payment_method),
+                                    style = MaterialTheme.typography.labelLarge,
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                                    state.gateway.providers.forEachIndexed { i, p ->
+                                        SegmentedButton(
+                                            selected = state.provider == p.id,
+                                            onClick = { vm.onProvider(p.id) },
+                                            enabled = !state.submitting,
+                                            shape = SegmentedButtonDefaults.itemShape(
+                                                index = i,
+                                                count = state.gateway.providers.size,
+                                            ),
+                                        ) { Text(p.label) }
+                                    }
+                                }
+                                if (state.needsChoice) {
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        stringResource(R.string.choose_payment_method),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
                             Spacer(Modifier.height(12.dp))
                             Button(
                                 onClick = vm::submit,

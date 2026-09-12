@@ -72,6 +72,8 @@
     <string name="cancel">Cancel</string>
     <string name="deposit_amount">How much would you like to add?</string>
     <string name="continue_to_payment">Continue to payment</string>
+    <string name="payment_method">Payment method</string>
+    <string name="choose_payment_method">Choose a payment method to continue.</string>
     <string name="deposit_help">You will be taken to our payment provider to pay in the coin of your choice. Your wallet is credited once the payment confirms on the network.</string>
     <string name="deposit_history">Your deposits</string>
     <string name="deposits_unavailable">Deposits are unavailable right now. Please try again later or contact support.</string>

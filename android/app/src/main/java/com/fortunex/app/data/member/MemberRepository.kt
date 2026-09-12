@@ -85,9 +85,16 @@ class MemberRepository @Inject constructor(
             unwrap(apiCall { api.purchase(idempotencyKey, PurchaseRequest(packageId)) }, "purchase")
         }
 
-    suspend fun startDeposit(amount: String, idempotencyKey: String): ApiResult<Deposit> =
+    suspend fun startDeposit(
+        amount: String,
+        provider: String?,
+        idempotencyKey: String,
+    ): ApiResult<Deposit> =
         withContext(io) {
-            unwrap(apiCall { api.startDeposit(idempotencyKey, StartDepositRequest(amount)) }, "deposit")
+            unwrap(
+                apiCall { api.startDeposit(idempotencyKey, StartDepositRequest(amount, provider)) },
+                "deposit",
+            )
         }
 
     suspend fun deposits(): ApiResult<List<Deposit>> = withContext(io) {

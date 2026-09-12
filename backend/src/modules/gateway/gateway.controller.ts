@@ -6,20 +6,45 @@ import { prisma } from '../../core/db.js';
 
 const startSchema = z.object({
   amount: z.string().regex(/^\d+(\.\d{1,8})?$/, 'Amount must be a positive number'),
+  /* Optional: a single-gateway deployment, or one with DEPOSIT_GATEWAY pinned,
+     has nothing to choose. The service validates whatever arrives against what
+     is actually enabled — this only checks the shape. */
+  provider: z.enum(['nowpayments', 'oxapay']).optional(),
 });
 
-/** Whether the member app should offer gateway payment at all. */
+/**
+ * What the member may pay with.
+ *
+ * `providers` is the list to render. `canCharge` and `provider` are kept
+ * alongside it, unchanged in meaning, because an installed app build reads
+ * those — it must not break because the server learned about a second gateway.
+ */
 export const status = async (_req: Request, res: Response) => {
   const s = gatewayState();
-  const chosen = gateway.depositGateway();
-  res.json({ success: true, data: { canCharge: chosen.provider !== null, provider: chosen.provider, canPay: s.canPay, sandbox: s.sandbox } });
+  const providers = gateway.enabledGateways();
+  const pinned = gateway.pinnedGateway();
+
+  res.json({
+    success: true,
+    data: {
+      providers,
+      pinned,
+      // An operator pin removes the choice; so does having only one option.
+      chooseable: pinned === null && providers.length > 1,
+      canCharge: providers.length > 0,
+      provider: pinned ?? (providers.length === 1 ? providers[0]!.id : null),
+      canPay: s.canPay,
+      sandbox: s.sandbox,
+      reasons: providers.length === 0 ? gateway.gatewayReasons() : [],
+    },
+  });
 };
 
 /** Raise an invoice and hand the member the payment link. */
 export const start = async (req: Request, res: Response) => {
-  const { amount } = startSchema.parse(req.body);
+  const { amount, provider } = startSchema.parse(req.body);
   const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { email: true } });
-  const deposit = await gateway.startDeposit(req.userId!, amount, user?.email);
+  const deposit = await gateway.startDeposit(req.userId!, amount, provider, user?.email);
 
   res.status(201).json({
     success: true,
@@ -27,6 +52,7 @@ export const start = async (req: Request, res: Response) => {
       id: deposit.id,
       reference: deposit.reference,
       amount: deposit.amount.toString(),
+      provider: deposit.gatewayProvider,
       paymentUrl: deposit.paymentUrl,
       expiresAt: deposit.expiresAt,
     },
