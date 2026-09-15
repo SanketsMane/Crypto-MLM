@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight, BadgeCheck, CandlestickChart, Globe2, Layers,
@@ -59,10 +58,10 @@ export default async function HomePage() {
     <>
       {/* ── hero ──────────────────────────────────────────────────────── */}
       <section className="relative isolate overflow-hidden">
-        <Image
-          src="/brand/sidebar-promo.png" alt="" aria-hidden fill priority sizes="100vw"
-          className="-z-20 object-cover object-[70%_center]"
-        />
+        {/* The promotional render that sat here was the previous brand's
+            artwork. There is no operator equivalent to swap in, so the panel
+            carries one off-centre wash of the accent instead. */}
+        <span aria-hidden className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(64%_58%_at_18%_0%,color-mix(in_srgb,var(--color-gold)_12%,transparent),transparent_72%)]" />
         {/* the artwork carries its subject on the right, so the scrim runs the
             other way and the copy always has a dark ground beneath it */}
         <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-navy-deep via-navy-deep/94 to-navy-deep/40" />
@@ -80,7 +79,7 @@ export default async function HomePage() {
             </Heading>
 
             <Lead className="mt-6 max-w-[560px] text-[16px] sm:text-[17.5px]">
-              FortuneX pays a {plan.dailyReturnPercent}% daily trade bonus on invested capital,
+              The platform pays a {plan.dailyReturnPercent}% daily trade bonus on invested capital,
               {' '}{plan.tradingDays}, alongside a thirty-level affiliate network,
               executive ranks and international travel rewards. Every rule is published, every
               payout is a ledger entry.
@@ -143,7 +142,7 @@ export default async function HomePage() {
       <Section>
         <Container>
           <SectionHead
-            eyebrow="What FortuneX is"
+            eyebrow="What this is"
             title="Three income streams, one published plan"
             lead="The platform does not blend its economics into a single opaque number. Each stream has its own rules, its own qualification and its own line in your ledger."
           />

@@ -4,7 +4,7 @@ import { getPlan, planMoney } from '@/lib/platform-config.server';
 
 export const metadata: Metadata = {
   title: 'Risk disclosure',
-  description: 'The risks of trading and digital-asset products, and what the FortuneX compensation plan does and does not promise.',
+  description: 'The risks of trading and digital-asset products, and what the compensation plan does and does not promise.',
 };
 
 export default async function RiskPage() {

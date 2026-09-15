@@ -1,12 +1,12 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { X } from 'lucide-react';
 import { ADMIN_NAV } from './nav-config';
 import { useAdmin } from '@/features/admin/use-admin';
+import { BrandMark } from '@/components/layout/brand-mark';
 
 interface Props {
   collapsed: boolean;
@@ -50,18 +50,12 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: Props) {
       >
         {/* ── brand ── */}
         <div className={clsx('flex h-[88px] shrink-0 items-center', collapsed ? 'justify-center px-2' : 'px-5')}>
-          <Link href="/admin" onClick={onCloseMobile} aria-label="FortuneX"
-                className={clsx('relative block', collapsed ? 'h-9 w-[52px]' : 'h-11 w-full max-w-[188px]')}>
-            <Image
-              /* the mark is trimmed to its artwork, so object-contain fills the
-                 rail without dead margin; alpha means no blend mode is needed */
-              src={collapsed ? '/brand/FX-mark.png' : '/brand/FX-wordmark.png'}
-              alt="FortuneX"
-              fill
-              sizes={collapsed ? '52px' : '188px'}
-              priority
-              className={clsx('object-contain', collapsed ? 'object-center' : 'object-left')}
-            />
+          {/* The operator's mark. Was a pair of shipped PNGs picked by the
+              collapsed state; BrandMark makes that same choice between its
+              full lockup and the glyph alone. */}
+          <Link href="/admin" onClick={onCloseMobile} aria-label="Console home"
+                className="block w-fit">
+            <BrandMark variant={collapsed ? 'mark' : 'full'} ink="onDark" />
           </Link>
           <button onClick={onCloseMobile} aria-label="Close menu"
                   className="ml-auto rounded-[4px] p-1.5 text-white/50 hover:bg-white/10 hover:text-white lg:hidden">

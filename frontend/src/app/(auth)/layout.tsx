@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import { Lexend } from 'next/font/google';
 import Link from 'next/link';
+import { BrandMark } from '@/components/layout/brand-mark';
 import { ArrowLeft, Layers, ScrollText, ShieldCheck } from 'lucide-react';
 import { getPlan, planMoney } from '@/lib/platform-config.server';
 
@@ -33,14 +33,16 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
          className={`${lexend.variable} flex h-[100dvh] overflow-hidden bg-black font-[family-name:var(--font-lexend)] text-white [color-scheme:dark]`}>
       {/* ── brand panel ── */}
       <aside className="relative isolate hidden w-[46%] max-w-[620px] shrink-0 overflow-hidden border-r border-white/[0.07] lg:block">
-        <Image src="/brand/sidebar-promo.png" alt="" aria-hidden fill priority sizes="620px"
-               className="-z-20 object-cover object-[65%_center]" />
-        <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-black/85 via-black/75 to-black/95" />
+        {/* The promotional render that used to sit here was the shipped
+            brand's artwork, and there is no operator equivalent to swap in.
+            One off-centre wash of the accent instead — the same light the
+            marketing sections use. */}
+        <span aria-hidden
+              className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(64%_58%_at_18%_0%,color-mix(in_srgb,var(--color-gold)_13%,transparent),transparent_72%)]" />
 
         <div className="flex h-full flex-col justify-between p-10 xl:p-12">
-          <Link href="/" className="relative block h-9 w-[150px]" aria-label="FortuneX — home">
-            <Image src="/brand/Clearlogo.png" alt="FortuneX" fill sizes="150px"
-                   className="object-contain object-left mix-blend-screen" />
+          <Link href="/" className="block w-fit" aria-label="Home">
+            <BrandMark ink="onDark" />
           </Link>
 
           <div>
@@ -77,9 +79,8 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       {/* ── form column ── */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex shrink-0 items-center justify-between px-5 py-3.5 sm:px-8">
-          <Link href="/" className="relative block h-8 w-[132px] lg:hidden" aria-label="FortuneX — home">
-            <Image src="/brand/Clearlogo.png" alt="FortuneX" fill sizes="132px"
-                   className="object-contain object-left mix-blend-screen" />
+          <Link href="/" className="block w-fit lg:hidden" aria-label="Home">
+            <BrandMark ink="onDark" />
           </Link>
           <Link href="/"
                 className="ml-auto inline-flex items-center gap-1.5 text-[13px] text-white/50 transition hover:text-white">
@@ -93,7 +94,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
         <footer className="shrink-0 px-5 pb-4 sm:px-8">
           <p className="text-center text-[11.5px] text-white/55">
-            © {new Date().getFullYear()} FortuneX ·{' '}
+            © {new Date().getFullYear()} ·{' '}
             <Link href="/legal/terms" className="hover:text-white/50">Terms</Link> ·{' '}
             <Link href="/legal/privacy" className="hover:text-white/50">Privacy</Link>
           </p>

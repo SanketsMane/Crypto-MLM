@@ -11,17 +11,17 @@ import { Reveal } from './motion';
 export interface QA { q: string; a: string }
 
 const FAQS: QA[] = [
-  { q: 'What is FortuneX and how does it work?',
-    a: 'FortuneX is a global forex trading platform where members commit capital to a tier and earn a published daily trade bonus on trading days, alongside an affiliate structure that pays on the network they build.' },
-  { q: 'Which currencies and assets does FortuneX support?',
+  { q: 'How does the platform work?',
+    a: 'This is a global forex trading platform where members commit capital to a tier and earn a published daily trade bonus on trading days, alongside an affiliate structure that pays on the network they build.' },
+  { q: 'Which currencies and assets are supported?',
     a: 'Deposits and withdrawals settle in USDT on BEP-20. That is the single network we support, deliberately — one chain means one set of addresses, one fee model and no bridge risk.' },
   { q: 'How can I deposit and withdraw funds?',
     a: 'Deposits are made from your own crypto wallet. Withdrawal requests are reviewed against the published service level and paid to the payout address on your account.' },
-  { q: 'Is FortuneX secure?',
+  { q: 'Is the platform secure?',
     a: 'Balances are never written directly — every movement of value is an append-only ledger entry. Operator actions are audited with who, what, when and from where, and the log has no delete path.' },
   { q: 'How do the rewards work?',
     a: 'Four streams: the daily trade bonus on your own capital, a direct sponsor bonus on referrals, a generation bonus reaching thirty levels, and executive ranks with one-off rewards. All are capped by the published earnings ceiling.' },
-  { q: 'Does FortuneX have a mobile app?',
+  { q: 'Is there a mobile app?',
     a: 'Not yet. The platform is built mobile-first and works in any browser; a native app is on the roadmap rather than available today.' },
 ];
 

@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, KeyRound, ScrollText, ShieldCheck, UserCog } from 'lucide-react';
 import { adminApi, adminToken } from '@/lib/admin-api';
 import { toFriendlyError } from '@/lib/errors';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { BrandMark } from '@/components/layout/brand-mark';
 import {
   Field, Notice, PasswordInput, SubmitButton, TextInput, useFieldId,
 } from '@/components/auth/fields';
@@ -89,18 +89,19 @@ export default function AdminLoginPage() {
     <div data-site className="flex min-h-screen bg-navy-deep text-white [color-scheme:dark]">
       {/* ── accountability panel ── */}
       <aside className="relative isolate hidden w-[46%] max-w-[620px] shrink-0 overflow-hidden border-r border-white/[0.07] lg:block">
-        <Image src="/brand/sidebar-promo.png" alt="" aria-hidden fill priority sizes="620px"
-               className="-z-20 object-cover object-[65%_center]" />
+        {/* The promotional render that sat here was the previous brand's
+            artwork. There is no operator equivalent to swap in, so the panel
+            carries one off-centre wash of the accent instead. */}
+        <span aria-hidden className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(64%_58%_at_18%_0%,color-mix(in_srgb,var(--color-gold)_12%,transparent),transparent_72%)]" />
         {/* Heavy enough to keep the copy legible, light enough that the
             artwork still reads as texture. At 92% it washed out to a flat
             panel, which loses the brand and gains nothing. */}
         <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-navy-deep/88 via-navy-deep/72 to-navy-deep/94" />
 
         <div className="flex h-full flex-col justify-between p-10 xl:p-12">
-          <Link href="/" className="relative block h-9 w-[150px]" aria-label="FortuneX — home">
-            <Image src="/brand/Clearlogo.png" alt="FortuneX" fill sizes="150px"
-                   className="object-contain object-left mix-blend-screen" />
-          </Link>
+          <Link href="/" className="block w-fit" aria-label="Home">
+          <BrandMark ink="onDark" />
+        </Link>
 
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-brand-gold">
@@ -136,10 +137,9 @@ export default function AdminLoginPage() {
       {/* ── form column ── */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between px-5 py-5 sm:px-8">
-          <Link href="/" className="relative block h-8 w-[132px] lg:hidden" aria-label="FortuneX — home">
-            <Image src="/brand/Clearlogo.png" alt="FortuneX" fill sizes="132px"
-                   className="object-contain object-left mix-blend-screen" />
-          </Link>
+          <Link href="/" className="block w-fit lg:hidden" aria-label="Home">
+          <BrandMark ink="onDark" />
+        </Link>
           <div className="ml-auto flex items-center gap-3">
             <Link href="/"
                   className="inline-flex items-center gap-1.5 text-[13px] text-white/58 transition hover:text-white">
@@ -197,7 +197,7 @@ export default function AdminLoginPage() {
                       autoComplete="username"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@fortunex.com"
+                      placeholder="you@example.com"
                     />
                   </Field>
 
@@ -240,7 +240,7 @@ export default function AdminLoginPage() {
 
             <p className="mt-8 flex items-start gap-2.5 rounded-[5px] border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 text-[12px] leading-relaxed text-white/58">
               <ShieldCheck size={14} className="mt-0.5 shrink-0 text-white/40" />
-              FortuneX staff will never ask for your console password or a two-factor code.
+              Our staff will never ask for your console password or a two-factor code.
               If someone has, stop and report it.
             </p>
           </div>

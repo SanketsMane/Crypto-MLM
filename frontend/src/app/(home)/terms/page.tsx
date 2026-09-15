@@ -7,8 +7,8 @@ import { Card, Container, Heading } from '@/components/home/sections';
 import { Reveal } from '@/components/home/motion';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions | FortuneX',
-  description: 'The documents that govern a FortuneX account, and the commercial terms as the platform currently enforces them.',
+  title: 'Terms & Conditions',
+  description: 'The documents that govern an account, and the commercial terms as the platform currently enforces them.',
 };
 
 export const revalidate = 60;
@@ -23,7 +23,7 @@ export const revalidate = 60;
  */
 const DOCS = [
   { Icon: ScrollText, title: 'Terms of service', href: '/legal/terms',
-    body: 'The agreement between you and FortuneX — eligibility, accounts, the compensation plan, and how the relationship can end.' },
+    body: 'The agreement between you and the platform — eligibility, accounts, the compensation plan, and how the relationship can end.' },
   { Icon: Lock, title: 'Privacy policy', href: '/legal/privacy',
     body: 'What we collect, why, how long it is kept, who can see it inside the company and what you can ask us to delete.' },
   { Icon: FileText, title: 'AML & KYC policy', href: '/legal/aml-kyc',
@@ -50,7 +50,7 @@ export default async function TermsPage() {
       <PageHero
         crumb="Terms"
         title="Terms & conditions"
-        lead="Four documents govern a FortuneX account. They are written to be read, not to be survived — and the commercial figures below are pulled from the running platform rather than typed into a page."
+        lead="Four documents govern an account here. They are written to be read, not to be survived — and the commercial figures below are pulled from the running platform rather than typed into a page."
       />
 
       <section className="py-16 sm:py-20">

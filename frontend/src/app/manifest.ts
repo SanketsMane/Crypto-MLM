@@ -41,7 +41,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     theme_color: brand.primaryColor,
     categories: ['finance'],
     /**
-     * The uploaded icon, declared at both sizes, or the shipped set.
+     * The uploaded icon, declared at both sizes, or the neutral drawn mark.
      *
      * One square source serves 192 and 512 because there is no image pipeline
      * here to derive one from the other, and browsers downscale correctly. What
@@ -49,10 +49,14 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
      * upload endpoint refuses a non-square icon rather than accepting it and
      * letting Android squash it.
      *
-     * `maskable` is deliberately NOT claimed for an uploaded icon. A maskable
-     * icon is cropped to the launcher's shape, and artwork drawn without a safe
-     * zone loses its edges. The shipped maskable variant was drawn for it; an
-     * operator's upload was not, so claiming the purpose would quietly mangle it.
+     * The fallback was the shipped icon set, which put the previous brand on
+     * the home screen of anyone who installed the app before rebranding — the
+     * one place a wrong logo sits permanently on someone's device. It is now
+     * the same neutral mark the favicon and header use.
+     *
+     * `maskable` is deliberately NOT claimed. A maskable icon is cropped to the
+     * launcher's shape, and artwork drawn without a safe zone loses its edges;
+     * neither an operator's upload nor this mark was drawn for that crop.
      */
     icons: icon
       ? [
@@ -60,9 +64,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
           { src: icon, sizes: '512x512', type: 'image/png', purpose: 'any' },
         ]
       : [
-          { src: '/brand/icon-192.png',          sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/brand/icon-512.png',          sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/brand/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/brand/mark.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
         ],
     shortcuts: [
       { name: 'Deposit',  url: '/deposit' },

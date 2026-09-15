@@ -5,7 +5,7 @@ import { getPlan, planMoney } from '@/lib/platform-config.server';
 
 export const metadata: Metadata = {
   title: 'Terms of service',
-  description: 'The terms governing your use of FortuneX, your account, the compensation plan and withdrawals.',
+  description: 'The terms governing your use of the platform, your account, the compensation plan and withdrawals.',
 };
 
 export default async function TermsPage() {

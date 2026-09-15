@@ -99,7 +99,7 @@ export function GetTheApp() {
       open={open}
       onClose={close}
       width="lg"
-      title="FortuneX for Android"
+      title="Get the Android app"
       description="Check your balance, deposit, invest and withdraw from your phone. Your account, plan and network are exactly as they are here — signing in on the app changes nothing about how your account works."
       icon={
         <div className="flex size-10 shrink-0 items-center justify-center rounded-[5px] bg-violet/10 text-violet">
@@ -150,7 +150,7 @@ export function GetTheApp() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qr}
-              alt="QR code to download the FortuneX Android app"
+              alt="QR code to download the Android app"
               className="size-[112px] rounded-[5px] border border-line bg-white p-1.5"
             />
             <span className="text-[10.5px] text-ink-3">Scan to install</span>

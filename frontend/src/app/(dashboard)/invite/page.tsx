@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { get } from '@/lib/api';
 import { Card, CardHead, Button, Skeleton, Metric } from '@/components/ui/primitives';
+import { useBrandName } from '@/providers/brand-provider';
 
 interface Profile {
   profile: { userCode: string; name: string; referralLink: string };
@@ -23,6 +24,7 @@ interface Profile {
  * compose one usually sends nothing.
  */
 export default function InvitePage() {
+  const brand = useBrandName();
   const me = useQuery<Profile>({
     queryKey: ['member', 'dashboard'],
     queryFn: () => get('/customer/dashboard'),
@@ -52,6 +54,7 @@ export default function InvitePage() {
 // ── the link itself ───────────────────────────────────────────────────────
 
 function LinkCard({ link, code }: { link: string; code: string }) {
+  const brand = useBrandName();
   const [copied, setCopied] = useState<'link' | 'code' | null>(null);
 
   const copy = async (value: string, which: 'link' | 'code') => {
@@ -64,7 +67,7 @@ function LinkCard({ link, code }: { link: string; code: string }) {
   const share = async () => {
     if (!navigator.share) return copy(link, 'link');
     try {
-      await navigator.share({ title: 'Join me on FortuneX', url: link });
+      await navigator.share({ title: `Join me on ${brand}`, url: link });
     } catch {
       // The member cancelled the sheet. Not an error.
     }
@@ -115,26 +118,27 @@ const MESSAGES = [
     key: 'short',
     label: 'Short',
     hint: 'For a chat where they already know you',
-    text: (link: string) =>
-      `I've been using FortuneX — investment packages that pay a daily return, Monday to Friday. Have a look: ${link}`,
+    text: (link: string, _name: string, brand: string) =>
+      `I've been using ${brand} — investment packages that pay a daily return, Monday to Friday. Have a look: ${link}`,
   },
   {
     key: 'explainer',
     label: 'With detail',
     hint: 'For someone who has not heard of it',
-    text: (link: string, name: string) =>
-      `Hi — ${name} here.\n\nI'm on FortuneX, a platform where you buy an investment package and earn a set daily return on it, Monday to Friday. There's also a referral side if you want to build a team, and everything pays out in USDT.\n\nThe whole compensation plan is published on the site, so you can read exactly how it works before putting anything in.\n\nHere's my link: ${link}`,
+    text: (link: string, name: string, brand: string) =>
+      `Hi — ${name} here.\n\nI'm on ${brand}, a platform where you buy an investment package and earn a set daily return on it, Monday to Friday. There's also a referral side if you want to build a team, and everything pays out in USDT.\n\nThe whole compensation plan is published on the site, so you can read exactly how it works before putting anything in.\n\nHere's my link: ${link}`,
   },
   {
     key: 'honest',
     label: 'Straightforward',
     hint: 'Leads with the risk — often lands better',
-    text: (link: string) =>
-      `Worth a look if you're interested: FortuneX pays a daily return on investment packages and publishes the full plan, including the earnings cap and the fees.\n\nIt's an investment, so it carries risk and you should read the risk disclosure before deciding. If you want to look: ${link}`,
+    text: (link: string, _name: string, brand: string) =>
+      `Worth a look if you're interested: ${brand} pays a daily return on investment packages and publishes the full plan, including the earnings cap and the fees.\n\nIt's an investment, so it carries risk and you should read the risk disclosure before deciding. If you want to look: ${link}`,
   },
 ] as const;
 
 function MessagesCard({ link, name }: { link: string; name: string }) {
+  const brand = useBrandName();
   const [copied, setCopied] = useState<string | null>(null);
 
   const copy = async (key: string, text: string) => {
@@ -152,7 +156,7 @@ function MessagesCard({ link, name }: { link: string; name: string }) {
       />
       <div className="space-y-3 px-5 pb-5">
         {MESSAGES.map((m) => {
-          const text = m.text(link, name);
+          const text = m.text(link, name, brand);
           return (
             <div key={m.key} className="rounded-[5px] border border-line bg-canvas p-3">
               <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">

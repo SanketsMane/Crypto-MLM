@@ -10,7 +10,7 @@ import { rankLabelAt } from '@/lib/rank';
 export const metadata: Metadata = {
   title: 'Rewards & ranks',
   description:
-    'The FortuneX affiliate structure: a three-level direct bonus, a thirty-level generation bonus, ten executive ranks and the affiliate offers.',
+    'The affiliate structure: a three-level direct bonus, a thirty-level generation bonus, ten executive ranks and the affiliate offers.',
 };
 
 export default async function RewardsPage() {

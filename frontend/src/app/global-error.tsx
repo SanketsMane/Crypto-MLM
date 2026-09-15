@@ -24,7 +24,7 @@ export default function GlobalError({
       <head>
         {/* metadata exports are unsupported in a client boundary; React renders
             the title element into the document head instead. */}
-        <title>Something went wrong — FortuneX</title>
+        <title>Something went wrong</title>
       </head>
       <body
         style={{
@@ -53,7 +53,7 @@ export default function GlobalError({
           </div>
 
           <h1 style={{ fontSize: 20, fontWeight: 600, margin: '0 0 12px' }}>
-            FortuneX could not load
+            This page could not load
           </h1>
 
           <p style={{ fontSize: 14, lineHeight: 1.6, margin: '0 0 8px', color: '#A9B4C4' }}>

@@ -13,7 +13,12 @@
 
 export type Theme = 'light' | 'dark';
 
-export const THEME_KEY = 'fortuneX-theme';
+/* Renamed from 'fortuneX-theme'. It is an internal storage key, but it was
+   inlined into the pre-paint script and therefore visible in the served HTML
+   of every page — the last trace of the old brand on the wire. Renaming costs
+   one theme-preference reset per returning visitor, which lands on the
+   default anyway. */
+export const THEME_KEY = 'app-theme';
 
 /** Reads the theme currently applied to <html> (set before paint). */
 export function domTheme(): Theme {

@@ -94,7 +94,7 @@ export function DestinationDetail({ tier, onClose }: { tier: TierView | null; on
               still holds is that nothing is credited to a wallet: an award is
               fulfilled by a person, not by the ledger. */}
           {tier.achieved
-            ? `Qualified${tier.achievedAt ? ` on ${shortDate(tier.achievedAt)}` : ''}${tier.status ? ` · award status: ${tier.status.toLowerCase()}` : ''}. Awards are entitlements rather than credited income — the FortuneX team arranges fulfilment and will be in touch.`
+            ? `Qualified${tier.achievedAt ? ` on ${shortDate(tier.achievedAt)}` : ''}${tier.status ? ` · award status: ${tier.status.toLowerCase()}` : ''}. Awards are entitlements rather than credited income — the Our team arranges fulfilment and will be in touch.`
             : tier.needsTeam && tier.needsSelf
               ? 'Both requirements must be met before this is awarded. Qualification is evaluated automatically as your capital and team business grow.'
               : tier.needsTeam

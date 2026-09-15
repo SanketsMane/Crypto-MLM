@@ -1,23 +1,25 @@
 import type { Metadata } from 'next';
 import { Clock, Mail, MapPin, ShieldCheck } from 'lucide-react';
 import { getPlan } from '@/lib/platform-config.server';
+import { getBranding } from '@/lib/branding.server';
 import { PageHero } from '@/components/home/page-hero';
 import { Card, Container, Heading } from '@/components/home/sections';
 import { Reveal } from '@/components/home/motion';
 import { ContactForm } from '@/components/home/contact-form';
 
 export const metadata: Metadata = {
-  title: 'Contact | FortuneX',
-  description: 'Reach the FortuneX team — support, verification, deposits and withdrawals.',
+  title: 'Contact',
+  description: 'Reach our team — support, verification, deposits and withdrawals.',
 };
 
 export const revalidate = 60;
 
 export default async function ContactPage() {
+  const brand = await getBranding();
   const plan = await getPlan();
 
   const DETAILS = [
-    { Icon: Mail, title: 'Email us', body: 'support@fortunex.com', hint: 'The fastest route for anything account-specific.' },
+    { Icon: Mail, title: 'Email us', body: brand.supportEmail, hint: 'The fastest route for anything account-specific.' },
     { Icon: MapPin, title: 'Where we are', body: 'Business Bay, Dubai', hint: 'Members across more than twenty countries.' },
     { Icon: Clock, title: 'Payout schedule', body: plan.payout.label ?? `${plan.withdraw.slaHours} hours`, hint: `Requests accepted any time. Settled in ${plan.withdraw.network}.` },
   ];
@@ -58,7 +60,7 @@ export default async function ContactPage() {
 
               <p className="mt-7 flex items-start gap-2.5 rounded-xl border border-[var(--home-line)] bg-[var(--home-surface)] px-4 py-3.5 text-[12.5px] leading-relaxed text-[var(--home-text-2)]">
                 <ShieldCheck size={15} className="mt-px shrink-0 text-[var(--home-gold)]" aria-hidden />
-                FortuneX will never ask for your password, a recovery phrase or a one-time code by
+                We will never ask for your password, a recovery phrase or a one-time code by
                 email, chat or phone.
               </p>
             </Reveal>

@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import { Check, Copy } from 'lucide-react';
 import { usd, shortDate } from '@/lib/format';
+import { BrandMark } from '@/components/layout/brand-mark';
 
 interface MemberCardProps {
   name: string;
@@ -37,19 +37,14 @@ export function MemberCard({
     <div className="metal-card overflow-hidden rounded-[5px]">
       {/* The mark is the one place gold appears — the rest of the card is
           steel, so the branding lands without shouting. */}
+      {/* Just "Member". The mark sits beside it and already says whose card
+          this is — naming the brand twice in one row was redundant even
+          before it became an operator setting. */}
       <div className="flex items-start justify-between gap-3">
         <p className="metal-card-brand font-medium uppercase tracking-[0.22em]">
-          FortuneX Member
+          Member
         </p>
-        <Image
-          src="/brand/FX-mark.png"
-          alt=""
-          aria-hidden
-          width={192}
-          height={102}
-          sizes="84px"
-          className="metal-card-logo -mt-0.5 h-auto shrink-0 opacity-95 [filter:drop-shadow(0_1px_2px_rgba(0,0,0,0.55))]"
-        />
+        <BrandMark ink="onDark" />
       </div>
 
       <div className="min-w-0">

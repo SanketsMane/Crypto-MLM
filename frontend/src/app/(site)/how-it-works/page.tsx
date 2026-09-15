@@ -12,7 +12,7 @@ type Plan = Awaited<ReturnType<typeof getPlan>>;
 export const metadata: Metadata = {
   title: 'How it works',
   description:
-    'From deposit to withdrawal: how the daily trade bonus accrues, how the earnings ceiling is applied, and how money moves through FortuneX.',
+    'From deposit to withdrawal: how the daily trade bonus accrues, how the earnings ceiling is applied, and how money moves through the platform.',
 };
 
 const WALLETS = [

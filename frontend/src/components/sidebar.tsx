@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import {
   LayoutDashboard, Package, TrendingUp, Wallet, Users, Network,
   Trophy, Plane, ArrowDownToLine, LifeBuoy, User, LogOut, ShieldCheck } from 'lucide-react';
 import { useLogout } from '@/features/auth/use-auth';
+import { BrandMark } from '@/components/layout/brand-mark';
 
 const NAV = [
   { href: '/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
@@ -33,8 +33,7 @@ export function Sidebar() {
     <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col bg-navy">
       <div className="flex h-[88px] items-center px-5">
         <Link href="/dashboard" className="relative block h-11 w-full max-w-[188px]">
-          <Image src="/brand/FX-wordmark.png" alt="FortuneX" fill sizes="188px" priority
-                 className="object-contain object-left" />
+          <BrandMark ink="onDark" />
         </Link>
       </div>
 

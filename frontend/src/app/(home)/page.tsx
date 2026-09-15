@@ -15,7 +15,7 @@ import { Faq } from '@/components/home/faq';
  */
 export const revalidate = 60;
 
-export default async function FortuneXHome() {
+export default async function PublicHomePage() {
   const plan = await getPlan();
 
   const minimum = plan.cfg.investment.minimum;

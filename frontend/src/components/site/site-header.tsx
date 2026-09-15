@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { ArrowRight, Menu, X } from 'lucide-react';
+import { BrandMark } from '@/components/layout/brand-mark';
 
 const NAV = [
   { href: '/about', label: 'About' },
@@ -53,9 +53,8 @@ export function SiteHeader() {
     >
       <nav className="mx-auto flex h-[68px] w-full max-w-[1200px] items-center gap-6 px-5 sm:h-[76px] sm:px-8"
            aria-label="Primary">
-        <Link href="/" className="relative block h-8 w-[132px] shrink-0 sm:h-9 sm:w-[150px]" aria-label="FortuneX — home">
-          <Image src="/brand/Clearlogo.png" alt="FortuneX" fill sizes="150px" priority
-                 className="object-contain object-left mix-blend-screen" />
+        <Link href="/" className="block w-fit shrink-0 sm:h-9 sm:w-[150px]" aria-label="Home">
+          <BrandMark ink="onDark" />
         </Link>
 
         <ul className="ml-auto hidden items-center gap-1 lg:flex">

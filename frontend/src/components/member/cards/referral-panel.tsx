@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Check, Copy, Share2, Users } from 'lucide-react';
 import { Card, CardHead } from '@/components/ui/primitives';
 import { num, usd } from '@/lib/format';
+import { useBrandName } from '@/providers/brand-provider';
 
 export function ReferralPanel({ profile, team, className }: {
   profile?: { userCode: string; referralLink: string };
@@ -11,6 +12,7 @@ export function ReferralPanel({ profile, team, className }: {
   /** Surface style from the caller — /team and the dashboard differ. */
   className?: string;
 }) {
+  const brand = useBrandName();
   const [copied, setCopied] = useState<'link' | 'code' | null>(null);
   const copy = async (what: 'link' | 'code', value: string) => {
     try { await navigator.clipboard.writeText(value); setCopied(what); setTimeout(() => setCopied(null), 1800); } catch {}
@@ -19,7 +21,7 @@ export function ReferralPanel({ profile, team, className }: {
   const share = async () => {
     if (!profile?.referralLink) return;
     if (navigator.share) {
-      await navigator.share({ title: 'Join me on FortuneX', url: profile.referralLink }).catch(() => undefined);
+      await navigator.share({ title: `Join me on ${brand}`, url: profile.referralLink }).catch(() => undefined);
     } else void copy('link', profile.referralLink);
   };
 

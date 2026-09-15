@@ -5,7 +5,7 @@ import { LegalPage } from '@/components/home/legal-page';
 export const metadata: Metadata = {
   title: 'Cookie policy',
   description:
-    'FortuneX sets no cookies. What the platform stores in your browser instead, why, and how to clear it.',
+    'This platform sets no cookies. What it stores in your browser instead, why, and how to clear it.',
 };
 
 /**
@@ -20,14 +20,14 @@ export default function CookiePolicyPage() {
       current="/legal/cookies"
       updated="23 August 2026"
       title="Cookie policy"
-      summary="The short version: FortuneX does not set cookies. This explains what it stores in your browser instead, and why there is no consent banner."
+      summary="The short version: this platform does not set cookies. This explains what it stores in your browser instead, and why there is no consent banner."
       sections={[
         {
           heading: 'We do not use cookies',
           body: (
             <>
               <p>
-                FortuneX sets no cookies of its own — not for sessions, not for preferences and
+                This platform sets no cookies of its own — not for sessions, not for preferences and
                 not for analytics. Nothing about your visit is written to a cookie by us.
               </p>
               <p>
@@ -52,7 +52,7 @@ export default function CookiePolicyPage() {
                 <li><strong>fx_access</strong> — your short-lived access token, which authorises requests while you are signed in.</li>
                 <li><strong>fx_refresh</strong> — a longer-lived token used to renew the above without making you sign in again.</li>
                 <li><strong>fx_admin_refresh</strong> — the equivalent for an operator signed into the admin console.</li>
-                <li><strong>fortuneX-theme</strong> — whether you chose the light or dark theme, so it is applied before the first paint.</li>
+                <li><strong>app-theme</strong> — whether you chose the light or dark theme, so it is applied before the first paint.</li>
                 <li><strong>fx_support_view</strong> — set only when an operator is viewing an account through the support desk, so the interface can say so plainly.</li>
               </ul>
               <p>

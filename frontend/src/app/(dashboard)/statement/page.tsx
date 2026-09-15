@@ -6,6 +6,7 @@ import { Printer, FileText } from 'lucide-react';
 import { get } from '@/lib/api';
 import { Card, CardHead, Button, Skeleton, controlCls } from '@/components/ui/primitives';
 import { usd } from '@/lib/format';
+import { useBrandName } from '@/providers/brand-provider';
 
 interface Entry {
   date: string; reference: string; description: string; category: string;
@@ -47,6 +48,7 @@ const title = (s: string) => s.replace(/_/g, ' ').toLowerCase().replace(/^\w/, (
  * the browser's own "save as PDF" produces a better file than most libraries.
  */
 export default function StatementPage() {
+  const brand = useBrandName();
   const now = new Date();
   const [month, setMonth] = useState(monthValue(now));
 
@@ -99,7 +101,10 @@ export default function StatementPage() {
 
             <header className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
               <div>
-                <p className="text-[19px] font-bold tracking-[-0.02em] text-gold">FortuneX</p>
+                {/* A statement is a document someone may file or forward, so
+                    this is one of the few places the operator's name genuinely
+                    has to appear rather than being removed. */}
+                <p className="text-[19px] font-bold tracking-[-0.02em] text-gold">{brand}</p>
                 <p className="mt-0.5 text-[12px] text-ink-2">Account statement</p>
               </div>
               <div className="text-right">

@@ -4,7 +4,7 @@ import { LegalPage } from '@/components/home/legal-page';
 
 export const metadata: Metadata = {
   title: 'Privacy policy',
-  description: 'What personal data FortuneX collects, why it is held, how long it is kept and the rights you have over it.',
+  description: 'What personal data we collect, why it is held, how long it is kept and the rights you have over it.',
 };
 
 export default function PrivacyPage() {

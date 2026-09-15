@@ -7,9 +7,9 @@ import { Card, Container, Heading, SectionHead } from '@/components/home/section
 import { Reveal, CountUp } from '@/components/home/motion';
 
 export const metadata: Metadata = {
-  title: 'About | FortuneX',
+  title: 'About',
   description:
-    'FortuneX is a trading and affiliate platform built on a published compensation plan, a double-entry ledger and an append-only audit trail.',
+    'A trading and affiliate platform built on a published compensation plan, a double-entry ledger and an append-only audit trail.',
 };
 
 export const revalidate = 60;
@@ -70,7 +70,7 @@ export default async function AboutPage() {
               <Heading>Built for people who read the terms</Heading>
               <div className="mt-6 space-y-4 text-[14.5px] leading-[1.85] text-[var(--home-text-2)]">
                 <p>
-                  FortuneX combines a trading return on committed capital with an affiliate structure
+                  This platform combines a trading return on committed capital with an affiliate structure
                   that rewards members for building a network. Both exist elsewhere. What is unusual
                   is how little of it is left to interpretation.
                 </p>
@@ -173,7 +173,7 @@ export default async function AboutPage() {
         <Container>
           <div className="grid gap-10 lg:grid-cols-3">
             {[
-              { t: 'Where we are', b: 'FortuneX operates from Business Bay, Dubai, with members across more than twenty countries. Support is handled in-platform so every exchange stays attached to the account it concerns.' },
+              { t: 'Where we are', b: 'We operate from Business Bay, Dubai, with members across more than twenty countries. Support is handled in-platform so every exchange stays attached to the account it concerns.' },
               { t: 'How support works', b: 'Tickets are answered by named operators, not a shared mailbox. The person replying can see your ledger, your capping position and your network — which is why answers arrive with figures in them.' },
               { t: 'Verification', b: 'Identity documents are held privately, outside any public path, and are visible only to a reviewer with the compliance capability. A decision records who made it and why.' },
             ].map((o, i) => (

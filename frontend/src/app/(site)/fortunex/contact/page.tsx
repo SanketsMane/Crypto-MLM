@@ -5,13 +5,16 @@ import { Container, Panel, Section, SectionHead } from '@/components/site/primit
 import { PageHero } from '@/components/site/page-hero';
 import { ContactForm } from '@/components/site/contact-form';
 import { getPlan, planMoney } from '@/lib/platform-config.server';
+import { getBranding } from '@/lib/branding.server';
 
 export const metadata: Metadata = {
   title: 'Contact',
-  description: 'Talk to the FortuneX team about your account, the compensation plan, or a partnership.',
+  description: 'Talk to our team about your account, the compensation plan, or a partnership.',
 };
 
-const CHANNELS = [
+/* Takes the support address rather than closing over a constant — it is an
+   operator setting now, read per request. */
+const CHANNELS = (supportEmail: string) => [
   {
     Icon: LifeBuoy,
     title: 'Existing members',
@@ -22,7 +25,7 @@ const CHANNELS = [
     Icon: Mail,
     title: 'Email',
     body: 'For anything that is not account-specific — the plan, partnerships, media or compliance questions.',
-    action: { href: 'mailto:support@fortunex.com', label: 'support@fortunex.com' },
+    action: { href: `mailto:${supportEmail}`, label: supportEmail },
   },
   {
     Icon: MessageCircle,
@@ -33,7 +36,7 @@ const CHANNELS = [
 ];
 
 export default async function ContactPage() {
-  const plan = await getPlan();
+  const [plan, brand] = await Promise.all([getPlan(), getBranding()]);
 
   return (
     <>
@@ -58,7 +61,7 @@ export default async function ContactPage() {
 
             {/* ── channels and details ── */}
             <div className="space-y-4 lg:col-span-5">
-              {CHANNELS.map(({ Icon, title, body, action }) => (
+              {CHANNELS(brand.supportEmail).map(({ Icon, title, body, action }) => (
                 <Panel key={title} hover className="p-6">
                   <span className="grid h-10 w-10 place-items-center rounded-xl border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
                     <Icon size={17} strokeWidth={1.9} />
@@ -99,7 +102,7 @@ export default async function ContactPage() {
                 <div>
                   <h3 className="text-[14.5px] font-semibold text-white">Beware of impersonation</h3>
                   <p className="mt-1.5 text-[12.5px] leading-[1.7] text-white/60">
-                    FortuneX staff will never ask for your password, a recovery phrase, a private
+                    Our staff will never ask for your password, a recovery phrase, a private
                     key or a one-time code — not by email, not on Telegram, not on a call. We will
                     never ask you to send funds to a personal wallet. If someone does, it is not
                     us; report it here.

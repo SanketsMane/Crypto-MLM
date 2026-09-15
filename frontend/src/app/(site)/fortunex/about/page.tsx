@@ -12,7 +12,7 @@ type Plan = Awaited<ReturnType<typeof getPlan>>;
 export const metadata: Metadata = {
   title: 'About',
   description:
-    'FortuneX is a trading and affiliate platform built on a published compensation plan, a double-entry ledger and an append-only audit trail.',
+    'A trading and affiliate platform built on a published compensation plan, a double-entry ledger and an append-only audit trail.',
 };
 
 const VALUES = (plan: Plan) => [
@@ -39,7 +39,7 @@ const VALUES = (plan: Plan) => [
 ];
 
 const MILESTONES = [
-  { year: 'Foundation', title: 'A plan worth building', body: 'FortuneX began with a compensation plan written before a line of code: ten tiers, a daily trade bonus, a thirty-level network and a hard earnings ceiling.' },
+  { year: 'Foundation', title: 'A plan worth building', body: 'This platform began with a compensation plan written before a line of code: ten tiers, a daily trade bonus, a thirty-level network and a hard earnings ceiling.' },
   { year: 'The ledger', title: 'Money as records, not balances', body: 'The platform was built on double-entry principles from day one. A balance is the sum of its entries, which is why every figure a member sees can be traced.' },
   { year: 'Controls', title: 'Roles, audit and idempotency', body: 'Operator capability is granted per action rather than per job title, every mutation is audited, and money-moving endpoints refuse a replayed request.' },
   { year: 'Today', title: 'Compliance and scale', body: 'Identity verification, a support desk, runtime-tunable business rules and a payout engine an operator can actually see are all part of the running platform.' },
@@ -79,7 +79,7 @@ export default async function AboutPage() {
   return (
     <>
       <PageHero
-        eyebrow="About FortuneX"
+        eyebrow="About us"
         title="A trading platform that publishes its own rules"
         lead="Most platforms in this space ask you to trust a number. We would rather you checked ours — so the compensation plan, the earnings ceiling, the fees and the controls behind them are all stated in public, in the same terms the software applies them."
       />
@@ -92,7 +92,7 @@ export default async function AboutPage() {
               <SectionHead eyebrow="Our position" title="Built for people who read the terms" />
               <div className="mt-6 space-y-4 text-[14.5px] leading-[1.8] text-white/62">
                 <p>
-                  FortuneX combines a trading return on committed capital with an affiliate
+                  This platform combines a trading return on committed capital with an affiliate
                   structure that rewards members for building a network. Both of those things
                   exist elsewhere. What is unusual is how little of it is left to interpretation.
                 </p>
@@ -200,7 +200,7 @@ export default async function AboutPage() {
         <Container>
           <div className="grid gap-10 lg:grid-cols-3">
             {[
-              { Icon: Building2, title: 'Where we are', body: 'FortuneX operates from Business Bay, Dubai, with members across more than twenty countries. Support is handled in-platform so every exchange stays attached to the account it concerns.' },
+              { Icon: Building2, title: 'Where we are', body: 'We operate from Business Bay, Dubai, with members across more than twenty countries. Support is handled in-platform so every exchange stays attached to the account it concerns.' },
               { Icon: Users, title: 'How support works', body: 'Tickets are answered by named operators, not a shared mailbox. The person replying can see your ledger, your capping position and your network — which is why answers arrive with figures in them.' },
               { Icon: ShieldCheck, title: 'Verification', body: 'Identity documents are held privately, outside any public path, and are visible only to a reviewer with the compliance capability. A decision records who made it and why.' },
             ].map(({ Icon, title, body }) => (
@@ -218,7 +218,7 @@ export default async function AboutPage() {
 
       <CtaBand
         title="Read the plan, then decide"
-        lead="Everything that governs an account on FortuneX is published before you open one. Start with the tiers, or talk to us first."
+        lead="Everything that governs an account here is published before you open one. Start with the tiers, or talk to us first."
       />
     </>
   );

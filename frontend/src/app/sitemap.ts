@@ -17,7 +17,7 @@ const PAGES = [
   { path: '/legal/aml-kyc', priority: 0.3, changeFrequency: 'yearly' as const },
 ];
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://fortunex.com';
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3010';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();

@@ -115,27 +115,33 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     /**
      * Declared explicitly, because the file conventions that used to supply
-     * these are gone. When the operator has uploaded nothing we fall back to
-     * the shipped PNG rather than emitting no icon at all — a tab with the
-     * browser's blank-page glyph looks broken in a way an unset brand does not.
+     * these are gone.
+     *
+     * The fallback is a neutral drawn mark, not the shipped icon PNGs — those
+     * carried the previous brand, so an operator who had rebranded everything
+     * else still had someone else's logo in the browser tab. Emitting no icon
+     * at all is worse again: a tab with the blank-page glyph reads as broken.
      */
     icons: {
-      icon: icon ?? '/brand/icon-512.png',
-      shortcut: icon ?? '/brand/icon-512.png',
-      apple: icon ?? '/brand/icon-192.png',
+      icon: icon ?? '/brand/mark.svg',
+      shortcut: icon ?? '/brand/mark.svg',
+      apple: icon ?? '/brand/mark.svg',
     },
     openGraph: {
       type: 'website',
       siteName: name,
       title,
       description,
-      images: [{ url: social ?? '/brand/grow-network.png', width: 1200, height: 630, alt: name }],
+      /* No branded stand-in. A social card is the most public surface there
+         is; shipping the old brand's artwork on it is worse than shipping
+         none, and the platform falls back to a text card. */
+      ...(social ? { images: [{ url: social, width: 1200, height: 630, alt: name }] } : {}),
     },
     twitter: {
-      card: 'summary_large_image',
+      card: social ? 'summary_large_image' : 'summary',
       title,
       description,
-      images: [social ?? '/brand/grow-network.png'],
+      ...(social ? { images: [social] } : {}),
     },
     robots: { index: true, follow: true },
   };

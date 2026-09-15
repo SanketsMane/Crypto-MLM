@@ -7,8 +7,8 @@ import { Container, SectionHead, CtaBand } from '@/components/home/sections';
 import { Figure, Reveal } from '@/components/home/motion';
 
 export const metadata: Metadata = {
-  title: 'Opportunity | FortuneX',
-  description: 'The four ways FortuneX pays — a daily trade bonus on invested capital, direct and generation bonuses, executive ranks and the affiliate offers.',
+  title: 'Opportunity',
+  description: 'The four ways the platform pays — a daily trade bonus on invested capital, direct and generation bonuses, executive ranks and the affiliate offers.',
 };
 
 export const revalidate = 60;

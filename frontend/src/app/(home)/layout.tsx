@@ -18,7 +18,7 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: 'FortuneX | Smarter Forex Trading Solutions',
+  title: 'Smarter Forex Trading Solutions',
   description:
     'A global trading ecosystem built on transparency, technology and trust — daily trade bonuses, a thirty-level network, executive ranks and travel rewards.',
 };
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
  *
  * The previous home page still exists, unchanged, at /fortunex.
  */
-export default function FortuneXLayout({ children }: { children: React.ReactNode }) {
+export default function PublicSiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <div data-home className={`${lexend.variable} min-h-screen overflow-x-hidden antialiased`}>
       {/* Decides whether the intro runs, during parse and before the first

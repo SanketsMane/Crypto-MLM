@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const plan = await getPlan();
   return {
   title: 'Investment plans',
-  description: `Ten FortuneX tiers from ${planMoney(plan.packages[0])} to ${planMoney(plan.packages[plan.packages.length - 1])}, each accruing ${plan.dailyReturnPercent}% per trading day up to a ${plan.capPassivePercent}% earnings ceiling.`,
+  description: `Ten tiers from ${planMoney(plan.packages[0])} to ${planMoney(plan.packages[plan.packages.length - 1])}, each accruing ${plan.dailyReturnPercent}% per trading day up to a ${plan.capPassivePercent}% earnings ceiling.`,
 };
 }
 
@@ -79,7 +79,7 @@ export default async function PlansPage() {
           <div className="mt-10 overflow-x-auto rounded-2xl border border-white/[0.07]">
             <table className="w-full min-w-[720px] border-collapse text-left">
               <caption className="sr-only">
-                FortuneX investment tiers with daily bonus, weekly bonus and earnings ceiling
+                Investment tiers with daily bonus, weekly bonus and earnings ceiling
               </caption>
               <thead>
                 <tr className="bg-navy-deep/70">

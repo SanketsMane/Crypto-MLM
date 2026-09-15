@@ -1,7 +1,8 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { Mail, MapPin, MessageCircle, Send } from 'lucide-react';
 import { Container } from './primitives';
+import { BrandMark } from '@/components/layout/brand-mark';
+import { getBranding } from '@/lib/branding.server';
 
 const COLUMNS: { title: string; links: { href: string; label: string; external?: boolean }[] }[] = [
   {
@@ -16,7 +17,7 @@ const COLUMNS: { title: string; links: { href: string; label: string; external?:
   {
     title: 'Company',
     links: [
-      { href: '/about', label: 'About FortuneX' },
+      { href: '/about', label: 'About us' },
       { href: '/about#security', label: 'Security' },
       { href: '/contact', label: 'Contact us' },
       { href: '/faq', label: 'Help centre' },
@@ -33,13 +34,16 @@ const COLUMNS: { title: string; links: { href: string; label: string; external?:
   },
 ];
 
-const SOCIAL = [
+/* Takes the support address: it is an operator setting, read per request,
+   not a constant compiled into the bundle. */
+const SOCIAL = (supportEmail: string) => [
   { href: 'https://t.me/', label: 'Telegram', Icon: Send },
   { href: 'https://wa.me/', label: 'WhatsApp', Icon: MessageCircle },
-  { href: 'mailto:support@fortunex.com', label: 'Email', Icon: Mail },
+  { href: `mailto:${supportEmail}`, label: 'Email', Icon: Mail },
 ];
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const brand = await getBranding();
   const year = new Date().getFullYear();
 
   return (
@@ -48,10 +52,9 @@ export function SiteFooter() {
         {/* ── main columns ── */}
         <div className="grid gap-10 py-14 sm:py-16 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-4">
-            <Link href="/" className="relative block h-9 w-[150px]" aria-label="FortuneX — home">
-              <Image src="/brand/Clearlogo.png" alt="FortuneX" fill sizes="150px"
-                     className="object-contain object-left mix-blend-screen" />
-            </Link>
+            <Link href="/" className="block w-fit" aria-label="Home">
+          <BrandMark ink="onDark" />
+        </Link>
             <p className="mt-4 max-w-[38ch] text-[13.5px] leading-[1.75] text-white/55">
               A trading and affiliate platform built on a transparent compensation plan — every
               payout traceable to a ledger entry, every rule published rather than implied.
@@ -64,12 +67,12 @@ export function SiteFooter() {
               </li>
               <li className="flex items-start gap-2.5">
                 <Mail size={15} className="mt-0.5 shrink-0 text-brand-gold/80" />
-                <a href="mailto:support@fortunex.com" className="transition hover:text-white">support@fortunex.com</a>
+                <a href={`mailto:${brand.supportEmail}`} className="transition hover:text-white">{brand.supportEmail}</a>
               </li>
             </ul>
 
             <div className="mt-5 flex gap-2">
-              {SOCIAL.map(({ href, label, Icon }) => (
+              {SOCIAL(brand.supportEmail).map(({ href, label, Icon }) => (
                 <a
                   key={label} href={href} aria-label={label}
                   target={href.startsWith('http') ? '_blank' : undefined}
@@ -132,7 +135,7 @@ export function SiteFooter() {
         {/* ── legal strip ── */}
         <div className="flex flex-col gap-3 border-t border-white/[0.06] py-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[12.5px] text-white/58">
-            © {year} FortuneX. All rights reserved.
+            © {year}. All rights reserved.
           </p>
           <ul className="flex flex-wrap gap-x-5 gap-y-2">
             {[

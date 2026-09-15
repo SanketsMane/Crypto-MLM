@@ -202,9 +202,9 @@ export function Trust() {
           </Reveal>
 
           <Reveal from="right">
-            <SectionHead eyebrow="Trust and Security with FortuneX" title="Forex Trading" />
+            <SectionHead eyebrow="Trust and security" title="Forex Trading" />
             <p className="mt-4 text-[14.5px] leading-[1.85] text-[var(--home-text-2)]">
-              FortuneX pairs AI-assisted trading strategy with transparent transactions and fully
+              We pair AI-assisted trading strategy with transparent transactions and fully
               segregated customer funds, so every position and every payout can be accounted for.
             </p>
 

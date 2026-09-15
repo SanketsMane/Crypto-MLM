@@ -200,11 +200,10 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr]">
           <div>
             <div className="relative h-[46px] w-[190px]">
-              <Image src="/brand/Clearlogo.png" alt="FortuneX" fill sizes="190px"
-                     className="object-contain object-left" />
+              <BrandMark />
             </div>
             <p className="mt-5 max-w-[46ch] text-[13.5px] leading-[1.8] text-[var(--home-text-2)]">
-              At FortuneX we make forex trading simple, transparent and
+              We make forex trading simple, transparent and
               accessible for everyone.
             </p>
             <ul className="mt-6 flex items-center gap-2.5">
@@ -242,7 +241,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--home-line)] pt-6 text-[12.5px] text-[var(--home-text-3)]">
-          <p>Copyright {new Date().getFullYear()} — FortuneX. All rights reserved.</p>
+          <p>Copyright {new Date().getFullYear()}. All rights reserved.</p>
           <div className="flex gap-5">
             <Link href="/legal/privacy" className="transition hover:text-[var(--home-gold)]">Privacy Policy</Link>
             <Link href="/legal/cookies" className="transition hover:text-[var(--home-gold)]">Cookie Policy</Link>

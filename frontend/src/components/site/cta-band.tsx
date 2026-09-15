@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { Container, Heading } from './primitives';
 
@@ -10,10 +9,10 @@ export function CtaBand({
 }: { title?: string; lead?: string }) {
   return (
     <section className="relative isolate overflow-hidden border-y border-white/[0.07] bg-navy">
-      <Image
-        src="/brand/sidebar-promo.png" alt="" aria-hidden fill sizes="100vw"
-        className="-z-10 object-cover object-right opacity-[0.5]"
-      />
+      {/* The promotional render that sat here was the previous brand's
+            artwork. There is no operator equivalent to swap in, so the panel
+            carries one off-centre wash of the accent instead. */}
+        <span aria-hidden className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(64%_58%_at_18%_0%,color-mix(in_srgb,var(--color-gold)_12%,transparent),transparent_72%)]" />
       <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-navy via-navy/92 to-navy/45" />
 
       <Container className="py-16 sm:py-20">

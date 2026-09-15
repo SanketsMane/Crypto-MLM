@@ -5,7 +5,7 @@ import { Faq, type QA } from '@/components/home/faq';
 import { CtaBand } from '@/components/home/sections';
 
 export const metadata: Metadata = {
-  title: 'FAQ | FortuneX',
+  title: 'FAQ',
   description: 'Answers on trading, packages, deposits, withdrawals, the network and security.',
 };
 
@@ -16,8 +16,8 @@ export default async function FaqPage() {
   const w = plan.withdraw;
 
   const items: QA[] = [
-    { q: 'What is FortuneX and how does it work?',
-      a: `FortuneX is a trading and affiliate platform. You commit capital to a tier and earn a published daily trade bonus of ${plan.dailyReturnPercent}% on trading days, alongside an affiliate structure that pays on the network you build.` },
+    { q: 'How does the platform work?',
+      a: `It is a trading and affiliate platform. You commit capital to a tier and earn a published daily trade bonus of ${plan.dailyReturnPercent}% on trading days, alongside an affiliate structure that pays on the network you build.` },
     { q: 'What is the minimum to start?',
       a: `Entry starts at ${planMoney(plan.cfg.investment.minimum)}. There are ${plan.packages.length} tiers in total, the largest being ${planMoney(plan.packages[plan.packages.length - 1])}. The tier sets the size of your position — the rate and the rules are identical at every level.` },
     { q: 'When is the daily trade bonus paid?',
@@ -40,12 +40,12 @@ export default async function FaqPage() {
           + 'They sit outside your earnings cap and are entitlements rather than credited income: a trip is arranged, a fund is paid toward its purpose. Each offer runs for a limited window, and the closing date is shown against it.' },
     { q: 'Do I need to verify my identity?',
       a: 'Yes. Documents are held privately, outside any public path, and are visible only to a reviewer holding the compliance capability. Every decision records who made it and why.' },
-    { q: 'Is FortuneX secure?',
+    { q: 'Is the platform secure?',
       a: 'No balance is ever written directly — every movement of value is an append-only ledger entry. Operator actions are audited with who, what, when and from where, and the log has no update or delete path.' },
     /* There is one, and there has been since the signed build was published.
        This said "not yet" while the APK was live on the download page — the
        kind of answer that makes a visitor distrust the rest of the page. */
-    { q: 'Does FortuneX have a mobile app?',
+    { q: 'Is there a mobile app?',
       a: 'Yes — an Android app, downloadable from your dashboard once you sign in. It covers deposits, withdrawals, your team and your earnings. The platform is also built mobile-first, so everything works in a browser if you would rather not install anything.' },
   ];
 

@@ -5,7 +5,7 @@ import { getPlan, planMoney } from '@/lib/platform-config.server';
 
 export const metadata: Metadata = {
   title: 'AML & KYC policy',
-  description: 'How FortuneX verifies identity, monitors activity and meets anti-money-laundering obligations.',
+  description: 'How we verify identity, monitor activity and meet anti-money-laundering obligations.',
 };
 
 export default async function AmlPage() {
@@ -22,7 +22,7 @@ export default async function AmlPage() {
           heading: 'Our commitment',
           body: (
             <p>
-              FortuneX does not knowingly facilitate money laundering, terrorist financing,
+              We do not knowingly facilitate money laundering, terrorist financing,
               sanctions evasion or any other financial crime. We apply identity verification,
               ongoing monitoring and record-keeping proportionate to the risk a member presents,
               and we cooperate with lawful requests from competent authorities.

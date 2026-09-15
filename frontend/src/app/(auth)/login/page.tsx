@@ -40,7 +40,7 @@ function LoginForm() {
       <header className="mb-7">
         <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-white">Welcome back</h1>
         <p className="mt-1.5 text-[14px] text-white/55">
-          Sign in to your FortuneX account to see your positions and earnings.
+          Sign in to see your positions and earnings.
         </p>
       </header>
 
@@ -89,7 +89,7 @@ function LoginForm() {
       </form>
 
       <p className="mt-6 text-center text-[13.5px] text-white/50">
-        New to FortuneX?{' '}
+        New here?{' '}
         <Link href="/register" className="font-medium text-brand-gold transition hover:underline">
           Create an account
         </Link>
@@ -97,7 +97,7 @@ function LoginForm() {
 
       <p className="mt-8 flex items-start gap-2 rounded-[5px] border border-white/[0.07] bg-white/[0.02] px-3.5 py-3 text-[11.5px] leading-relaxed text-white/58">
         <ShieldCheck size={14} className="mt-px shrink-0 text-white/55" />
-        FortuneX will never ask for your password, a recovery phrase or a one-time code by email,
+        We will never ask for your password, a recovery phrase or a one-time code by email,
         chat or phone.
       </p>
     </>
