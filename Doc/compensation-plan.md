@@ -88,29 +88,43 @@ See `backend/src/core/payout-calendar.ts`.
   needed setting to 9. A schedule already running is never re-cut.
 - USDT BEP-20 only, for both activation and withdrawal.
 
-## Not implemented
+## Affiliate offers (slide 15)
 
-**The affiliate offers (slide 15)** — $26,600 → Lakshadweep 4D3N; $42,550 →
-$1,565 car fund or new ID top-up; $79,800 → $3,200 house purchase; valid
-10.09.2026–10.10.2026. Left alone deliberately:
+Implemented, and they **replace** the Flyers Club rather than running beside it.
+The roaming club's ten travel tiers are deactivated; the three offers are live:
 
-- It is a one-month promotion, not a standing rule, and the existing
-  `roaming_club_tiers` have no date window — modelling it there would make the
-  promotion permanent.
-- Those tiers currently hold a different, live structure (Thailand → Europe,
-  split self/team). Overwriting them would silently move the goalposts for any
-  member already progressing toward one.
-- Two of the three rewards are cash funds, not travel, so they are not the same
-  kind of thing the roaming club models.
+| Qualifies at (team business) | Reward | Window |
+|---|---|---|
+| $26,600 | Lakshadweep, 4 days and 3 nights | 10 Sep – 10 Oct 2026 |
+| $42,550 | $1,565 car purchase fund, or a new ID top-up | 10 Sep – 10 Oct 2026 |
+| $79,800 | $3,200 toward a house purchase | 10 Sep – 10 Oct 2026 |
 
-Implementing it properly needs a dated promotion with a single qualifying
-figure and a mixed cash/benefit reward. Worth doing before the window opens;
-worth deciding first whether it replaces the roaming club or runs beside it.
+The slide prints a single figure per row with no label. It is read as **team
+business**: the offers are headed "for affiliates", and the amounts sit inside
+the rank ladder's team range ($5k–$5M) while exceeding its largest self-capital
+requirement ($10,000) several times over. Self requirement is zero, so the
+offers show one progress bar rather than a self bar that was never a condition.
 
-**"$50 multiples" (slide 8)** is not enforced, and deliberately so — see the
-note in `investment.service.ts`. Purchases are of published packages, none of
-which is a multiple of 50 ($100 is, $10,500 is not), so a step rule would make
-most of the ladder unbuyable. The $50 floor is enforced where amounts are
-actually entered, on package create/edit.
+The tier and award tables are reused, so the operator fulfilment queue and the
+member page work unchanged. `POST /admin/roaming-tiers` edits an offer,
+including its window; a window that closes before it opens is refused.
 
-**Welcome gifts per package** (slide 15) — no mechanism, and none specified.
+**The window is enforced at award time**, not only in the UI — a member who
+qualifies after a campaign closes is not granted it because a page was cached.
+
+## Deliberately not implemented
+
+**Welcome gifts per package** (slide 15) — no mechanism exists and the document
+specifies none beyond the phrase.
+
+## A consequence worth watching
+
+With direct sponsor level 1 at the document's literal 0.4% and levels 2–3 at
+0.5%, **the sponsor who introduces a member earns less than the two sponsors
+above them**. On a $5,000 purchase: level 1 takes $20, levels 2 and 3 take $25
+each. That inversion is what the public rewards page now computes and displays.
+
+It is what the printed figures produce, and it was confirmed as the intended
+reading. It is also the strongest remaining argument that "0.4%" is a typo for
+"4%", which would total the "5% structure" the same slide is headed with. One
+batch call to `PUT /admin/commission-rules/batch` reverses it.
