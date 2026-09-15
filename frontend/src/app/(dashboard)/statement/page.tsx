@@ -87,7 +87,7 @@ export default function StatementPage() {
               value={month}
               max={monthValue(now)}
               onChange={(e) => setMonth(e.target.value)}
-              className={`${controlCls} h-10 w-full`}
+              className={`${controlCls} h-9 w-full`}
             />
           </label>
         </div>

@@ -109,12 +109,12 @@ function PasswordCard() {
         <label className="block">
           <span className="mb-1.5 block text-[12px] font-medium text-ink-2">Current password</span>
           <input type="password" autoComplete="current-password" value={current}
-            onChange={(e) => setCurrent(e.target.value)} className={`${controlCls} h-11 w-full`} />
+            onChange={(e) => setCurrent(e.target.value)} className={`${controlCls} h-9 w-full`} />
         </label>
         <label className="block">
           <span className="mb-1.5 block text-[12px] font-medium text-ink-2">New password</span>
           <input type="password" autoComplete="new-password" value={next}
-            onChange={(e) => setNext(e.target.value)} className={`${controlCls} h-11 w-full`} />
+            onChange={(e) => setNext(e.target.value)} className={`${controlCls} h-9 w-full`} />
           {weak && (
             <span className="mt-1 block text-[11.5px] text-ink-3">
               At least 8 characters, with an uppercase letter, a lowercase letter and a number.
@@ -124,7 +124,7 @@ function PasswordCard() {
         <label className="block">
           <span className="mb-1.5 block text-[12px] font-medium text-ink-2">Confirm new password</span>
           <input type="password" autoComplete="new-password" value={confirm}
-            onChange={(e) => setConfirm(e.target.value)} className={`${controlCls} h-11 w-full`} />
+            onChange={(e) => setConfirm(e.target.value)} className={`${controlCls} h-9 w-full`} />
           {mismatch && <span className="mt-1 block text-[11.5px] text-bad">These do not match.</span>}
         </label>
         <Button type="submit" loading={change.isPending}

@@ -167,11 +167,11 @@ export default function DepositPage() {
               <label className="mb-1.5 block text-[12.5px] font-medium text-ink">Amount (USDT)</label>
               <input type="number" min={minimum || 1} step="0.01" required value={amount}
                      onChange={(e) => setAmount(e.target.value)} placeholder="0.00"
-                     className={`${controlCls} h-12 w-full text-[16px]`} />
+                     className={`${controlCls} h-9 w-full text-[16px]`} />
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {QUICK.map((q) => (
                   <button key={q} type="button" onClick={() => setAmount(String(q))}
-                          className="rounded-full border border-line px-3 py-1 text-[12px] text-ink-2 transition hover:border-gold/40 hover:text-gold">
+                          className="rounded-[3px] border border-line px-2 py-[3px] text-[11.5px] font-semibold text-ink-2 transition hover:border-gold hover:text-gold">
                     {usd(q, 0)}
                   </button>
                 ))}
@@ -227,14 +227,14 @@ export default function DepositPage() {
                   Transaction hash <span className="font-normal text-ink-3">(optional — speeds up confirmation)</span>
                 </label>
                 <input value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="0x…"
-                       className={`${controlCls} h-11 w-full`} />
+                       className={`${controlCls} h-9 w-full`} />
               </div>
             )}
 
             {gateway.isLoading ? (
-              <Skeleton className="h-12" />
+              <Skeleton className="h-9" />
             ) : (
-              <Button type="submit" className="h-12 w-full text-[14px]" loading={busy}
+              <Button type="submit" className="h-9 w-full" loading={busy}
                       disabled={amountTooSmall || needsChoice}>
                 {manualMode || !canCharge
                   ? (<><ArrowDownToLine size={16} /> Record deposit</>)

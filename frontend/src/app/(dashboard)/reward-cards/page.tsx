@@ -117,7 +117,7 @@ export default function RewardsPage() {
                   </p>
 
                   <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line">
-                    <div className="h-full rounded-full bg-ink-3/50 transition-[width]"
+                    <div className="h-full rounded-[1px] bg-ink-3/50 transition-[width]"
                          style={{ width: `${progress}%` }} />
                   </div>
                   <p className="mt-1.5 text-[11px] text-ink-3">

@@ -12,8 +12,25 @@ import { Panel } from './panel';
  * the stream totals move to a footer rail under it, and the range control sits
  * in the header where it belongs.
  *
- * Drawn as inline SVG rather than a chart library: one series, no axes worth
- * the weight, and it keeps the bundle budget intact.
+ * Bars, not an area.
+ *
+ * Accrual is a discrete quantity per trading day, and most days in a window
+ * are either a payout or a zero. An area chart interpolates between them,
+ * which draws a smooth ramp across days that paid nothing and turns a single
+ * day's credit into a rising trend. On a member whose whole balance posted in
+ * one session it read as a spike out of a flat line — a shape that says
+ * something is accelerating, about data that says one thing happened once.
+ * Bars say what actually occurred on each day and nothing about the days
+ * between.
+ *
+ * The scale is labelled. Without it the tallest bar could be four dollars or
+ * four hundred, and the only figure on the panel was the one the reader had
+ * to guess.
+ *
+ * Drawn as inline SVG rather than a chart library: one series, and it keeps
+ * the bundle budget intact. The labels are HTML rather than SVG text, because
+ * the plot stretches with `preserveAspectRatio="none"` and stretched text
+ * distorts.
  */
 
 export interface Point { date: string; value: number }
@@ -30,24 +47,27 @@ export function AccrualChart({
   const RANGES = ['7', '30', '90'] as const;
 
   const values = series.map((p) => p.value);
-  const max = Math.max(1, ...values);
+  const peak = Math.max(...values, 0);
 
   /* The series endpoint returns a point per day, zero-filled — so "no data"
      arrives as thirty zeroes, not as an empty array. Plotting those drew a
      flat line pinned to the axis with a y-scale invented from nothing, which
      looks like a reading rather than an absence. */
-  const hasData = values.some((v) => v > 0);
-  const W = 900, H = 190;
+  const hasData = peak > 0;
 
-  const pts = series.map((p, i) => {
-    const x = series.length > 1 ? (i / (series.length - 1)) * W : W / 2;
-    const y = H - (p.value / max) * (H - 14);
-    return `${x.toFixed(1)} ${y.toFixed(1)}`;
-  });
-  const line = pts.length ? `M${pts.join(' L')}` : '';
-  const area = pts.length ? `${line} L${W} ${H} L0 ${H} Z` : '';
-  const last = series.at(-1);
-  const lastX = W, lastY = last ? H - (last.value / max) * (H - 14) : H;
+  /* A round ceiling above the peak, so the axis labels are numbers a person
+     would say out loud rather than the peak itself to two decimals. */
+  const ceiling = niceCeiling(peak);
+
+  const W = 900, H = 190;
+  /* One bar per day with a hairline between. At 90 days the gap would eat the
+     bar, so it scales down with the count. */
+  const n = series.length;
+  const slot = n > 0 ? W / n : W;
+  const gap = Math.min(3, slot * 0.22);
+  const barW = Math.max(1, slot - gap);
+
+  const todayISO = new Date().toISOString().slice(0, 10);
 
   const label = (iso: string) =>
     new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
@@ -87,27 +107,55 @@ export function AccrualChart({
           </div>
         ) : (
           <>
-            <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="min-h-[150px] w-full flex-1" role="img"
-                 aria-label={`Daily accrual over the last ${range} days`}>
-              <defs>
-                <linearGradient id="accrual-fill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity="0.28" />
-                  <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {[0.25, 0.5, 0.75].map((f) => (
-                <line key={f} x1="0" y1={H * f} x2={W} y2={H * f} stroke="var(--color-chart-grid)" strokeWidth="1" />
-              ))}
-              <line x1="0" y1={H} x2={W} y2={H} stroke="var(--color-line)" strokeWidth="1" />
-              <path d={area} fill="url(#accrual-fill)" />
-              <path d={line} fill="none" stroke="var(--color-chart-1)" strokeWidth="2"
-                    strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              {last && <circle cx={lastX} cy={lastY} r="3.5" fill="var(--color-chart-1)" stroke="var(--color-card)" strokeWidth="2" />}
-            </svg>
+            {/* The plot and its scale share one positioned box: the gridlines
+                are drawn in the stretched SVG, the numbers that name them are
+                laid over it in HTML at the same percentages. */}
+            <div className="relative min-h-[150px] flex-1 pr-[52px]">
+              <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-full w-full" role="img"
+                   aria-label={`Daily accrual over the last ${range} days, peak ${usd(peak)}`}>
+                {[0, 0.5, 1].map((f) => (
+                  <line key={f} x1="0" y1={H * f} x2={W} y2={H * f}
+                        stroke={f === 1 ? 'var(--color-line-strong)' : 'var(--color-chart-grid)'} strokeWidth="1"
+                        vectorEffect="non-scaling-stroke" />
+                ))}
 
-            <div className="mt-1.5 flex justify-between">
+                {series.map((p, i) => {
+                  if (p.value <= 0) return null;
+                  const h = (p.value / ceiling) * H;
+                  const isToday = p.date.slice(0, 10) === todayISO;
+                  return (
+                    <rect
+                      key={p.date}
+                      x={i * slot + gap / 2}
+                      y={H - h}
+                      width={barW}
+                      height={h}
+                      /* Today reads differently because it is still running —
+                         the figure can still go up before the session closes. */
+                      fill={isToday ? 'var(--color-gold)' : 'var(--color-chart-1)'}
+                    >
+                      <title>{`${label(p.date)} — ${usd(p.value)}`}</title>
+                    </rect>
+                  );
+                })}
+              </svg>
+
+              {/* Scale, right-aligned so it never sits over a bar. */}
+              {[1, 0.5, 0].map((f) => (
+                <span
+                  key={f}
+                  aria-hidden
+                  className="absolute right-0 -translate-y-1/2 tabular-nums text-[9.5px] text-ink-3"
+                  style={{ top: `${(1 - f) * 100}%` }}
+                >
+                  {f === 0 ? '0' : usd(ceiling * f, ceiling * f >= 10 ? 0 : 2)}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-1.5 flex justify-between pr-[52px]">
               <span className="tabular-nums text-[9.5px] text-ink-3">{series[0] && label(series[0].date)}</span>
-              <span className="tabular-nums text-[9.5px] text-ink-3">{last && label(last.date)}</span>
+              <span className="tabular-nums text-[9.5px] text-ink-3">{series.at(-1) && label(series.at(-1)!.date)}</span>
             </div>
           </>
         )}
@@ -130,4 +178,20 @@ export function AccrualChart({
       )}
     </Panel>
   );
+}
+
+/**
+ * The next "round" number at or above a peak — 1, 2 or 5 times a power of ten.
+ *
+ * Bars measured against the peak itself put the tallest bar flush against the
+ * top of the plot and label the axis with something like "$2.65", which reads
+ * as a data point rather than as a scale. Rounding up gives the peak somewhere
+ * to sit and the axis a number worth printing.
+ */
+function niceCeiling(peak: number): number {
+  if (peak <= 0) return 1;
+  const magnitude = 10 ** Math.floor(Math.log10(peak));
+  const normalised = peak / magnitude;
+  const step = normalised <= 1 ? 1 : normalised <= 2 ? 2 : normalised <= 5 ? 5 : 10;
+  return step * magnitude;
 }

@@ -81,8 +81,8 @@ export default function PackagesPage() {
               <span key="d" className="tabular-nums text-good">{usd(i.totalEarned)}</span>,
               <span key="e" className="tabular-nums text-ink-2">{usd(i.capLimit)}</span>,
               <span key="f" className="flex items-center gap-2">
-                <span className="h-1.5 w-20 overflow-hidden rounded-full bg-line-soft">
-                  <span className="block h-full rounded-full bg-gold" style={{ width: `${Math.max(2, p)}%` }} />
+                <span className="h-1.5 w-20 overflow-hidden rounded-[1px] bg-line-soft">
+                  <span className="block h-full rounded-[1px] bg-gold" style={{ width: `${Math.max(2, p)}%` }} />
                 </span>
                 <span className="text-[11.5px] tabular-nums text-ink-2">{pct(p, 0)}</span>
               </span>,

@@ -67,7 +67,12 @@ export function CardHead(
           <p className="mt-1 text-[11px] leading-relaxed text-ink-3">{subtitle}</p>
         )}
       </div>
-      {(action ?? right) && <div className="shrink-0">{action ?? right}</div>}
+      {/* Deliberately NOT `shrink-0`. Several headers carry a filter row wider
+          than a phone — two selects and an export button — and pinning it at
+          its natural width pushed the whole page 15px past the viewport
+          instead of letting the row wrap. The title truncates first because
+          its own box is `min-w-0`. */}
+      {(action ?? right) && <div className="min-w-0">{action ?? right}</div>}
     </header>
   );
 }

@@ -33,7 +33,7 @@ export function CappingTracker({ capping }: {
         </div>
 
         <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[var(--dash-well)] ring-1 ring-inset ring-[var(--dash-border)]">
-          <div className={`h-full rounded-full transition-[width] duration-700 ${capped ? 'bg-bad' : 'bg-gold'}`}
+          <div className={`h-full rounded-[1px] transition-[width] duration-700 ${capped ? 'bg-bad' : 'bg-gold'}`}
                style={{ width: noPackage ? '0%' : `${Math.max(1.5, p)}%` }} />
         </div>
 

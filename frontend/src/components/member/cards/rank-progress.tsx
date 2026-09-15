@@ -38,8 +38,8 @@ export function RankProgress({ rank, team }: {
 
         {next && (
           <>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-line-soft">
-              <div className="h-full rounded-full bg-gradient-to-r from-gold to-gold-hi transition-[width] duration-700"
+            <div className="mt-4 h-2 overflow-hidden rounded-[1px] bg-line-soft">
+              <div className="h-full rounded-[1px] bg-gradient-to-r from-gold to-gold-hi transition-[width] duration-700"
                    style={{ width: `${Math.max(1.5, next.percent)}%` }} />
             </div>
             <p className="mt-2 text-[12px] tabular-nums text-ink-2">
@@ -58,8 +58,8 @@ export function RankProgress({ rank, team }: {
                     <span className="text-ink-2">{leg.label}</span>
                     <span className="tabular-nums text-ink-2">{usd(leg.value)} / {usd(half, 0)}</span>
                   </div>
-                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line-soft">
-                    <div className="h-full rounded-full bg-gold"
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-[1px] bg-line-soft">
+                    <div className="h-full rounded-[1px] bg-gold"
                          style={{ width: `${half > 0 ? Math.min(100, Math.max(1.5, (leg.value / half) * 100)) : 1.5}%` }} />
                   </div>
                 </div>

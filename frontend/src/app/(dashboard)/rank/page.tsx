@@ -81,8 +81,8 @@ export default function RankPage() {
               </div>
 
               <div className="px-3.5 pb-3.5 pt-3">
-                <div className="h-2 overflow-hidden rounded-full bg-line-soft">
-                  <div className={`h-full rounded-full ${r.achieved ? 'bg-good' : 'bg-gold'}`}
+                <div className="h-2 overflow-hidden rounded-[1px] bg-line-soft">
+                  <div className={`h-full rounded-[1px] ${r.achieved ? 'bg-good' : 'bg-gold'}`}
                        style={{ width: `${Math.max(1.5, Math.min(100, r.percentComplete))}%` }} />
                 </div>
 
@@ -99,8 +99,8 @@ export default function RankPage() {
                           {usd(m.now, 0)} / {usd(m.need, 0)}
                         </span>
                       </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line-soft">
-                        <div className={`h-full rounded-full ${m.now >= m.need ? 'bg-good' : 'bg-gold'}`}
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-[1px] bg-line-soft">
+                        <div className={`h-full rounded-[1px] ${m.now >= m.need ? 'bg-good' : 'bg-gold'}`}
                              style={{ width: `${m.need > 0 ? Math.min(100, Math.max(1.5, (m.now / m.need) * 100)) : 100}%` }} />
                       </div>
                     </div>

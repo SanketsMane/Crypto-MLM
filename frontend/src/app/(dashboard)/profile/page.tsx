@@ -90,29 +90,29 @@ export default function ProfilePage() {
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className="mb-1.5 block text-[12.5px] font-medium text-ink">First name</span>
-                <input value={form.firstName} onChange={set('firstName')} required className={`${controlCls} h-11 w-full`} />
+                <input value={form.firstName} onChange={set('firstName')} required className={`${controlCls} h-9 w-full`} />
               </label>
               <label className="block">
                 <span className="mb-1.5 block text-[12.5px] font-medium text-ink">Last name</span>
-                <input value={form.lastName} onChange={set('lastName')} className={`${controlCls} h-11 w-full`} />
+                <input value={form.lastName} onChange={set('lastName')} className={`${controlCls} h-9 w-full`} />
               </label>
             </div>
 
             <label className="block">
               <span className="mb-1.5 block text-[12.5px] font-medium text-ink">Email</span>
-              <input value={p?.email ?? ''} disabled className={`${controlCls} h-11 w-full opacity-60`} />
+              <input value={p?.email ?? ''} disabled className={`${controlCls} h-9 w-full opacity-60`} />
               <span className="mt-1 block text-[11.5px] text-ink-3">Contact support to change your email.</span>
             </label>
 
             <label className="block">
               <span className="mb-1.5 block text-[12.5px] font-medium text-ink">Phone</span>
-              <input value={form.phone} onChange={set('phone')} className={`${controlCls} h-11 w-full`} />
+              <input value={form.phone} onChange={set('phone')} className={`${controlCls} h-9 w-full`} />
             </label>
 
             <label className="block">
               <span className="mb-1.5 block text-[12.5px] font-medium text-ink">Payout wallet (BEP-20)</span>
               <input value={form.walletAddress} onChange={set('walletAddress')} placeholder="0x…"
-                     className={`${controlCls} h-11 w-full`} />
+                     className={`${controlCls} h-9 w-full`} />
               {!validAddress && <span className="mt-1 block text-[11.5px] text-bad">That is not a valid BEP-20 address.</span>}
             </label>
 

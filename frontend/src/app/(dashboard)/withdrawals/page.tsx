@@ -173,7 +173,7 @@ export default function WithdrawalsPage() {
                 <input
                   id="wd-amount" type="number" min={terms.minimum} max={terms.maximum} step="0.01"
                   required value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00"
-                  className={`${controlCls} h-12 w-full text-[16px]`}
+                  className={`${controlCls} h-9 w-full text-[16px]`}
                 />
                 <p className="mt-1.5 text-[11.5px] text-ink-2">
                   Minimum {usd(terms.minimum, 0)} · maximum {usd(terms.maximum, 0)} per request
@@ -189,7 +189,7 @@ export default function WithdrawalsPage() {
                   onChange={(e) => setWalletAddress(e.target.value.trim())}
                   placeholder="0x…" spellCheck={false} autoComplete="off"
                   aria-describedby="wd-address-help"
-                  className={`${controlCls} h-11 w-full font-mono text-[13px]`}
+                  className={`${controlCls} h-9 w-full font-mono text-[13px]`}
                 />
                 <p id="wd-address-help" className="mt-1.5 text-[11.5px] leading-relaxed text-ink-2">
                   Paste it from your wallet rather than typing it. A payment sent to the wrong
@@ -208,7 +208,7 @@ export default function WithdrawalsPage() {
                 <Notice tone="bad" title={`That is more than your available balance of ${usd(available)}.`} />
               )}
 
-              <Button type="submit" className="h-12 w-full text-[14px]"
+              <Button type="submit" className="h-9 w-full"
                       disabled={!valid || !verified || !terms.open}>
                 <ArrowUpFromLine size={16} /> Review withdrawal
               </Button>

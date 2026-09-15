@@ -87,11 +87,11 @@ export default function SupportPage() {
           <CardHead title="Open a ticket" />
           <form className="space-y-3 px-3.5 pb-3.5" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
             <input required value={subject} onChange={(e) => setSubject(e.target.value)}
-                   placeholder="What is this about?" className={`${controlCls} h-11 w-full`} />
+                   placeholder="What is this about?" className={`${controlCls} h-9 w-full`} />
             <label className="block">
               <span className="mb-1.5 block text-[12px] font-medium text-ink-2">What kind of problem?</span>
               <select value={category} onChange={(e) => setCategory(e.target.value as Category)}
-                      className={`${controlCls} h-11 w-full`}>
+                      className={`${controlCls} h-9 w-full`}>
                 {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </label>
@@ -174,7 +174,7 @@ export default function SupportPage() {
                   <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); send.mutate(t.id); }}>
                     <div className="flex gap-2">
                       <input autoFocus value={reply} onChange={(e) => setReply(e.target.value)}
-                             placeholder="Write a reply…" className={`${controlCls} h-10 flex-1`} />
+                             placeholder="Write a reply…" className={`${controlCls} h-9 flex-1`} />
                       <Button type="submit" size="sm" loading={send.isPending} disabled={reply.trim().length < 2}>
                         <Send size={14} />
                       </Button>

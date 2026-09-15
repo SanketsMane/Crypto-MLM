@@ -29,14 +29,14 @@ export default function GenealogyPage() {
           title="Your network"
           subtitle="Everyone below you, however they got there."
           right={
-            <div className="flex rounded-full border border-line p-0.5">
+            <div className="flex rounded-[4px] border border-line p-px">
               {([['tree', 'Tree', Network], ['levels', 'By level', Table2]] as const).map(([k, label, Icon]) => (
                 <button
                   key={k}
                   type="button"
                   onClick={() => setView(k)}
                   className={clsx(
-                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition',
+                    'inline-flex items-center gap-1.5 rounded-[3px] px-2.5 py-1 text-[11.5px] font-semibold transition',
                     view === k ? 'bg-navy text-white dark:bg-gold dark:text-navy' : 'text-ink-2 hover:text-ink',
                   )}
                 >
@@ -55,7 +55,7 @@ export default function GenealogyPage() {
                 type="button"
                 onClick={() => setDepth(d)}
                 className={clsx(
-                  'rounded-full px-3 py-1 text-[12px] font-medium transition',
+                  'rounded-[3px] px-2 py-[3px] text-[11.5px] font-semibold transition',
                   depth === d ? 'bg-gold-soft text-gold-ink' : 'text-ink-2 hover:bg-canvas hover:text-ink',
                 )}
               >

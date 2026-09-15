@@ -39,13 +39,21 @@ export default function InvitePage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-4">
+    <div className="space-y-2.5">
+      {/* `min-w-0` on both children, not decoration. A grid item defaults to
+          `min-width: auto`, so it refuses to shrink below the intrinsic width
+          of its content — and this column holds a referral URL set in a
+          monospace face with nothing to break on. On a phone that forced the
+          track to 669px inside a 390px viewport and took the whole page with
+          it. The link itself already truncates; this lets it. */}
+      <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-2.5">
           <LinkCard link={link} code={code} />
           <MessagesCard link={link} name={name} />
         </div>
-        <QrCard link={link} code={code} />
+        <div className="min-w-0">
+          <QrCard link={link} code={code} />
+        </div>
       </div>
     </div>
   );
