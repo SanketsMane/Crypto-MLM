@@ -614,9 +614,27 @@ model TeamVolume {
 model RoamingClubTier {
   id              String       @id @default(cuid())
   track           RoamingTrack
+  /// What is being offered. Was a travel destination under the roaming club;
+  /// now the offer's headline, which may be a trip or a cash fund.
   destination     String
   selfRequirement Decimal      @db.Decimal(38, 8)
   teamRequirement Decimal      @default(0) @db.Decimal(38, 8)
+
+  /// The reward in full — "Lakshadweep, 4 days and 3 nights", "$1,565 toward a
+  /// car, or a new ID top-up". Free text because the offers are not all the
+  /// same kind of thing and forcing them into one shape would lose the detail
+  /// a member is actually promised.
+  rewardLabel String?
+  /// Cash value where the reward is money. Null for a trip, which is not a
+  /// figure the platform should invent one for.
+  rewardValue Decimal? @db.Decimal(38, 8)
+
+  /// The window this offer can be earned in. Both null means it always runs,
+  /// which is how the roaming club behaved. A promotion with no end date is a
+  /// permanent liability nobody decided to take on.
+  validFrom  DateTime?
+  validUntil DateTime?
+
   sortOrder       Int          @default(0)
   isActive        Boolean      @default(true)
 

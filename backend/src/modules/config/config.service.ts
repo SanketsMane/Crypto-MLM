@@ -66,7 +66,9 @@ export interface PublicConfig {
   directBonus: { level: number; percent: string }[];
   generationBonus: { level: number; percent: string; requiredDirects: number; requiredTeamVolume: string }[];
   ranks: { code: string; name: string; selfCapital: string; teamBusiness: string; reward: string }[];
-  roamingTiers: { track: string; destination: string; selfRequirement: string; teamRequirement: string }[];
+  roamingTiers: { track: string; destination: string; selfRequirement: string; teamRequirement: string ;
+    rewardLabel: string | null; rewardValue: string | null;
+    validFrom: Date | null; validUntil: Date | null; }[];
   rewardTiers: { name: string; threshold: string; bonusPercent: string; maxBonus: string }[];
 }
 
@@ -104,9 +106,17 @@ export async function publicConfig(): Promise<PublicConfig> {
       orderBy: { sortOrder: 'asc' },
       select: { code: true, name: true, selfCapital: true, teamBusiness: true, reward: true },
     }),
+    /* Active only. This filter was missing while every other catalogue query
+       beside it had one, so switching an offer off left it published on the
+       public site and the member page — the operator's decision applied
+       everywhere except the two places a member actually looks. */
     prisma.roamingClubTier.findMany({
-      orderBy: [{ track: 'asc' }, { selfRequirement: 'asc' }],
-      select: { track: true, destination: true, selfRequirement: true, teamRequirement: true },
+      where: { isActive: true },
+      orderBy: [{ track: 'asc' }, { sortOrder: 'asc' }, { teamRequirement: 'asc' }],
+      select: {
+        track: true, destination: true, selfRequirement: true, teamRequirement: true,
+        rewardLabel: true, rewardValue: true, validFrom: true, validUntil: true,
+      },
     }),
     prisma.rewardTier.findMany({
       where: { isActive: true },
@@ -174,6 +184,10 @@ export async function publicConfig(): Promise<PublicConfig> {
       destination: t.destination,
       selfRequirement: t.selfRequirement.toString(),
       teamRequirement: t.teamRequirement.toString(),
+      rewardLabel: t.rewardLabel,
+      rewardValue: t.rewardValue?.toString() ?? null,
+      validFrom: t.validFrom,
+      validUntil: t.validUntil,
     })),
     rewardTiers: rewardTiers.map((t) => ({
       name: t.name,

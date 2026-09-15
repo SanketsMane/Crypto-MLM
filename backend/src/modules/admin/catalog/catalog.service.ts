@@ -29,6 +29,28 @@ export async function upsertPackage(
   if (amount.lte(0)) throw badRequest('Amount must be positive');
   if (amount.lt(cfg.minInvestment)) throw badRequest(`Amount cannot be below the $${cfg.minInvestment} minimum investment`);
 
+  /**
+   * "Minimum trading asset $50 (multiples)".
+   *
+   * Enforced on the published price rather than at purchase, because there is
+   * no free-amount path — a member buys a listed package, so if every package
+   * is on the step then every purchase is too, and the operator finds out
+   * while editing instead of members hitting an error on a live plan.
+   *
+   * This rule was previously removed as unworkable, and correctly so: the old
+   * ladder opened at $110 / $270 / $530, none of which is a multiple of 50, so
+   * the rule would have made the three entry tiers unbuyable. The published
+   * ladder is now $100 through $104,500 and every rung divides exactly, so the
+   * objection no longer applies.
+   */
+  if (cfg.minInvestment > 0 && !amount.mod(cfg.minInvestment).eq(0)) {
+    throw badRequest(
+      `Amount must be a multiple of $${cfg.minInvestment} — `
+      + `$${amount.toString()} is not. The nearest are $${amount.div(cfg.minInvestment).floor().mul(cfg.minInvestment).toString()} `
+      + `and $${amount.div(cfg.minInvestment).ceil().mul(cfg.minInvestment).toString()}.`,
+    );
+  }
+
   const data = {
     name: input.name,
     amount: toDb(amount),
@@ -321,6 +343,76 @@ export async function upsertRewardTier(
       ? { threshold: before.threshold.toString(), bonusPercent: before.bonusPercent.toString(), maxBonus: before.maxBonus.toString(), isActive: before.isActive }
       : undefined,
     after: { threshold: row.threshold.toString(), bonusPercent: row.bonusPercent.toString(), maxBonus: row.maxBonus.toString(), isActive: row.isActive },
+    req,
+  });
+  return row;
+}
+/**
+ * Create or edit an affiliate offer.
+ *
+ * Offers replaced the Flyers Club and are campaign-shaped: a qualifying figure,
+ * a reward, and a window. The window is the part that matters operationally —
+ * an offer with no end date keeps paying out after the campaign closes, so this
+ * refuses a window that ends before it starts rather than storing one that can
+ * never be open.
+ */
+export async function upsertRoamingTier(
+  adminId: string,
+  input: {
+    id?: string;
+    track: 'AFFILIATE' | 'SELF_CAPITALIST';
+    destination: string;
+    selfRequirement: string;
+    teamRequirement: string;
+    rewardLabel?: string | null;
+    rewardValue?: string | null;
+    validFrom?: string | null;
+    validUntil?: string | null;
+    sortOrder?: number;
+    isActive?: boolean;
+  },
+  req?: Request,
+) {
+  const from = input.validFrom ? new Date(input.validFrom) : null;
+  const until = input.validUntil ? new Date(input.validUntil) : null;
+  if (from && Number.isNaN(from.getTime())) throw badRequest('Valid-from is not a date');
+  if (until && Number.isNaN(until.getTime())) throw badRequest('Valid-until is not a date');
+  if (from && until && until < from) {
+    throw badRequest('The offer would close before it opens — check the dates.');
+  }
+
+  const data = {
+    track: input.track,
+    destination: input.destination,
+    selfRequirement: toDb(money(input.selfRequirement)),
+    teamRequirement: toDb(money(input.teamRequirement)),
+    rewardLabel: input.rewardLabel ?? null,
+    rewardValue: input.rewardValue ? toDb(money(input.rewardValue)) : null,
+    validFrom: from,
+    validUntil: until,
+    sortOrder: input.sortOrder ?? 0,
+    isActive: input.isActive ?? true,
+  };
+
+  // Offers are published on the public site and the member page.
+  invalidatePublicConfig();
+
+  const before = input.id ? await prisma.roamingClubTier.findUnique({ where: { id: input.id } }) : null;
+  const row = input.id
+    ? await prisma.roamingClubTier.update({ where: { id: input.id }, data })
+    : await prisma.roamingClubTier.create({ data });
+
+  await audit.record({
+    adminId,
+    action: input.id ? 'UPDATE' : 'CREATE',
+    entityType: 'roaming_tier',
+    entityId: row.id,
+    summary:
+      `Offer ${row.destination} — qualifies at $${row.teamRequirement.toString()} team`
+      + `${row.rewardLabel ? `, reward: ${row.rewardLabel}` : ''}`
+      + `${row.validUntil ? `, closes ${row.validUntil.toISOString().slice(0, 10)}` : ''}`,
+    before: before ? { destination: before.destination, isActive: before.isActive } : undefined,
+    after: { destination: row.destination, isActive: row.isActive },
     req,
   });
   return row;

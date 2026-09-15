@@ -3,25 +3,41 @@ import { Info, Plane, Trophy, Users } from 'lucide-react';
 import { Container, Panel, Section, SectionHead } from '@/components/site/primitives';
 import { PageHero } from '@/components/site/page-hero';
 import { CtaBand } from '@/components/site/cta-band';
-import { getPlan, planMoney } from '@/lib/platform-config.server';
+import { getPlan, planMoney, offerDate } from '@/lib/platform-config.server';
 import { rankLabelAt } from '@/lib/rank';
+
 
 export const metadata: Metadata = {
   title: 'Rewards & ranks',
   description:
-    'The FortuneX affiliate structure: a three-level direct bonus, a thirty-level generation bonus, ten executive ranks and the Flyers Club travel awards.',
+    'The FortuneX affiliate structure: a three-level direct bonus, a thirty-level generation bonus, ten executive ranks and the affiliate offers.',
 };
 
 export default async function RewardsPage() {
   const plan = await getPlan();
   const directTotal = plan.directBonus.reduce((a, b) => a + b.percent, 0);
 
+  /**
+   * A worked example built from a real published plan and the live rates.
+   *
+   * The mid plan rather than the cheapest, so the figures are large enough to
+   * read. Levels 2 and 3 are quoted together only when they actually pay the
+   * same rate — the document has them equal, but that is a setting an operator
+   * can change, and "each of the two sponsors above you" would then be false.
+   */
+  const examplePurchase = plan.packages[Math.floor(plan.packages.length / 2)] ?? 1_000;
+  const pctAt = (level: number) => plan.directBonus.find((d) => d.level === level)?.percent ?? 0;
+  const exampleL1 = (examplePurchase * pctAt(1)) / 100;
+  const exampleDeeper = pctAt(2) > 0 && pctAt(2) === pctAt(3)
+    ? (examplePurchase * pctAt(2)) / 100
+    : null;
+
   return (
     <>
       <PageHero
         eyebrow="Rewards & ranks"
         title="Four ways the network pays"
-        lead="Introductions, generations, rank achievements and travel. Each has its own qualification, and each is credited as its own line in your ledger so you can always see which stream produced a figure."
+        lead="Introductions, generations, rank achievements and campaign offers. Each has its own qualification, and each is credited as its own line in your ledger so you can always see which stream produced a figure."
       />
 
       {/* ── direct bonus ──────────────────────────────────────────────── */}
@@ -53,9 +69,17 @@ export default async function RewardsPage() {
               </div>
               <p className="mt-4 flex items-start gap-2.5 rounded-xl border border-white/[0.07] bg-navy-card/50 px-5 py-4 text-[12.5px] leading-relaxed text-white/50">
                 <Info size={15} className="mt-px shrink-0 text-brand-gold/70" />
-                On a {planMoney(1_100)} purchase by someone you introduced, level one pays{' '}
-                {planMoney(44)}. The same purchase pays {planMoney(5.5)} to each of the two
-                sponsors above you.
+                {/* Derived, not written down. This example used to quote a
+                    $1,100 purchase paying $44 — 4% of a plan price that no
+                    longer exists, at a rate that has since changed. A worked
+                    example on a public page is a money claim, so it is
+                    computed from the same figures the engine pays. */}
+                On a {planMoney(examplePurchase)} purchase by someone you introduced, level one
+                pays {planMoney(exampleL1)}.
+                {exampleDeeper !== null && (
+                  <> The same purchase pays {planMoney(exampleDeeper)} to each of the two sponsors
+                  above you.</>
+                )}
               </p>
             </div>
           </div>
@@ -151,8 +175,8 @@ export default async function RewardsPage() {
         <Container>
           <SectionHead
             eyebrow="Stream four"
-            title="The Flyers Club"
-            lead="International travel awards on two tracks — one for members who build a team, one for members who commit capital themselves. Flyers Club awards sit outside the earnings ceiling and never consume your cap."
+            title="Affiliate offers"
+            lead="Campaign rewards for team performance — a trip, a car fund, a house fund. Offers sit outside the earnings ceiling and never consume your cap, and each one runs for a limited window."
           />
 
           <div className="mt-10 grid gap-4 lg:grid-cols-2">
@@ -160,21 +184,38 @@ export default async function RewardsPage() {
               <span className="grid h-11 w-11 place-items-center rounded-xl border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
                 <Users size={19} strokeWidth={1.9} />
               </span>
-              <h3 className="mt-5 text-[17px] font-semibold text-white">Affiliate track</h3>
-              <p className="mt-1.5 text-[13px] text-white/55">Qualifies on your own capital and your team&apos;s business together.</p>
+              <h3 className="mt-5 text-[17px] font-semibold text-white">Team performance offers</h3>
+              <p className="mt-1.5 text-[13px] text-white/55">Qualify on your team&apos;s business over the campaign window.</p>
               <ul className="mt-6 space-y-2.5">
                 {plan.roaming.affiliate.map((t) => (
-                  <li key={t.destination} className="flex items-center gap-3 rounded-lg px-3 py-2.5 odd:bg-white/[0.03]">
-                    <Plane size={14} className="shrink-0 text-brand-gold/70" />
-                    <span className="flex-1 text-[14px] font-medium text-white">{t.destination}</span>
-                    <span className="text-[12.5px] tabular-nums text-white/50">
-                      {planMoney(t.self)} self · {planMoney(t.team)} team
-                    </span>
+                  <li key={t.destination} className="rounded-lg px-3 py-2.5 odd:bg-white/[0.03]">
+                    <div className="flex items-center gap-3">
+                      <Plane size={14} className="shrink-0 text-brand-gold/70" />
+                      <span className="flex-1 text-[14px] font-medium text-white">{t.destination}</span>
+                      <span className="text-[12.5px] tabular-nums text-white/50">
+                        {/* Only the gates that exist. These offers qualify on
+                            team business alone, so quoting a $0 self figure
+                            would invent a condition nobody set. */}
+                        {t.self > 0 ? `${planMoney(t.self)} self · ` : ''}{planMoney(t.team)} team
+                      </span>
+                    </div>
+                    {(t.reward || t.validUntil) && (
+                      <p className="mt-1 pl-[26px] text-[12px] text-white/45">
+                        {t.reward}
+                        {t.reward && t.validUntil ? ' · ' : ''}
+                        {t.validUntil ? `closes ${offerDate(t.validUntil)}` : ''}
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>
             </Panel>
 
+            {/* Rendered only when the track has tiers. The affiliate offers
+                replaced the self-capitalist club, so this is normally empty —
+                and an empty panel headed "Self-capitalist track" reads as a
+                programme that exists but has nothing in it. */}
+            {plan.roaming.selfCapitalist.length > 0 && (
             <Panel className="p-6 sm:p-8">
               <span className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.03] text-brand-gold">
                 <Trophy size={19} strokeWidth={1.9} />
@@ -191,6 +232,7 @@ export default async function RewardsPage() {
                 ))}
               </ul>
             </Panel>
+            )}
           </div>
 
           <p className="mt-4 text-[12.5px] leading-relaxed text-white/60">

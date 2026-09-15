@@ -12,10 +12,26 @@
 export interface Tier {
   track: string;
   destination: string;
+  /**
+   * What the member actually receives.
+   *
+   * Not every offer is a trip any more — two of the three are cash funds — so
+   * the headline alone no longer says what is being won, and a page that shows
+   * only the destination would promise a holiday for a car fund.
+   */
+  rewardLabel: string | null;
+  rewardValue: string | null;
   selfRequirement: string;
   teamRequirement: string;
   selfActual: string;
   teamActual: string;
+  /** The campaign window. Both null means the offer always runs. */
+  validFrom: string | null;
+  validUntil: string | null;
+  /** Decided by the server, which is also what gates the award itself. */
+  open: boolean;
+  expired: boolean;
+  upcoming: boolean;
   achieved: boolean;
   achievedAt: string | null;
   status: string | null;
@@ -30,9 +46,37 @@ export interface TierView extends Tier {
   overallPct: number;
   /** AFFILIATE tiers are the only ones with a team business gate */
   needsTeam: boolean;
+  /**
+   * Whether a self-capital gate exists at all.
+   *
+   * The offers qualify on team business alone, so their self requirement is
+   * zero — and `ratio` treats a zero requirement as already met. Drawing that
+   * as a full "Self capital" bar would tell a member they had cleared a
+   * condition that was never set.
+   */
+  needsSelf: boolean;
 }
 
 const n = (v: string | number | null | undefined) => Number(v ?? 0);
+
+/**
+ * "closes 10 October", or null where the offer has no window.
+ *
+ * A closing date is material — it is the difference between a target worth
+ * chasing and one already gone — so it is rendered from the server's dates
+ * rather than left implicit.
+ */
+export function windowLabel(t: Tier): string | null {
+  if (t.expired && t.validUntil) {
+    return `closed ${fmtDate(t.validUntil)}`;
+  }
+  if (t.upcoming && t.validFrom) return `opens ${fmtDate(t.validFrom)}`;
+  if (t.validUntil) return `closes ${fmtDate(t.validUntil)}`;
+  return null;
+}
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
 
 /** actual ÷ requirement as a capped percentage; a zero requirement is already met */
 export const ratio = (actual: string | number, required: string | number): number => {
@@ -42,15 +86,27 @@ export const ratio = (actual: string | number, required: string | number): numbe
 
 export function toView(t: Tier): TierView {
   const needsTeam = t.track === 'AFFILIATE' && n(t.teamRequirement) > 0;
+  const needsSelf = n(t.selfRequirement) > 0;
   const selfPct = ratio(t.selfActual, t.selfRequirement);
   const teamPct = ratio(t.teamActual, t.teamRequirement);
+
+  /* Only the gates that exist count toward progress. An offer qualifying on
+     team business alone is as far along as its team bar — averaging in a
+     self bar that was never required would report it as further along than
+     it is, and on a zero requirement `ratio` returns 100. */
+  const gates = [
+    ...(needsSelf ? [selfPct] : []),
+    ...(needsTeam ? [teamPct] : []),
+  ];
+
   return {
     ...t,
     selfPct,
     teamPct,
     needsTeam,
-    // both gates must land, so you are only as far along as the weaker one
-    overallPct: needsTeam ? Math.min(selfPct, teamPct) : selfPct,
+    needsSelf,
+    // every gate must land, so you are only as far along as the weakest one
+    overallPct: gates.length > 0 ? Math.min(...gates) : 100,
   };
 }
 

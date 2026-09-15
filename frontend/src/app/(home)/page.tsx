@@ -1,4 +1,4 @@
-import { getPlan, planMoney } from '@/lib/platform-config.server';
+import { getPlan, planMoney, offerDate } from '@/lib/platform-config.server';
 import { CurrencyBand, Hero } from '@/components/home/hero';
 import { CtaBand, Features, HowToStart, Stats, Trust } from '@/components/home/sections';
 import { Markets } from '@/components/home/markets';
@@ -22,8 +22,10 @@ export default async function FortuneXHome() {
   const directTotal = plan.directBonus.reduce((sum, d) => sum + d.percent, 0);
   const topRank = plan.ranks.at(-1);
   const topBand = plan.generationBands[0];
-  const thailand = plan.roaming.affiliate.find((r) => r.destination === 'Thailand') ?? plan.roaming.affiliate[0];
-  const dubai = plan.roaming.affiliate.find((r) => r.destination === 'Dubai') ?? plan.roaming.affiliate[2];
+  /* The first two running offers, whatever they happen to be. Two, because
+     that is what the tab lays out; taking them in order rather than by name
+     means the tab keeps working when a campaign is replaced. */
+  const offers = plan.roaming.affiliate.slice(0, 2);
 
   const tabs = [
     {
@@ -88,13 +90,24 @@ export default async function FortuneXHome() {
       ],
     },
     {
-      label: 'Flyers Club',
-      cards: [thailand, dubai].filter(Boolean).map((t) => ({
-        title: `${t.destination} Trip`, badge: 'Flyers Club',
-        headline: planMoney(t.self), sub: 'Self capital required',
+      label: 'Offers',
+      /**
+       * Driven by whatever offers are actually running.
+       *
+       * This tab used to pick the Thailand and Dubai tiers by name and render
+       * `"${destination} Trip"` with the self-capital figure as the headline.
+       * Under the campaign offers that produced "House purchase fund Trip",
+       * headlined "$0" — the offers carry no self requirement — and described
+       * a cash fund as a travel entitlement. So it reads the list rather than
+       * naming rows that may not exist, leads on the figure that actually
+       * qualifies, and says what each one pays.
+       */
+      cards: offers.map((t) => ({
+        title: t.destination, badge: 'Limited offer',
+        headline: planMoney(t.team), sub: 'Team business required',
         stats: [
-          { k: 'Team business', v: planMoney(t.team) },
-          { k: 'Reward', v: 'Travel entitlement' },
+          { k: 'Reward', v: t.reward ?? 'Entitlement' },
+          ...(t.validUntil ? [{ k: 'Closes', v: offerDate(t.validUntil) }] : []),
         ],
         cta: 'See requirements', href: '/rewards',
       })),

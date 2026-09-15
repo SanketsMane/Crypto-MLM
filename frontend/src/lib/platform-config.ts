@@ -37,7 +37,16 @@ export interface PlatformConfig {
   directBonus: { level: number; percent: string }[];
   generationBonus: { level: number; percent: string; requiredDirects: number; requiredTeamVolume: string }[];
   ranks: { code: string; name: string; selfCapital: string; teamBusiness: string; reward: string }[];
-  roamingTiers: { track: string; destination: string; selfRequirement: string; teamRequirement: string }[];
+  roamingTiers: {
+    track: string; destination: string;
+    selfRequirement: string; teamRequirement: string;
+    /** What is actually won — not every offer is a trip. */
+    rewardLabel: string | null;
+    rewardValue: string | null;
+    /** The campaign window; both null means the offer always runs. */
+    validFrom: string | null;
+    validUntil: string | null;
+  }[];
   rewardTiers: { name: string; threshold: string; bonusPercent: string; maxBonus: string }[];
 }
 
@@ -104,18 +113,14 @@ export const DEPLOY_DEFAULTS: PlatformConfig = {
     teamBusiness: String(r.team),
     reward: String(r.reward),
   })),
-  roamingTiers: [
-    ...fallback.ROAMING.affiliate.map((t) => ({
-      track: 'AFFILIATE', destination: t.destination,
-      selfRequirement: String(t.self), teamRequirement: String(t.team),
-    })),
-    ...fallback.ROAMING.selfCapitalist.map((t) => ({
-      track: 'SELF_CAPITALIST', destination: t.destination,
-      selfRequirement: String(t.self),
-      // The self-capitalist track qualifies on own capital alone — no team
-      // requirement, which the source data expresses by omitting the field.
-      teamRequirement: '0',
-    })),
-  ],
+  /**
+   * Empty, deliberately.
+   *
+   * These are campaign offers with closing dates now, not a standing travel
+   * club. A build-time fallback would keep advertising last quarter's
+   * promotion — with its deadline — long after it closed, to anyone whose
+   * request happened to miss the API. Showing nothing is the honest failure.
+   */
+  roamingTiers: [],
   rewardTiers: [],
 };

@@ -6,7 +6,7 @@ import { ArrowRight, Check, Lock, MapPin } from 'lucide-react';
 import { shortDate } from '@/lib/format';
 import { artFor } from './destinations';
 import { RequirementProgress } from './requirement-progress';
-import { trackMeta, type TierView } from './types';
+import { trackMeta, windowLabel, type TierView } from './types';
 
 /**
  * A destination tier.
@@ -86,18 +86,40 @@ export function DestinationCard({ tier, onView }: { tier: TierView; onView: (t: 
 
       {/* ── requirements ─────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col p-4">
-        <span className="mb-3.5 w-fit rounded-full bg-mute-soft px-2 py-[3px] text-[10px] font-medium uppercase tracking-[0.06em] text-mute-on">
-          {meta.short} route
-        </span>
+        <div className="mb-3.5 flex flex-wrap items-center gap-1.5">
+          <span className="w-fit rounded-full bg-mute-soft px-2 py-[3px] text-[10px] font-medium uppercase tracking-[0.06em] text-mute-on">
+            {meta.short} route
+          </span>
+          {/* A closing date decides whether this is worth chasing at all, so it
+              sits with the offer rather than in a footnote. */}
+          {windowLabel(tier) && (
+            <span className={clsx(
+              'w-fit rounded-full px-2 py-[3px] text-[10px] font-medium uppercase tracking-[0.06em]',
+              tier.expired ? 'bg-bad-soft text-bad' : 'bg-warn-soft text-warn',
+            )}>
+              {windowLabel(tier)}
+            </span>
+          )}
+        </div>
+
+        {/* What is actually won. The headline names the offer; this says what
+            arrives — and two of the three are cash, not a trip. */}
+        {tier.rewardLabel && (
+          <p className="mb-3 text-[12.5px] font-medium leading-snug text-ink">
+            {tier.rewardLabel}
+          </p>
+        )}
 
         <div className="space-y-3">
-          <RequirementProgress
-            label="Self capital"
-            actual={tier.selfActual}
-            required={tier.selfRequirement}
-            tone="gold"
-            showActual={false}
-          />
+          {tier.needsSelf && (
+            <RequirementProgress
+              label="Self capital"
+              actual={tier.selfActual}
+              required={tier.selfRequirement}
+              tone="gold"
+              showActual={false}
+            />
+          )}
           {tier.needsTeam && (
             <RequirementProgress
               label="Team business"

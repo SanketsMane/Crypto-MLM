@@ -116,3 +116,28 @@ const rewardTierSchema = z.object({
 
 export const upsertRewardTier = async (req: Request, res: Response) =>
   res.json({ success: true, data: await service.upsertRewardTier(req.adminId!, rewardTierSchema.parse(req.body), req) });
+
+/**
+ * An offer's window is optional — omit both dates for one that always runs.
+ * Sent as ISO strings; the service is what rejects a window that closes before
+ * it opens, so a direct POST cannot store an offer that can never be earned.
+ */
+const roamingTierSchema = z.object({
+  id: z.string().optional(),
+  track: z.enum(['AFFILIATE', 'SELF_CAPITALIST']),
+  destination: z.string().trim().min(2).max(120),
+  selfRequirement: decimalString('Self requirement', MONEY_MAX),
+  teamRequirement: decimalString('Team requirement', MONEY_MAX),
+  rewardLabel: z.string().trim().max(200).nullish(),
+  rewardValue: decimalString('Reward value', MONEY_MAX).nullish(),
+  validFrom: z.string().nullish(),
+  validUntil: z.string().nullish(),
+  sortOrder: z.number().int().min(0).max(9_999).optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const upsertRoamingTier = async (req: Request, res: Response) =>
+  res.json({
+    success: true,
+    data: await service.upsertRoamingTier(req.adminId!, roamingTierSchema.parse(req.body), req),
+  });

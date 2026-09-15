@@ -101,6 +101,7 @@ r.get('/rank-achievements',        can('plan.view'),      asyncHandler(catalog.r
 r.get('/reward-tiers',    can('plan.view'), asyncHandler(catalog.rewardTiers));
 r.post('/reward-tiers',   can('plan.edit'), asyncHandler(catalog.upsertRewardTier));
 r.get('/roaming-tiers',            can('plan.view'),      asyncHandler(catalog.roamingTiers));
+r.post('/roaming-tiers',           can('plan.edit'),      asyncHandler(catalog.upsertRoamingTier));
 r.get('/roaming-awards',           can('plan.view'),      asyncHandler(catalog.roamingAwards));
 r.post('/roaming-awards/:id/fulfil', can('roaming.fulfil'), asyncHandler(catalog.fulfilRoaming));
 

@@ -120,10 +120,10 @@ export async function getPlan() {
     roaming: {
       affiliate: cfg.roamingTiers
         .filter((t) => t.track === 'AFFILIATE')
-        .map((t) => ({ destination: t.destination, self: Number(t.selfRequirement), team: Number(t.teamRequirement) })),
+        .map((t) => ({ destination: t.destination, self: Number(t.selfRequirement), team: Number(t.teamRequirement) , reward: t.rewardLabel, validUntil: t.validUntil })),
       selfCapitalist: cfg.roamingTiers
         .filter((t) => t.track !== 'AFFILIATE')
-        .map((t) => ({ destination: t.destination, self: Number(t.selfRequirement), team: Number(t.teamRequirement) })),
+        .map((t) => ({ destination: t.destination, self: Number(t.selfRequirement), team: Number(t.teamRequirement) , reward: t.rewardLabel, validUntil: t.validUntil })),
     },
   };
 }
@@ -214,3 +214,14 @@ export function payoutSchedule(w: {
     sla: `within ${w.slaHours} hours of the scheduled payout date`,
   };
 }
+
+/**
+ * "10 October" — an offer's closing date.
+ *
+ * Formatted in UTC so it reads the same for every visitor and matches the date
+ * the server enforces the campaign window against. Shared rather than written
+ * out per page: a deadline rendered two different ways is a deadline members
+ * will argue about.
+ */
+export const offerDate = (iso: string | Date) =>
+  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
