@@ -9,8 +9,15 @@ import { Decimal } from 'decimal.js';
  * must pass through `creditCapped`. Nothing credits a wallet directly, otherwise
  * the cap silently leaks.
  *
- * PASSIVE affiliates cap at 250% of invested capital, ACTIVE at 300%.
+ * PASSIVE affiliates cap at 200% of invested capital, ACTIVE at 300% — the
+ * figures come from runtime config and the package, never from this comment.
  * The Flyers Club is explicitly excluded from the ceiling.
+ *
+ * Reaching the ceiling stops EVERY stream, not just the daily return, which is
+ * what "re-top-up is mandatory once an ID reaches its cap or all revenues will
+ * be stopped" requires: once `remaining` hits zero `allowance` returns zero for
+ * anything routed through here, and a fresh purchase is what raises the limit
+ * again.
  */
 
 export interface CapState {
