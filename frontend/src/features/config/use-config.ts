@@ -38,3 +38,40 @@ export function useWithdrawalTerms() {
   const { data } = usePlatformConfig();
   return data?.withdrawal ?? DEPLOY_DEFAULTS.withdrawal;
 }
+
+/**
+ * When a member will actually be paid, in words.
+ *
+ * One helper rather than a sentence written out at each of the four places
+ * that need it. Those sentences all said "within 48 hours", which stopped
+ * being true the moment settlement moved to a fortnightly calendar — and four
+ * copies of a promise is four places for it to drift from what the engine does.
+ *
+ * Reads the date the server computed. Deriving "the next 15th or 30th" here
+ * would put a second implementation of the calendar in the browser, in local
+ * time, disagreeing with the server for anyone whose clock is a day off.
+ */
+export function payoutTiming(w: PlatformConfig['withdrawal']): string {
+  if (w.payoutDays.length === 0) return `usually within ${w.slaHours} hours`;
+  if (!w.nextPayoutDate) return 'on the next scheduled payout date';
+
+  const when = new Date(`${w.nextPayoutDate}T00:00:00Z`).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'long', timeZone: 'UTC',
+  });
+  return `on ${when}, the next scheduled payout date`;
+}
+
+/** "the 15th and 30th of each month" — for explaining the schedule itself. */
+export function payoutScheduleLabel(w: PlatformConfig['withdrawal']): string | null {
+  if (w.payoutDays.length === 0) return null;
+  const ordinal = (n: number) => {
+    // 11th, 12th, 13th are the exceptions — they do not follow their last digit.
+    const teen = n % 100;
+    if (teen >= 11 && teen <= 13) return `${n}th`;
+    return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+  };
+  const days = w.payoutDays.map(ordinal);
+  const list = days.length === 1 ? days[0]
+    : `${days.slice(0, -1).join(', ')} and ${days[days.length - 1]}`;
+  return `the ${list} of each month`;
+}

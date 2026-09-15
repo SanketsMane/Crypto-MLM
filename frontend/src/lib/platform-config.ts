@@ -27,6 +27,10 @@ export interface PlatformConfig {
   withdrawal: {
     open: boolean; feePercent: number; taxPercent: number;
     minimum: number; maximum: number; slaHours: number; network: string;
+    /** Days of the month payouts settle on. Empty means continuous. */
+    payoutDays: number[];
+    /** ISO date of the next settlement, or null when continuous. */
+    nextPayoutDate: string | null;
     kycRequired: boolean; kycRequiredAbove: number;
   };
   packages: { id: string; name: string; amount: string; dailyRoiPercent: string; capPercent: string }[];
@@ -67,6 +71,8 @@ export const DEPLOY_DEFAULTS: PlatformConfig = {
     minimum: fallback.WITHDRAW.min,
     maximum: fallback.WITHDRAW.max,
     slaHours: fallback.WITHDRAW.slaHours,
+    payoutDays: [15, 30],
+    nextPayoutDate: null,
     network: fallback.WITHDRAW.network,
     kycRequired: true,
     kycRequiredAbove: 0,

@@ -19,7 +19,7 @@ export default async function ContactPage() {
   const DETAILS = [
     { Icon: Mail, title: 'Email us', body: 'support@fortunex.com', hint: 'The fastest route for anything account-specific.' },
     { Icon: MapPin, title: 'Where we are', body: 'Business Bay, Dubai', hint: 'Members across more than twenty countries.' },
-    { Icon: Clock, title: 'Payout service level', body: `${plan.withdraw.slaHours} hours`, hint: `Withdrawals settle in ${plan.withdraw.network}.` },
+    { Icon: Clock, title: 'Payout schedule', body: plan.payout.label ?? `${plan.withdraw.slaHours} hours`, hint: `Requests accepted any time. Settled in ${plan.withdraw.network}.` },
   ];
 
   return (

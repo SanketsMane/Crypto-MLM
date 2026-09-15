@@ -42,7 +42,7 @@ export default async function TermsPage() {
     { k: 'Minimum entry', v: planMoney(plan.cfg.investment.minimum), n: `${plan.packages.length} tiers available` },
     { k: 'Withdrawal fee', v: `${w.feePercent}%`, n: 'Deducted from the requested amount' },
     { k: 'Withdrawal limits', v: `${planMoney(w.min)} – ${planMoney(w.max)}`, n: 'Per request' },
-    { k: 'Payout service level', v: `${w.slaHours} hours`, n: `Settled in ${w.network}` },
+    { k: 'Payout schedule', v: plan.payout.label ?? `${w.slaHours} hours`, n: `Requests any time · settled in ${w.network}` },
   ];
 
   return (

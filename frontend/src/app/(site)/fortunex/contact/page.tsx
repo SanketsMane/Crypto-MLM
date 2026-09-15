@@ -87,7 +87,7 @@ export default async function ContactPage() {
                     <Clock size={15} className="mt-0.5 shrink-0 text-brand-gold/80" />
                     <span>
                       Support is answered every business day.<br />
-                      Withdrawals are processed within {plan.withdraw.slaHours} hours of request.
+                      {plan.payout.sentence}
                     </span>
                   </li>
                 </ul>

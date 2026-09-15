@@ -5,6 +5,7 @@ import { money, percentOf, type Money } from '../../core/money.js';
 import { makeReference } from '../../core/reference.js';
 import { AppError, badRequest, notFound } from '../../core/errors.js';
 import { config, type RuntimeConfig } from '../../core/runtime-config.js';
+import { nextPayoutDate, payoutDueAt, formatPayoutDate } from '../../core/payout-calendar.js';
 import * as activity from '../../core/activity.js';
 import { notifyAdmins, notifyMember } from '../../core/notify.js';
 import type { Request } from 'express';
@@ -12,8 +13,12 @@ import { stepUpRequired } from '../auth/step-up.service.js';
 import { isSimulating } from '../../middleware/request-context.js';
 
 /**
- * Withdrawals (FortuneX p18): 5% fee, $10 min, $5,000 max, USDT BEP-20,
- * processed within 48 hours.
+ * Withdrawals (FortuneX terms): 5% fee, $10 min, $5,000 max, USDT BEP-20.
+ *
+ * Requests are accepted 24/7 and settled on the payout calendar — the 15th and
+ * 30th by default — with the 48-hour SLA measured from the settlement date
+ * rather than from the request. See core/payout-calendar.ts for why those two
+ * lines in the terms are not the contradiction they look like.
  *
  * The balance is debited in the SAME transaction that creates the request, and
  * the debit carries its own `balance >= amount` guard. There is deliberately no
@@ -269,7 +274,18 @@ export async function request(
     throw badRequest('After fees and withholding this payout would come to nothing');
   }
   const reference = makeReference('WDR', userId);
-  const slaDueAt = new Date(Date.now() + cfg.withdrawSlaHours * 60 * 60 * 1000);
+  /**
+   * Requests are accepted at any hour; settlement lands on the payout calendar.
+   *
+   * The SLA clock therefore starts at the scheduled date, not at the request —
+   * otherwise a request placed the day after a payout would be flagged overdue
+   * for a fortnight while behaving exactly as the terms promise, and a genuine
+   * breach would be lost among the false ones. With no calendar configured
+   * both values collapse to the old behaviour.
+   */
+  const requestedAt = new Date();
+  const scheduledFor = nextPayoutDate(cfg.withdrawalPayoutDays, requestedAt);
+  const slaDueAt = payoutDueAt(scheduledFor, requestedAt, cfg.withdrawSlaHours);
 
   const created = await prisma.$transaction(async (tx) => {
     // Guarded debit — fails atomically if funds are insufficient.
@@ -297,6 +313,7 @@ export async function request(
         network: 'BEP20',
         reference,
         slaDueAt,
+        scheduledFor,
         status: 'PENDING',
       },
     });
@@ -323,9 +340,18 @@ export async function request(
     type: 'withdrawal.requested',
     dedupeKey: `withdrawal-requested:${created.id}`,
     title: 'Withdrawal requested',
-    body: tax.gt(0)
-      ? `$${value.toString()} requested to ${masked}. You will receive $${net.toString()} after the ${cfg.withdrawFeePercent}% fee and ${cfg.taxWithholdingPercent}% withholding, usually within ${cfg.withdrawSlaHours} hours.`
-      : `$${value.toString()} requested to ${masked}. You will receive $${net.toString()} after the ${cfg.withdrawFeePercent}% fee, usually within ${cfg.withdrawSlaHours} hours.`,
+    /* Tells the member the date they will actually be paid. "Within 48 hours"
+       was true under continuous settlement and is not true under a fortnightly
+       calendar — saying it anyway is how support queues fill up on the 16th. */
+    body: (() => {
+      const deductions = tax.gt(0)
+        ? `after the ${cfg.withdrawFeePercent}% fee and ${cfg.taxWithholdingPercent}% withholding`
+        : `after the ${cfg.withdrawFeePercent}% fee`;
+      const timing = scheduledFor
+        ? `Payouts are settled on ${formatPayoutDate(scheduledFor)}.`
+        : `This usually takes up to ${cfg.withdrawSlaHours} hours.`;
+      return `$${value.toString()} requested to ${masked}. You will receive $${net.toString()} ${deductions}. ${timing}`;
+    })(),
     meta: { withdrawalId: created.id, amount: value.toString(), fee: fee.toString(), tax: tax.toString(), net: net.toString() },
   });
 

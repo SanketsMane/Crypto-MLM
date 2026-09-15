@@ -33,14 +33,14 @@ const NUMBERS = (plan: Plan) => [
   { value: `${plan.dailyReturnPercent}%`, label: 'Daily trade bonus', sub: `${plan.tradingDays} only` },
   { value: '30', label: 'Generations deep', sub: 'On network trade bonus' },
   { value: `${plan.packages.length}`, label: 'Investment tiers', sub: `${planMoney(plan.packages[0])} to ${planMoney(plan.packages[plan.packages.length - 1])}` },
-  { value: `${plan.withdraw.slaHours}h`, label: 'Withdrawal SLA', sub: plan.withdraw.network },
+  { value: plan.withdraw.payoutDays.length ? plan.withdraw.payoutDays.join(' & ') : `${plan.withdraw.slaHours}h`, label: plan.withdraw.payoutDays.length ? 'Payout dates' : 'Withdrawal SLA', sub: plan.withdraw.network },
 ];
 
 const STEPS = (plan: Plan) => [
   { n: '01', title: 'Open your account', body: 'Register in minutes with an email and a sponsor code if you have one. Verify your identity once, and withdrawals stay frictionless afterwards.' },
   { n: '02', title: 'Fund in USDT', body: `Send USDT on BEP-20 to your funding wallet. A confirmed deposit is credited by an operator and lands as a ledger entry you can see.` },
   { n: '03', title: 'Choose a tier', body: `Ten tiers from ${planMoney(plan.packages[0])} to ${planMoney(plan.packages[plan.packages.length - 1])}. Your earnings ceiling is set the moment you purchase, and it is shown to you before you confirm.` },
-  { n: '04', title: 'Earn and withdraw', body: `The trade bonus accrues each trading day. Withdraw from ${planMoney(plan.withdraw.min)}, processed within ${plan.withdraw.slaHours} hours, ${plan.withdraw.feePercent}% fee.` },
+  { n: '04', title: 'Earn and withdraw', body: `The trade bonus accrues each trading day. Withdraw from ${planMoney(plan.withdraw.min)}, settled ${plan.payout.label ?? `within ${plan.withdraw.slaHours} hours`}, ${plan.withdraw.feePercent}% fee.` },
 ];
 
 const TRUST = (plan: Plan) => [

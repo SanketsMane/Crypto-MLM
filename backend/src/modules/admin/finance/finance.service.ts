@@ -98,6 +98,10 @@ export async function withdrawals(opts: { status?: TxStatus; overdueOnly?: boole
       walletAddress: w.walletAddress, network: w.network, txHash: w.txHash,
       reference: w.reference, status: w.status,
       slaDueAt: w.slaDueAt,
+      /* The settlement date, so the queue can be worked by payout batch rather
+         than by arrival order — which is what a fortnightly calendar actually
+         asks an operator to do. */
+      scheduledFor: w.scheduledFor,
       overdue: w.status === 'PENDING' && w.slaDueAt.getTime() < now,
       hoursRemaining: w.status === 'PENDING'
         ? Math.round((w.slaDueAt.getTime() - now) / 3_600_000)

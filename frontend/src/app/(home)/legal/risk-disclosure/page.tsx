@@ -114,9 +114,9 @@ export default async function RiskPage() {
             <>
               <p>
                 Access to the platform may be interrupted by maintenance, technical failure or
-                circumstances beyond our control. Withdrawals are processed within{' '}
-                {plan.withdraw.slaHours} hours in the normal course, subject to identity verification
-                and anti-money-laundering checks, which may take longer in individual cases.
+                circumstances beyond our control. {plan.payout.sentence} Settlement is subject to
+                identity verification and anti-money-laundering checks, which may take longer in
+                individual cases.
               </p>
               <p>
                 The regulatory treatment of digital assets differs by jurisdiction and continues

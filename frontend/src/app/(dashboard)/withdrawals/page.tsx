@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMoneyMutation } from '@/lib/money-mutation';
-import { useWithdrawalTerms } from '@/features/config/use-config';
+import { useWithdrawalTerms, payoutTiming, payoutScheduleLabel } from '@/features/config/use-config';
 import { toast } from 'sonner';
 import { toastError } from '@/lib/toast';
 import Link from 'next/link';
@@ -76,7 +76,7 @@ export default function WithdrawalsPage() {
     mutationFn: async (stepUpToken: string, key) =>
       post('/withdrawals', { amount, walletAddress }, key, stepUpToken),
     onSuccess: () => {
-      toast.success(`Request submitted — processed within ${terms.slaHours} hours`);
+      toast.success(`Request submitted — paid ${payoutTiming(terms)}`);
       setAmount(''); setWalletAddress(''); setReview(false);
       qc.invalidateQueries({ queryKey: ['member'] });
     },
@@ -215,8 +215,10 @@ export default function WithdrawalsPage() {
 
               <p className="flex gap-2 text-[11.5px] leading-relaxed text-ink-2">
                 <Clock size={14} className="mt-0.5 shrink-0" />
-                Requests are reviewed and paid within {terms.slaHours} hours, in {terms.network}. The amount
-                leaves your Main wallet immediately and is returned in full if the request is rejected.
+                You can request at any time. Payouts are settled{' '}
+                {payoutScheduleLabel(terms) ?? `within ${terms.slaHours} hours`}, in {terms.network} — this
+                one is due {payoutTiming(terms)}. The amount leaves your Main wallet immediately and is
+                returned in full if the request is rejected.
               </p>
             </form>
           </Card>
@@ -235,7 +237,7 @@ export default function WithdrawalsPage() {
         quote={priced}
         address={walletAddress}
         network={terms.network}
-        slaHours={terms.slaHours}
+        timing={payoutTiming(terms)}
       />
 
       {dialog}
@@ -291,10 +293,10 @@ function Line({ label, value, tone, muted }: { label: string; value: string; ton
 /* ── review before an irreversible transfer ─────────────────────────────── */
 
 function ReviewDialog({
-  open, onClose, onConfirm, pending, quote, address, network, slaHours,
+  open, onClose, onConfirm, pending, quote, address, network, timing,
 }: {
   open: boolean; onClose: () => void; onConfirm: () => void; pending: boolean;
-  quote: Quote | null; address: string; network: string; slaHours: number;
+  quote: Quote | null; address: string; network: string; timing: string;
 }) {
   if (!open || !quote) return null;
 
@@ -334,7 +336,7 @@ function ReviewDialog({
 
         <p className="text-[12px] leading-relaxed text-ink-2">
           {usd(quote.amount)} leaves your Main wallet as soon as you confirm, and is returned in full
-          if the request is rejected. Payment usually arrives within {slaHours} hours.
+          if the request is rejected. Payment arrives {timing}.
         </p>
       </div>
     </Modal>

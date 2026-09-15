@@ -741,8 +741,14 @@ model Withdrawal {
   reference     String   @unique
   status        TxStatus @default(PENDING)
 
-  /// requestedAt + 48h. Drives the ageing report.
+  /// When the operator is late. Measured from `scheduledFor` where a payout
+  /// calendar is set, and from the request itself where none is — otherwise
+  /// every request placed between payout dates would read as overdue while
+  /// behaving exactly as designed.
   slaDueAt     DateTime
+  /// The settlement date this request falls on. Null while no payout
+  /// calendar is configured, which means settle continuously.
+  scheduledFor DateTime? @db.Date
   processedAt  DateTime?
   rejectReason String?
 
@@ -751,6 +757,7 @@ model Withdrawal {
 
   @@index([userId, status])
   @@index([status, slaDueAt])
+  @@index([status, scheduledFor])
   @@map("withdrawals")
 }
 

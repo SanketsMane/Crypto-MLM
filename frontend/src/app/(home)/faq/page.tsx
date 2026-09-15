@@ -25,7 +25,7 @@ export default async function FaqPage() {
     { q: 'Is there a limit on what I can earn?',
       a: `Yes, and it is published rather than buried. Earnings are capped at ${plan.capPassivePercent}% of committed capital for passive income and ${plan.capActivePercent}% where the active qualification is met. The cap is applied at the moment of every payout.` },
     { q: 'How do deposits and withdrawals work?',
-      a: `Both settle in ${w.network}. Withdrawals carry a ${w.feePercent}% fee, a minimum of ${planMoney(w.min)} and a maximum of ${planMoney(w.max)} per request, and are processed within ${w.slaHours} hours.` },
+      a: `Both settle in ${w.network}. Withdrawals carry a ${w.feePercent}% fee, a minimum of ${planMoney(w.min)} and a maximum of ${planMoney(w.max)} per request, and are settled ${plan.payout.label ?? `within ${w.slaHours} hours`}. Requests can be placed at any time.` },
     { q: 'How does the affiliate network pay?',
       a: `Two ways. A direct sponsor bonus splits ${plan.directBonus.reduce((s, d) => s + d.percent, 0)}% across your first three levels, and a generation bonus pays on the daily trade bonus earned beneath you, reaching thirty levels with a stated qualification at each band.` },
     { q: 'What are executive ranks?',

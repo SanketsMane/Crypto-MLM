@@ -67,7 +67,7 @@ const GROUPS = (plan: Plan) => [
     items: [
       {
         q: 'How quickly are withdrawals processed?',
-        a: `Within ${plan.withdraw.slaHours} hours of the request. Requests past that window are flagged as overdue in the operations queue so they are visible rather than forgotten.`,
+        a: `${plan.payout.sentence} Requests past that window are flagged as overdue in the operations queue so they are visible rather than forgotten.`,
       },
       {
         q: 'What are the limits and fees?',

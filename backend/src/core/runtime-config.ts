@@ -3,6 +3,7 @@ import { env } from '../config/env.js';
 import { badRequest } from './errors.js';
 import { PLAN_STRUCTURE_CODES, isPlanStructure, PLAN_STRUCTURES } from './plan-structure.js';
 import type { GatewaySwitches } from './gateway/switches.js';
+import { payoutDays } from './payout-calendar.js';
 
 /**
  * Runtime configuration — the business rules an operator is allowed to tune
@@ -125,6 +126,13 @@ export const SPECS: SettingSpec[] = [
     help: 'Hours an operator has to process a request before it is flagged overdue.',
     enforcedIn: 'Withdrawal request · Payouts queue',
   },
+  {
+    key: 'WITHDRAWAL_PAYOUT_DAYS', group: 'Withdrawals', type: 'text', public: true,
+    label: 'Payout dates',
+    help: 'Days of the month approved withdrawals are settled on, comma separated — "15,30" pays on the 15th and 30th. Requests can still be placed at any time; this only sets when they are paid. A day the month does not have is clamped to its last day, so "30" pays on the 28th in February. Leave empty to settle continuously, with the processing SLA running from the request instead.',
+    enforcedIn: 'Withdrawal request · Payouts queue',
+  },
+
   {
     key: 'WITHDRAWALS_OPEN', group: 'Withdrawals', type: 'bool', public: true,
     label: 'Withdrawals open',
@@ -272,6 +280,8 @@ export const DEFAULTS: Record<string, string> = {
   WITHDRAW_MIN: String(env.WITHDRAW_MIN),
   WITHDRAW_MAX: String(env.WITHDRAW_MAX),
   WITHDRAW_SLA_HOURS: '48',
+  // The terms settle withdrawals fortnightly; requests stay open 24/7.
+  WITHDRAWAL_PAYOUT_DAYS: '15,30',
   MIN_INVESTMENT: '50',
   TAX_WITHHOLDING_PERCENT: '0',
   KYC_REQUIRED_FOR_WITHDRAWAL: 'true',
@@ -305,6 +315,8 @@ export interface RuntimeConfig {
   withdrawMin: number;
   withdrawMax: number;
   withdrawSlaHours: number;
+  /** Days of the month approved withdrawals settle on. Empty = continuous. */
+  withdrawalPayoutDays: number[];
   minInvestment: number;
   taxWithholdingPercent: number;
   kycRequiredForWithdrawal: boolean;
@@ -415,6 +427,7 @@ function build(stored: Record<string, string>): RuntimeConfig {
     withdrawMin: num('WITHDRAW_MIN'),
     withdrawMax: num('WITHDRAW_MAX'),
     withdrawSlaHours: num('WITHDRAW_SLA_HOURS'),
+    withdrawalPayoutDays: payoutDays(v('WITHDRAWAL_PAYOUT_DAYS')),
     minInvestment: num('MIN_INVESTMENT'),
     taxWithholdingPercent: num('TAX_WITHHOLDING_PERCENT'),
     kycRequiredForWithdrawal: bool('KYC_REQUIRED_FOR_WITHDRAWAL'),

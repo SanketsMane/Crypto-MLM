@@ -114,9 +114,8 @@ export default async function TermsPage() {
                 from the requested amount. Your balance is debited when the request is made.
               </p>
               <p>
-                Requests are processed within {plan.withdraw.slaHours} hours in the normal course. If a
-                request is rejected, the full amount including the fee is returned to your wallet
-                and the reason is recorded on the request.
+                {plan.payout.sentence} If a request is rejected, the full amount including the fee
+                is returned to your wallet and the reason is recorded on the request.
               </p>
               <p>
                 We may delay or decline a withdrawal where we are required to do so by law, where

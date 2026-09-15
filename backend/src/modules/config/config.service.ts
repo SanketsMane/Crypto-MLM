@@ -1,5 +1,6 @@
 import { prisma } from '../../core/db.js';
 import { config } from '../../core/runtime-config.js';
+import { nextPayoutDate } from '../../core/payout-calendar.js';
 import { chainState } from '../../core/chain/config.js';
 
 /**
@@ -53,6 +54,10 @@ export interface PublicConfig {
     minimum: number;
     maximum: number;
     slaHours: number;
+    /** Days of the month payouts settle on. Empty means continuous. */
+    payoutDays: number[];
+    /** ISO date of the next settlement, or null when continuous. */
+    nextPayoutDate: string | null;
     network: string;
     kycRequired: boolean;
     kycRequiredAbove: number;
@@ -135,6 +140,8 @@ export async function publicConfig(): Promise<PublicConfig> {
       minimum: cfg.withdrawMin,
       maximum: cfg.withdrawMax,
       slaHours: cfg.withdrawSlaHours,
+      payoutDays: cfg.withdrawalPayoutDays,
+      nextPayoutDate: nextPayoutDate(cfg.withdrawalPayoutDays)?.toISOString().slice(0, 10) ?? null,
       network: 'USDT · BEP-20',
       kycRequired: cfg.kycRequiredForWithdrawal,
       kycRequiredAbove: cfg.kycRequiredAbove,

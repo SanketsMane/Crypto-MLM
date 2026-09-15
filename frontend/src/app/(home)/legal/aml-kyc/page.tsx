@@ -53,9 +53,9 @@ export default async function AmlPage() {
           body: (
             <p>
               Verification may be required before a withdrawal is processed, and may be requested
-              at any time where activity or risk indicators warrant it. Withdrawals are normally
-              processed within {plan.withdraw.slaHours} hours; a request awaiting verification will
-              take longer, and we will tell you what is outstanding.
+              at any time where activity or risk indicators warrant it. {plan.payout.sentence} A
+              request awaiting verification will take longer, and we will tell you what is
+              outstanding.
             </p>
           ),
         },

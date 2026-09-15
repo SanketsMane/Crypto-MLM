@@ -89,7 +89,15 @@ export async function getPlan() {
       max: cfg.withdrawal.maximum,
       slaHours: cfg.withdrawal.slaHours,
       network: cfg.withdrawal.network,
+      payoutDays: cfg.withdrawal.payoutDays,
+      nextPayoutDate: cfg.withdrawal.nextPayoutDate,
     },
+
+    /** How the settlement schedule is worded. One source for every page. */
+    payout: payoutSchedule({
+      payoutDays: cfg.withdrawal.payoutDays,
+      slaHours: cfg.withdrawal.slaHours,
+    }),
 
     directBonus: cfg.directBonus.map((d) => ({ level: d.level, percent: Number(d.percent) })),
 
@@ -151,4 +159,58 @@ function bandGenerations(levels: GenerationLevel[]) {
     }
   }
   return bands;
+}
+/**
+ * How the payout schedule is described on the public site.
+ *
+ * Ten pages — the FAQ, the terms, the AML policy, the risk disclosure — stated
+ * that withdrawals are "processed within 48 hours of the request". Under a
+ * fortnightly calendar that is not merely stale copy; on the legal pages it is
+ * a commitment the platform does not meet, published as though it did.
+ *
+ * So the schedule is described in one place and read everywhere. `slaHours`
+ * keeps its real meaning — the operator's window to clear a batch — rather
+ * than being quietly repurposed as a promise to the member.
+ */
+export interface PayoutSchedule {
+  /** "the 15th and 30th of each month", or null when settlement is continuous. */
+  label: string | null;
+  /** A full sentence stating when a member is paid. */
+  sentence: string;
+  /** "within 48 hours of the scheduled date" — the operator's obligation. */
+  sla: string;
+}
+
+const ordinal = (n: number) => {
+  // 11th, 12th and 13th do not follow their last digit.
+  const teen = n % 100;
+  if (teen >= 11 && teen <= 13) return `${n}th`;
+  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+};
+
+export function payoutSchedule(w: {
+  payoutDays: number[];
+  slaHours: number;
+}): PayoutSchedule {
+  if (w.payoutDays.length === 0) {
+    return {
+      label: null,
+      sentence: `Withdrawals are processed within ${w.slaHours} hours of the request.`,
+      sla: `within ${w.slaHours} hours of the request`,
+    };
+  }
+
+  const days = w.payoutDays.map(ordinal);
+  const list = days.length === 1
+    ? days[0]
+    : `${days.slice(0, -1).join(', ')} and ${days[days.length - 1]}`;
+  const label = `the ${list} of each month`;
+
+  return {
+    label,
+    sentence:
+      `Withdrawals can be requested at any time and are settled on ${label}, `
+      + `within ${w.slaHours} hours of that date.`,
+    sla: `within ${w.slaHours} hours of the scheduled payout date`,
+  };
 }
