@@ -6,6 +6,7 @@ import { money, toDb } from '../../../core/money.js';
 import { makeReference } from '../../../core/reference.js';
 import { badRequest, notFound } from '../../../core/errors.js';
 import { recalculate } from '../../team/team.service.js';
+import { config } from '../../../core/runtime-config.js';
 import { ensureWallets } from '../../../core/ledger.js';
 import { buildPath } from '../../../core/tree.js';
 import { userCode as newUserCode } from '../../../core/reference.js';
@@ -180,10 +181,26 @@ export async function setAffiliateMode(adminId: string, userId: string, mode: Af
   if (!before) throw notFound('User not found');
 
   const user = await prisma.user.update({ where: { id: userId }, data: { affiliateMode: mode } });
+
+  /**
+   * The ceilings are read, not written into the sentence.
+   *
+   * This summary said "(250% → 300%)" literally — a figure that stopped being
+   * true when the ceiling moved to 200%, and one that was already wrong in the
+   * other direction, since switching a member back to PASSIVE also recorded
+   * "250% → 300%". An audit row that misstates what changed is worse than one
+   * that says nothing, because it is the record someone will rely on later.
+   */
+  const cfg = await config();
+  const from = before.affiliateMode === 'ACTIVE' ? cfg.capActivePercent : cfg.capPassivePercent;
+  const to = mode === 'ACTIVE' ? cfg.capActivePercent : cfg.capPassivePercent;
+
   await audit.record({
     adminId, action: 'UPDATE', entityType: 'user', entityId: userId,
-    summary: `${before.userCode} cap mode ${before.affiliateMode} → ${mode} (250% → 300%)`,
-    before: { affiliateMode: before.affiliateMode }, after: { affiliateMode: mode }, req,
+    summary: `${before.userCode} cap mode ${before.affiliateMode} → ${mode} (${from}% → ${to}%)`,
+    before: { affiliateMode: before.affiliateMode, capPercent: from },
+    after: { affiliateMode: mode, capPercent: to },
+    req,
   });
   return { id: user.id, userCode: user.userCode, affiliateMode: user.affiliateMode };
 }

@@ -12,6 +12,7 @@ import { Panel, Metric, Table, Badge, toneFor, Button, PageHeader, controlCls } 
 import { ActionDialog } from '@/components/ui/dialog';
 import { usd, shortDate, titleCase } from '@/lib/format';
 import { rankLabel } from '@/lib/rank';
+import { usePlatformConfig } from '@/features/config/use-config';
 
 interface Detail {
   profile: {
@@ -33,6 +34,10 @@ interface Detail {
 }
 
 export default function AdminUserDetail() {
+  /* Read, not hard-coded — see the note on the users list. */
+  const cfgQ = usePlatformConfig();
+  const capPassive = cfgQ.data?.returns.capPassivePercent ?? 200;
+  const capActive = cfgQ.data?.returns.capActivePercent ?? 300;
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
   const [amount, setAmount] = useState('');
@@ -115,7 +120,7 @@ export default function AdminUserDetail() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={toneFor(p.status)}>{p.status}</Badge>
-          <Badge tone={p.affiliateMode === 'ACTIVE' ? 'info' : 'neutral'}>cap {p.affiliateMode === 'ACTIVE' ? '300%' : '250%'}</Badge>
+          <Badge tone={p.affiliateMode === 'ACTIVE' ? 'info' : 'neutral'}>cap {p.affiliateMode === 'ACTIVE' ? `${capActive}%` : `${capPassive}%`}</Badge>
           {p.rank && <Badge tone="good">{rankLabel(p.rank.level)}</Badge>}
         </div>
       </div>
@@ -216,7 +221,7 @@ export default function AdminUserDetail() {
                 ))}
                 <Button variant="ghost" className="px-3 py-1.5 text-xs"
                         onClick={() => setMode.mutate(p.affiliateMode === 'ACTIVE' ? 'PASSIVE' : 'ACTIVE')}>
-                  Switch to {p.affiliateMode === 'ACTIVE' ? '250%' : '300%'} cap
+                  Switch to {p.affiliateMode === 'ACTIVE' ? `${capPassive}%` : `${capActive}%`} cap
                 </Button>
                 <Button variant="ghost" className="px-3 py-1.5 text-xs" loading={recalc.isPending}
                         onClick={() => recalc.mutate()}>Recalculate team</Button>

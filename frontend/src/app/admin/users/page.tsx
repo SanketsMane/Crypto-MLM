@@ -18,6 +18,7 @@ import { UserPlus } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
 import { usd, shortDate, num } from '@/lib/format';
 import { rankLabel } from '@/lib/rank';
+import { usePlatformConfig } from '@/features/config/use-config';
 
 interface Row {
   id: string; userCode: string; email: string; name: string; status: string;
@@ -27,6 +28,13 @@ interface Row {
 }
 
 export default function UsersPage() {
+  /* The ceilings come from the settings table, not from constants here. This
+     page hard-coded 250%/300% in four places, so changing the ceiling in
+     Settings left the console labelling every member with the old figure —
+     and the bulk action offered to set a cap the platform no longer applies. */
+  const cfg = usePlatformConfig();
+  const capPassive = cfg.data?.returns.capPassivePercent ?? 200;
+  const capActive = cfg.data?.returns.capActivePercent ?? 300;
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(0);
@@ -163,11 +171,11 @@ export default function UsersPage() {
               ))}
               <Button size="sm" variant="outline" loading={bulkMode.isPending}
                       onClick={() => bulkMode.mutate('ACTIVE')}>
-                Cap 300%
+                Cap {capActive}%
               </Button>
               <Button size="sm" variant="outline" loading={bulkMode.isPending}
                       onClick={() => bulkMode.mutate('PASSIVE')}>
-                Cap 250%
+                Cap {capPassive}%
               </Button>
               <button type="button" onClick={() => setSelected(new Set())}
                       className="rounded-lg px-2 py-1.5 text-[12px] text-ink-3 transition hover:text-ink">
@@ -206,7 +214,7 @@ export default function UsersPage() {
               u.name || '—',
               <span key="e" className="text-ink-2">{u.email}</span>,
               <Badge key="s" tone={toneFor(u.status)}>{u.status}</Badge>,
-              <Badge key="m" tone={u.affiliateMode === 'ACTIVE' ? 'info' : 'neutral'}>{u.affiliateMode === 'ACTIVE' ? '300%' : '250%'}</Badge>,
+              <Badge key="m" tone={u.affiliateMode === 'ACTIVE' ? 'info' : 'neutral'}>{u.affiliateMode === 'ACTIVE' ? `${capActive}%` : `${capPassive}%`}</Badge>,
               <span key="i" className="tabular-nums">{usd(u.totalInvested)}</span>,
               <span key="r" className="font-medium tabular-nums text-good">{usd(u.totalEarned)}</span>,
               <span key="t" className="tabular-nums">{usd(u.teamBusiness)}</span>,
