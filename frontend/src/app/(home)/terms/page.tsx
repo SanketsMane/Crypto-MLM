@@ -53,7 +53,7 @@ export default async function TermsPage() {
         lead="Four documents govern a FortuneX account. They are written to be read, not to be survived — and the commercial figures below are pulled from the running platform rather than typed into a page."
       />
 
-      <section className="py-20 sm:py-24">
+      <section className="py-16 sm:py-20">
         <Container>
           <Reveal><Heading className="text-center">The documents</Heading></Reveal>
           <div className="mt-14 grid gap-5 sm:grid-cols-2">
@@ -77,7 +77,7 @@ export default async function TermsPage() {
         </Container>
       </section>
 
-      <section className="border-t border-[var(--home-line)] py-20 sm:py-24">
+      <section className="border-t border-[var(--home-line)] py-16 sm:py-20">
         <Container>
           <Reveal>
             <Heading className="text-center">Commercial terms, as enforced today</Heading>

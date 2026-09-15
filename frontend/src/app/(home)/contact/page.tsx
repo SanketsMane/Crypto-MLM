@@ -30,7 +30,7 @@ export default async function ContactPage() {
         lead="Account questions are best raised from inside the platform, where the operator answering can see your ledger. For everything else, this reaches the same team."
       />
 
-      <section className="py-20 sm:py-24">
+      <section className="py-16 sm:py-20">
         <Container>
           <div className="grid gap-10 lg:grid-cols-[1fr_1.25fr] lg:gap-14">
             <Reveal from="left">

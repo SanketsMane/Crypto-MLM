@@ -1,8 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect } from 'react';
 import { INTRO_KEY } from '@/lib/intro-splash';
+import { BrandMark } from '@/components/layout/brand-mark';
 
 /**
  * The entrance on the marketing site.
@@ -36,9 +36,13 @@ export function IntroSplash() {
 
   return (
     <div className="fx-intro" aria-hidden="true">
+      {/* The operator's mark, not a baked-in PNG.
+          This was the last place still painting the shipped gold wordmark —
+          and the worst one to miss, because the splash is the very first thing
+          a visitor sees on the public site. A white-label platform cannot open
+          on somebody else's logo. */}
       <div className="fx-intro__mark">
-        <Image src="/brand/Clearlogo.png" alt="" fill priority sizes="300px"
-               className="object-contain" />
+        <BrandMark variant="full" className="scale-[1.6]" />
       </div>
       <span className="fx-intro__rule" />
     </div>

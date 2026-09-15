@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { Container } from './sections';
@@ -9,40 +8,51 @@ import { Reveal } from './motion';
 /**
  * Banner for interior pages.
  *
- * Same circuit plate as the home hero but a third of the height, so an
- * interior page opens with the brand without pushing its content under the
- * fold. Carries a breadcrumb, which the home hero has no use for.
+ * Rebuilt for two reasons.
+ *
+ * The scrim was `rgba(0,0,0,0.5)` fading to solid `#000`, painted over a dark
+ * circuit-board photograph. That is correct on a permanently black page and
+ * wrong the moment light mode exists — it put a black plate at the top of a
+ * white page, with the breadcrumb and heading fighting it.
+ *
+ * And it was centred. Every section below it now opens with an aligned header
+ * and an eyebrow rule, so a centred banner made the page restart its reading
+ * position immediately after the first heading. It shares the spine now.
+ *
+ * The photograph is gone rather than re-scrimmed. It was doing nothing that
+ * the type and the accent rule do not do better, and it cost a full-width
+ * image request on every interior page.
  */
 export function PageHero({ title, lead, crumb }: { title: string; lead?: string; crumb: string }) {
   return (
-    <section className="relative isolate overflow-hidden border-b border-[var(--home-line)]">
-      <Image src="/home/herobanner.png" alt="" aria-hidden fill priority sizes="100vw"
-             className="-z-20 object-cover object-center" />
-      <div aria-hidden
-           className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_50%,rgba(0,0,0,0.5)_0%,rgba(0,0,0,0.86)_60%,#000_100%)]" />
-      <div aria-hidden
-           className="home-glow pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[280px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--home-gold)]/10 blur-[100px]" />
+    <section className="relative isolate overflow-hidden border-b border-[var(--home-line)] bg-[var(--home-surface)]">
+      {/* One off-centre wash, the same light the sections below use, so the
+          banner belongs to the page rather than sitting on top of it. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(58%_70%_at_12%_0%,color-mix(in_srgb,var(--home-gold)_11%,transparent),transparent_72%)]"
+      />
 
-      <Container className="py-16 text-center sm:py-20">
+      <Container className="py-12 sm:py-16">
         <Reveal from="down">
           <nav aria-label="Breadcrumb">
-            <ol className="flex items-center justify-center gap-1.5 text-[13px] text-[var(--home-text-3)]">
-              <li><Link href="/" className="transition hover:text-[var(--home-gold)]">Home</Link></li>
-              <li aria-hidden><ChevronRight size={14} /></li>
-              <li aria-current="page" className="text-[var(--home-gold)]">{crumb}</li>
+            <ol className="flex items-center gap-1.5 text-[12px] text-[var(--home-text-3)]">
+              <li><Link href="/" className="transition-colors hover:text-[var(--home-gold)]">Home</Link></li>
+              <li aria-hidden><ChevronRight size={13} /></li>
+              <li aria-current="page" className="font-semibold text-[var(--home-gold)]">{crumb}</li>
             </ol>
           </nav>
         </Reveal>
 
-        <Reveal delay={100}>
-          <h1 className="mx-auto mt-4 max-w-[20ch] text-[36px] font-bold leading-[1.1] tracking-[-0.02em] text-[var(--home-display)] sm:text-[50px]">
+        <Reveal delay={90}>
+          <h1 className="mt-4 max-w-[22ch] text-[32px] font-bold leading-[1.08] tracking-[-0.025em] text-[var(--home-text)] sm:text-[44px]">
             {title}
           </h1>
         </Reveal>
 
         {lead && (
-          <Reveal delay={200}>
-            <p className="mx-auto mt-5 max-w-[64ch] text-[14.5px] leading-[1.8] text-[var(--home-text-2)]">
+          <Reveal delay={170}>
+            <p className="mt-4 max-w-[68ch] text-[14.5px] leading-[1.8] text-[var(--home-text-2)]">
               {lead}
             </p>
           </Reveal>

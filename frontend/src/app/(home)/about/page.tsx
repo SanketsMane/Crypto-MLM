@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Eye, Layers, Lock, ScrollText } from 'lucide-react';
 import { getPlan, planMoney } from '@/lib/platform-config.server';
 import { PageHero } from '@/components/home/page-hero';
-import { Card, Container, Heading } from '@/components/home/sections';
+import { Card, Container, Heading, SectionHead } from '@/components/home/sections';
 import { Reveal, CountUp } from '@/components/home/motion';
 
 export const metadata: Metadata = {
@@ -63,7 +63,7 @@ export default async function AboutPage() {
       />
 
       {/* ── position ─────────────────────────────────────────────────── */}
-      <section className="py-20 sm:py-24">
+      <section className="py-16 sm:py-20">
         <Container>
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             <Reveal from="left">
@@ -104,7 +104,7 @@ export default async function AboutPage() {
               </div>
               <dl className="mt-4 grid grid-cols-2 gap-3">
                 {FACTS.map((f) => (
-                  <div key={f.label} className="rounded-xl border border-[var(--home-line)] bg-[var(--home-surface)] px-4 py-3.5">
+                  <div key={f.label} className="fx-cell rounded-[5px] border border-[var(--home-line)] bg-[var(--home-surface)] px-4 py-3.5">
                     <dd className="text-[24px] font-bold leading-none text-[var(--home-gold)]">
                       <CountUp to={f.v} suffix={f.suffix} decimals={f.decimals ?? 0} />
                     </dd>
@@ -118,28 +118,26 @@ export default async function AboutPage() {
       </section>
 
       {/* ── commitments ──────────────────────────────────────────────── */}
-      <section className="border-y border-[var(--home-line)] py-20 sm:py-24">
+      <section className="border-y border-[var(--home-line)] py-16 sm:py-20">
         <Container>
           <Reveal>
-            <Heading className="mx-auto max-w-[22ch] text-center">
-              Four commitments, each of them testable
-            </Heading>
-            <p className="mx-auto mt-4 max-w-[60ch] text-center text-[14.5px] leading-[1.8] text-[var(--home-text-2)]">
-              A value that cannot be checked is decoration. Each of these describes something you
-              could verify from your own account history.
-            </p>
+            <SectionHead
+              eyebrow="What we commit to"
+              title="Four commitments, each of them testable"
+              lead="A value that cannot be checked is decoration. Each of these describes something you could verify from your own account history."
+            />
           </Reveal>
 
-          <div className="mt-14 grid gap-5 sm:grid-cols-2">
+          {/* One bordered grid rather than four floating cards: these are four
+              facets of one promise, not four unrelated offers. */}
+          <div className="mt-12 grid gap-px overflow-hidden rounded-[5px] border border-[var(--home-line)] bg-[var(--home-line)] sm:grid-cols-2">
             {VALUES.map(({ Icon, title, body }, i) => (
-              <Reveal key={title} delay={i * 110} className="h-full">
-                <Card className="h-full p-7">
-                  <span className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--home-gold)]/12 text-[var(--home-gold)] ring-1 ring-[var(--home-gold)]/25">
-                    <Icon size={20} strokeWidth={1.9} aria-hidden />
-                  </span>
-                  <h3 className="mt-5 text-[18px] font-bold text-[var(--home-text)]">{title}</h3>
-                  <p className="mt-3 text-[13.5px] leading-[1.75] text-[var(--home-text-2)]">{body}</p>
-                </Card>
+              <Reveal key={title} delay={i * 90} className="h-full">
+                <div className="fx-cell h-full bg-[var(--home-surface)] p-6">
+                  <Icon size={18} strokeWidth={1.9} aria-hidden className="fx-cell-icon text-[var(--home-gold)]" />
+                  <h3 className="mt-5 text-[16px] font-bold text-[var(--home-text)]">{title}</h3>
+                  <p className="mt-2.5 text-[13px] leading-[1.75] text-[var(--home-text-2)]">{body}</p>
+                </div>
               </Reveal>
             ))}
           </div>
@@ -147,25 +145,22 @@ export default async function AboutPage() {
       </section>
 
       {/* ── leadership ───────────────────────────────────────────────── */}
-      <section className="py-20 sm:py-24">
+      <section className="py-16 sm:py-20">
         <Container>
           <Reveal>
-            <span className="block text-center text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[var(--home-gold)]">
-              Who runs it
-            </span>
-            <Heading className="mt-3 text-center">The people accountable for the plan</Heading>
+            <SectionHead eyebrow="Who runs it" title="The people accountable for the plan" />
           </Reveal>
 
-          <div className="mx-auto mt-14 grid max-w-[900px] gap-5 sm:grid-cols-2">
+          <div className="mt-12 grid gap-5 sm:grid-cols-2">
             {LEADERSHIP.map((l, i) => (
-              <Reveal key={l.name} delay={i * 130} from="zoom" className="h-full">
-                <Card className="h-full p-8">
-                  <span className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-[var(--home-gold)]">
+              <Reveal key={l.name} delay={i * 110} className="h-full">
+                <Card className="h-full p-6">
+                  <span className="text-[10.5px] font-semibold uppercase tracking-[0.11em] text-[var(--home-gold)]">
                     {l.role}
                   </span>
-                  <h3 className="mt-3 text-[22px] font-bold tracking-[-0.015em] text-[var(--home-text)]">{l.name}</h3>
-                  <span aria-hidden className="mt-4 block h-px w-full bg-gradient-to-r from-[var(--home-gold)]/45 to-transparent" />
-                  <p className="mt-4 text-[13.5px] leading-[1.8] text-[var(--home-text-2)]">{l.body}</p>
+                  <h3 className="mt-2.5 text-[19px] font-bold tracking-[-0.015em] text-[var(--home-text)]">{l.name}</h3>
+                  <span aria-hidden className="mt-4 block h-px w-full bg-[var(--home-line)]" />
+                  <p className="mt-4 text-[13px] leading-[1.8] text-[var(--home-text-2)]">{l.body}</p>
                 </Card>
               </Reveal>
             ))}
@@ -174,7 +169,7 @@ export default async function AboutPage() {
       </section>
 
       {/* ── operations ───────────────────────────────────────────────── */}
-      <section className="border-t border-[var(--home-line)] py-20 sm:py-24">
+      <section className="border-t border-[var(--home-line)] py-16 sm:py-20">
         <Container>
           <div className="grid gap-10 lg:grid-cols-3">
             {[
@@ -190,7 +185,7 @@ export default async function AboutPage() {
             ))}
           </div>
           <Reveal delay={200}>
-            <p className="mt-14 text-center text-[13px] text-[var(--home-text-3)]">
+            <p className="mt-12 border-t border-[var(--home-line)] pt-6 text-[12.5px] text-[var(--home-text-3)]">
               Entry starts at {planMoney(plan.cfg.investment.minimum)} · Settlement in {plan.withdraw.network}
             </p>
           </Reveal>

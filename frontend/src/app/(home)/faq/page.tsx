@@ -56,7 +56,7 @@ export default async function FaqPage() {
         title="Frequently asked questions"
         lead="Everything that governs an account is published before you open one. If something below is still unclear, the support desk answers with figures rather than platitudes."
       />
-      <div className="py-20 sm:py-24">
+      <div className="py-16 sm:py-20">
         <Faq items={items} heading="Everything, answered"
              lead="Trading, packages, payouts, the network and the controls behind them." />
       </div>
