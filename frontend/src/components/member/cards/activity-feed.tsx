@@ -12,19 +12,19 @@ export interface Entry {
 
 const ICON: Record<string, { Icon: typeof Wallet; cls: string }> = {
   DAILY_ROI:        { Icon: TrendingUp,     cls: 'bg-good-soft text-good' },
-  DIRECT_BONUS:     { Icon: Percent,        cls: 'bg-violet-soft text-violet' },
-  GENERATION_BONUS: { Icon: Percent,        cls: 'bg-violet-soft text-violet' },
+  DIRECT_BONUS:     { Icon: Percent,        cls: 'bg-gold-soft text-gold' },
+  GENERATION_BONUS: { Icon: Percent,        cls: 'bg-gold-soft text-gold' },
   RANK_BONUS:       { Icon: Trophy,         cls: 'bg-warn-soft text-warn' },
   DEPOSIT:          { Icon: ArrowDownToLine,cls: 'bg-good-soft text-good' },
   WITHDRAWAL:       { Icon: ArrowUpFromLine,cls: 'bg-bad-soft text-bad' },
-  INVESTMENT:       { Icon: Wallet,         cls: 'bg-violet-soft text-violet' },
+  INVESTMENT:       { Icon: Wallet,         cls: 'bg-gold-soft text-gold' },
 };
 
 export function ActivityFeed({ items, loading }: { items: Entry[]; loading?: boolean }) {
   return (
     <Card className="dash-card flex h-full flex-col">
       <CardHead title="Recent Activity"
-        action={<Link href="/passbook" className="text-[12.5px] font-medium text-violet hover:underline">Passbook</Link>} />
+        action={<Link href="/passbook" className="text-[12.5px] font-medium text-gold hover:underline">Passbook</Link>} />
       <ul className="flex-1 px-5 pb-4">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => <li key={i} className="py-3"><Skeleton className="h-10" /></li>)

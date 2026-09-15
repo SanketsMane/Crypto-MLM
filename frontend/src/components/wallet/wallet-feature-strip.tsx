@@ -3,6 +3,7 @@
 import { Clock, Percent, Repeat2, ScrollText } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useWithdrawalTerms } from '@/features/config/use-config';
+import { Card, CardHead } from '@/components/ui/primitives';
 
 /**
  * Four things that are true about moving money here.
@@ -16,6 +17,11 @@ import { useWithdrawalTerms } from '@/features/config/use-config';
  *
  * Internal wallet-to-wallet moves genuinely do settle in one transaction, so
  * that one keeps the word "immediately".
+ *
+ * Laid out as a definition list under the transfer form rather than as a
+ * four-across banner. These are the terms the form runs under, so they belong
+ * beside it — and in a third-width column, four columns of icon-and-two-lines
+ * became four columns of wrapped text.
  */
 export function WalletFeatureStrip() {
   const terms = useWithdrawalTerms();
@@ -28,25 +34,19 @@ export function WalletFeatureStrip() {
   ];
 
   return (
-    <section className="dash-card p-5 sm:p-6">
-      <ul className="grid gap-x-5 gap-y-5 sm:grid-cols-2 xl:grid-cols-4">
-        {items.map((f, i) => (
-          <li
-            key={f.title}
-            className={`flex min-w-0 items-start gap-3 ${
-              i > 0 ? 'xl:border-l xl:border-[var(--dash-border)] xl:pl-5' : ''
-            }`}
-          >
-            <span className="grid size-9 shrink-0 place-items-center rounded-[5px] bg-gold/10 text-[var(--color-gold-on-soft)] ring-1 ring-inset ring-gold-line/25">
-              <f.icon size={16} strokeWidth={2} />
-            </span>
+    <Card>
+      <CardHead title="Terms" />
+      <ul className="divide-y divide-line-soft">
+        {items.map((f) => (
+          <li key={f.title} className="flex min-w-0 items-start gap-2.5 px-3.5 py-2.5">
+            <f.icon size={14} strokeWidth={2} className="mt-px shrink-0 text-ink-3" />
             <div className="min-w-0">
-              <p className="text-[12.5px] font-semibold leading-snug text-ink">{f.title}</p>
-              <p className="mt-1 text-[11.5px] leading-relaxed text-ink-2">{f.note}</p>
+              <p className="text-[11.5px] font-semibold leading-snug text-ink">{f.title}</p>
+              <p className="mt-0.5 text-[10.5px] leading-relaxed text-ink-3">{f.note}</p>
             </div>
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }

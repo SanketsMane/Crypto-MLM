@@ -85,7 +85,7 @@ export default function SupportPage() {
       <div className="lg:col-span-5">
         <Card>
           <CardHead title="Open a ticket" />
-          <form className="space-y-3 px-5 pb-5" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
+          <form className="space-y-3 px-3.5 pb-3.5" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
             <input required value={subject} onChange={(e) => setSubject(e.target.value)}
                    placeholder="What is this about?" className={`${controlCls} h-11 w-full`} />
             <label className="block">
@@ -104,8 +104,8 @@ export default function SupportPage() {
                           title={p.hint}
                           className={`rounded-[4px] border px-2 py-2 text-[12px] font-medium transition ${
                             priority === p.value
-                              ? 'border-violet bg-violet text-white'
-                              : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink'}`}>
+                              ? 'border-gold bg-gold text-gold-on'
+                              : 'border-line bg-card text-ink-2 hover:border-gold/40 hover:text-ink'}`}>
                     {p.label}
                   </button>
                 ))}
@@ -132,7 +132,7 @@ export default function SupportPage() {
       <div className="space-y-3.5 lg:col-span-7">
         {(list.data ?? []).length === 0 && (
           <Card>
-            <p className="px-5 py-14 text-center text-[13.5px] text-ink-2">
+            <p className="px-3.5 py-14 text-center text-[13.5px] text-ink-2">
               You have no tickets. Open one on the left and we will reply here.
             </p>
           </Card>
@@ -151,11 +151,11 @@ export default function SupportPage() {
                 </div>
               }
             />
-            <div className="space-y-2.5 px-5 pb-4">
+            <div className="space-y-2.5 px-3.5 pb-4">
               {t.messages.map((m) => (
                 <div key={m.id}
                      className={`max-w-[85%] rounded-[5px] px-3.5 py-2.5 ${
-                       m.isStaff ? 'bg-violet-soft' : 'ml-auto bg-canvas'}`}>
+                       m.isStaff ? 'bg-card-2 ring-1 ring-line' : 'ml-auto bg-gold-soft ring-1 ring-gold-line/40'}`}>
                   <p className="text-[10.5px] font-medium uppercase tracking-[0.04em] text-ink-2">
                     {m.isStaff ? 'Support' : 'You'} · {ago(m.createdAt)}
                   </p>
@@ -169,7 +169,7 @@ export default function SupportPage() {
             </div>
 
             {t.status !== 'CLOSED' && (
-              <div className="border-t border-line px-5 py-3.5">
+              <div className="border-t border-line px-3.5 py-3.5">
                 {replyTo === t.id ? (
                   <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); send.mutate(t.id); }}>
                     <div className="flex gap-2">
@@ -183,7 +183,7 @@ export default function SupportPage() {
                   </form>
                 ) : (
                   <button onClick={() => setReplyTo(t.id)}
-                          className="text-[12.5px] font-medium text-violet hover:underline">
+                          className="text-[12.5px] font-medium text-gold hover:underline">
                     Reply to this ticket
                   </button>
                 )}

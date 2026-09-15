@@ -156,7 +156,7 @@ export default function DepositPage() {
         <Card>
           <CardHead title="New deposit" />
           <form
-            className="space-y-4 px-5 pb-5"
+            className="space-y-4 px-3.5 pb-3.5"
             onSubmit={(e) => {
               e.preventDefault();
               if (manualMode || !canCharge) recordManual.mutate();
@@ -171,7 +171,7 @@ export default function DepositPage() {
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {QUICK.map((q) => (
                   <button key={q} type="button" onClick={() => setAmount(String(q))}
-                          className="rounded-full border border-line px-3 py-1 text-[12px] text-ink-2 transition hover:border-violet/40 hover:text-violet">
+                          className="rounded-full border border-line px-3 py-1 text-[12px] text-ink-2 transition hover:border-gold/40 hover:text-gold">
                     {usd(q, 0)}
                   </button>
                 ))}
@@ -195,13 +195,13 @@ export default function DepositPage() {
                         onClick={() => setProvider(p.id)}
                         className={`rounded-[5px] border px-3 py-2.5 text-left transition ${
                           active
-                            ? 'border-violet bg-violet/[0.06] ring-1 ring-violet/30'
-                            : 'border-line hover:border-violet/40'
+                            ? 'border-gold bg-gold/[0.06] ring-1 ring-gold/30'
+                            : 'border-line hover:border-gold/40'
                         }`}
                       >
                         <span className="flex items-center justify-between gap-2 text-[13px] font-semibold text-ink">
                           {p.label}
-                          {active && <Check size={14} className="shrink-0 text-violet" />}
+                          {active && <Check size={14} className="shrink-0 text-gold" />}
                         </span>
                         <span className="mt-0.5 block text-[11px] text-ink-2">
                           {p.sandbox ? 'Sandbox mode' : 'Pay in any supported coin'}
@@ -257,7 +257,7 @@ export default function DepositPage() {
       <div className="space-y-3.5 lg:col-span-5">
         <Card>
           <CardHead title="How to fund" />
-          <div className="space-y-3 px-5 pb-5">
+          <div className="space-y-3 px-3.5 pb-3.5">
             {canCharge && !manualMode ? (
               <>
                 <p className="text-[12.5px] leading-relaxed text-ink-2">
@@ -355,7 +355,7 @@ export default function DepositPage() {
                  a second unpaid row behind. */
               d.status === 'PENDING' && d.paymentUrl ? (
                 <a key="f" href={d.paymentUrl} target="_blank" rel="noopener noreferrer"
-                   className="inline-flex items-center gap-1 font-medium text-violet hover:underline">
+                   className="inline-flex items-center gap-1 font-medium text-gold hover:underline">
                   Pay <ExternalLink size={12} />
                 </a>
               ) : <span key="f" />,

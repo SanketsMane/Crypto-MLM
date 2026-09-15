@@ -76,7 +76,7 @@ export default function TeamPackagesPage() {
           title="Filter by level"
           subtitle="All thirty generation levels, or one at a time."
         />
-        <div className="px-5 pb-5">
+        <div className="px-3.5 pb-3.5">
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
@@ -84,8 +84,8 @@ export default function TeamPackagesPage() {
               className={clsx(
                 'h-9 rounded-[4px] border px-3 text-[12px] font-medium transition',
                 level === null
-                  ? 'border-violet bg-violet text-white'
-                  : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink',
+                  ? 'border-gold bg-gold text-gold-on'
+                  : 'border-line bg-card text-ink-2 hover:border-gold/40 hover:text-ink',
               )}
             >
               All levels
@@ -98,8 +98,8 @@ export default function TeamPackagesPage() {
                 className={clsx(
                   'h-9 w-9 rounded-[4px] border text-[12px] font-medium tabular-nums transition',
                   level === l
-                    ? 'border-violet bg-violet text-white'
-                    : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink',
+                    ? 'border-gold bg-gold text-gold-on'
+                    : 'border-line bg-card text-ink-2 hover:border-gold/40 hover:text-ink',
                 )}
               >
                 {l}
@@ -120,7 +120,7 @@ export default function TeamPackagesPage() {
           }
         />
         {data.isLoading ? (
-          <div className="px-5 pb-5"><Skeleton className="h-48" /></div>
+          <div className="px-3.5 pb-3.5"><Skeleton className="h-48" /></div>
         ) : !rows.length ? (
           <div className="flex flex-col items-center gap-2 px-6 py-14 text-center">
             <span className="grid h-11 w-11 place-items-center rounded-full bg-canvas text-ink-3">

@@ -1,10 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Users, Wallet, Network, Percent } from 'lucide-react';
 import { get } from '@/lib/api';
-import { Card, CardHead, Table, Badge } from '@/components/ui/primitives';
-import { StatCard } from '@/components/dashboard/stat-card';
+import { Card, CardHead, Table, Badge, Metric } from '@/components/ui/primitives';
 import { ReferralPanel } from '@/components/member/cards/referral-panel';
 import { usd, num, shortDate } from '@/lib/format';
 
@@ -21,17 +19,29 @@ export default function TeamPage() {
   const directs = useQuery({ queryKey: ['member', 'level', 1], queryFn: () => get<Member[]>('/team/level/1') });
   const dash = useQuery({ queryKey: ['member', 'dashboard'], queryFn: () => get<Dash>('/customer/dashboard') });
 
+  /* What share of the team's volume the member's own directs account for —
+     the difference between a wide first line and a deep one. */
+  const team = Number(s.data?.totalTeamBusiness ?? 0);
+  const direct = Number(s.data?.directBusiness ?? 0);
+  const teamShare = team > 0
+    ? `${Math.round((direct / team) * 100)}% of it from your directs`
+    : 'no volume yet';
+
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Team Size" value={num(s.data?.teamSize)} change={null} icon={Users}
-                  chip="bg-violet-soft text-violet" loading={s.isLoading} />
-        <StatCard label="Direct Referrals" value={num(s.data?.directCount)} change={null} icon={Network}
-                  chip="bg-[#E8F1FE] text-info dark:bg-[#12233D]" loading={s.isLoading} />
-        <StatCard label="Team Business" value={usd(s.data?.totalTeamBusiness)} change={null} icon={Wallet}
-                  chip="bg-good-soft text-good" loading={s.isLoading} />
-        <StatCard label="Direct Business" value={usd(s.data?.directBusiness)} change={null} icon={Percent}
-                  chip="bg-warn-soft text-warn" loading={s.isLoading} />
+      {/* Four figures, each with the ratio that gives it meaning. The tiles
+          these replace were 118px tall, carried a tinted icon chip that said
+          nothing a label did not already say, and stated each number with
+          nothing to compare it against. */}
+      <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
+        <Metric label="Team size" value={s.isLoading ? '—' : num(s.data?.teamSize)}
+                hint={`${num(s.data?.directCount)} direct · ${num(Math.max(0, (s.data?.teamSize ?? 0) - (s.data?.directCount ?? 0)))} below them`} />
+        <Metric label="Direct referrals" value={s.isLoading ? '—' : num(s.data?.directCount)}
+                hint={`${num(s.data?.legs?.length ?? 0)} leg${(s.data?.legs?.length ?? 0) === 1 ? '' : 's'} producing volume`} />
+        <Metric label="Team business" value={s.isLoading ? '—' : usd(s.data?.totalTeamBusiness)}
+                hint={teamShare} />
+        <Metric label="Direct business" value={s.isLoading ? '—' : usd(s.data?.directBusiness)}
+                hint="bought by the people you sponsored" />
       </div>
 
       <div className="mt-3.5 grid grid-cols-1 items-start gap-3.5 lg:grid-cols-12">
@@ -42,7 +52,7 @@ export default function TeamPage() {
         <div className="space-y-3.5 lg:col-span-8">
           <Card>
             <CardHead title="Your legs" />
-            <p className="px-5 pb-3 text-[12.5px] text-ink-2">
+            <p className="px-3.5 pb-3 text-[12.5px] text-ink-2">
               Rank qualification counts your strongest leg for at most half the requirement — the rest must come
               from your other legs combined.
             </p>

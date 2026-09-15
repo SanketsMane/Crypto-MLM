@@ -21,10 +21,10 @@ import { Label, Figure } from './panel';
  */
 
 const STREAMS = [
-  { key: 'DAILY_TRADE',    label: 'Daily trade', color: 'var(--color-chart-1)' },
+  { key: 'DAILY_ROI',       label: 'Daily trade', color: 'var(--color-chart-1)' },
   { key: 'DIRECT_BONUS',   label: 'Direct',      color: 'var(--color-chart-2)' },
-  { key: 'GENERATION',     label: 'Generation',  color: 'var(--color-chart-3)' },
-  { key: 'RANK_REWARD',    label: 'Rank',        color: 'var(--color-chart-4)' },
+  { key: 'GENERATION_BONUS', label: 'Generation', color: 'var(--color-chart-3)' },
+  { key: 'RANK_BONUS',      label: 'Rank',        color: 'var(--color-chart-4)' },
   { key: 'ROAMING_CLUB',   label: 'Offers',      color: 'var(--color-chart-5)' },
 ] as const;
 

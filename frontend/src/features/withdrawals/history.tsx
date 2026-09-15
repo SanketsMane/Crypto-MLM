@@ -150,7 +150,7 @@ function Detail({ row }: { row: Row }) {
               href={explorer(row.txHash)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 break-all font-mono text-[12px] text-violet hover:underline"
+              className="inline-flex items-center gap-1 break-all font-mono text-[12px] text-gold hover:underline"
             >
               {row.txHash.slice(0, 18)}…{row.txHash.slice(-6)}
               <ExternalLink size={11} aria-hidden className="shrink-0" />

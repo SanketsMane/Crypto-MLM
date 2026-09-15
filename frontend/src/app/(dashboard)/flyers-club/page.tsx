@@ -43,7 +43,7 @@ export default function FlyersClubPage() {
       {isLoading ? (
         <FlyersSkeleton />
       ) : tiers.length === 0 ? (
-        <div className="rounded-[5px] border border-dashed border-line bg-card px-5 py-14 text-center">
+        <div className="rounded-[5px] border border-dashed border-line bg-card px-3.5 py-14 text-center">
           <p className="text-[14px] font-medium text-ink">No offers are open right now</p>
           <p className="mx-auto mt-1.5 max-w-[46ch] text-[12.5px] leading-relaxed text-ink-2">
             Offers appear here as soon as they are published. Your capital and team business keep

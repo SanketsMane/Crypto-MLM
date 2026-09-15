@@ -7,7 +7,7 @@ import { toastError } from '@/lib/toast';
 import { TrendingUp } from 'lucide-react';
 import { get, post, apiErrorMessage } from '@/lib/api';
 import { Card, CardHead, Table, Badge, toneFor } from '@/components/ui/primitives';
-import { InvestmentPackageCard, accentForIndex } from '@/components/packages/investment-package-card';
+import { InvestmentPackageCard } from '@/components/packages/investment-package-card';
 import { usd, shortDate, pct } from '@/lib/format';
 
 interface Plan { id: string; name: string; amount: string; dailyRoiPercent: string; capPercent: string }
@@ -33,11 +33,10 @@ export default function PackagesPage() {
 
   return (
     <>
-      {/* 1-up, 2-up, then 3-up from 1280 rather than 1024. The member sidebar
-          takes 248px, so a three-column grid at 1024 leaves ~232px per card —
-          narrow enough that the metric labels wrap and the artwork collides
-          with the values. Two comfortable columns beat three cramped ones. */}
-      <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {/* Four across from 1280. The cards lost the 142px of artwork that used
+          to set their minimum width, so four now fit where three did without
+          the metric labels wrapping. */}
+      <div className="grid grid-cols-1 items-stretch gap-2.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {(plans.data ?? []).map((p, i) => {
           const affordable = fund >= Number(p.amount);
           return (
@@ -53,7 +52,6 @@ export default function PackagesPage() {
                 // The tier the public plans page also highlights, so the two
                 // surfaces recommend the same thing.
                 isPopular: i === POPULAR_INDEX,
-                accent: accentForIndex(i),
               }}
               affordable={affordable}
               fundAvailable={fund}
@@ -65,11 +63,11 @@ export default function PackagesPage() {
         })}
 
         {plans.isLoading && Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="min-h-[300px] animate-pulse rounded-[5px] border border-line bg-card" />
+          <div key={i} className="min-h-[232px] animate-pulse rounded-[5px] border border-line bg-card" />
         ))}
       </div>
 
-      <Card className="mt-3.5">
+      <Card className="mt-2.5">
         <CardHead title={`My packages — ${mine.data?.length ?? 0}`} />
         <Table
           head={['Started', 'Plan', 'Amount', 'Earned', 'Earn limit', 'Progress', 'Status']}
@@ -84,7 +82,7 @@ export default function PackagesPage() {
               <span key="e" className="tabular-nums text-ink-2">{usd(i.capLimit)}</span>,
               <span key="f" className="flex items-center gap-2">
                 <span className="h-1.5 w-20 overflow-hidden rounded-full bg-line-soft">
-                  <span className="block h-full rounded-full bg-violet" style={{ width: `${Math.max(2, p)}%` }} />
+                  <span className="block h-full rounded-full bg-gold" style={{ width: `${Math.max(2, p)}%` }} />
                 </span>
                 <span className="text-[11.5px] tabular-nums text-ink-2">{pct(p, 0)}</span>
               </span>,

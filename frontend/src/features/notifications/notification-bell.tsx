@@ -237,7 +237,7 @@ export function NotificationBell({
             <Link
               href={variant === 'admin' ? '/admin/notifications' : '/notifications'}
               onClick={() => setOpen(false)}
-              className="rounded-[4px] px-2 py-1.5 text-[12px] font-medium text-violet transition hover:underline"
+              className="rounded-[4px] px-2 py-1.5 text-[12px] font-medium text-gold transition hover:underline"
             >
               View all
             </Link>

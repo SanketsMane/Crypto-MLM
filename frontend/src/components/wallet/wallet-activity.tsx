@@ -25,7 +25,7 @@ function EmptyState() {
 
 function LoadingRows() {
   return (
-    <div className="space-y-3 px-5 pb-5">
+    <div className="space-y-3 px-3.5 pb-3.5">
       {Array.from({ length: 5 }, (_, i) => (
         <div key={i} className="flex items-center gap-4">
           <Skeleton className="h-3.5 w-20" />
@@ -50,7 +50,7 @@ export function WalletActivity({ entries, loading }: {
         action={
           <Link
             href="/passbook"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-[5px] border border-violet/30 bg-violet-soft/50 px-3 py-1.5 text-[12.5px] font-medium text-violet-on transition-colors hover:border-violet/55 hover:bg-violet-soft focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet/20"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-[5px] border border-gold/30 bg-gold-soft/50 px-3 py-1.5 text-[12.5px] font-medium text-gold-on-soft transition-colors hover:border-gold/55 hover:bg-gold-soft focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20"
           >
             Full passbook <ArrowRight size={14} strokeWidth={2.2} />
           </Link>

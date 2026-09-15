@@ -3,9 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Check, Trophy } from 'lucide-react';
 import { get } from '@/lib/api';
-import { Card, CardHead } from '@/components/ui/primitives';
-import { StatCard } from '@/components/dashboard/stat-card';
-import { Users, Wallet } from 'lucide-react';
+import { Card, CardHead, Metric } from '@/components/ui/primitives';
 import { usd, pct, shortDate } from '@/lib/format';
 import { rankLabel } from '@/lib/rank';
 import { RewardSchedule } from '@/components/member/reward-schedule';
@@ -21,23 +19,34 @@ export default function RankPage() {
   const { data, isLoading } = useQuery({ queryKey: ['member', 'rank'], queryFn: () => get<RankRow[]>('/rank') });
   const first = data?.[0];
   const achievedCount = (data ?? []).filter((r) => r.achieved).length;
+  const nextRank = (data ?? []).find((r) => !r.achieved);
+
+  /* Only shown when there is volume to split — a "0% / 0%" reads as a
+     failing balance rather than as no data yet. */
+  const power = Number(first?.actual.powerLeg ?? 0);
+  const others = Number(first?.actual.otherLegs ?? 0);
+  const legSplit = power + others > 0
+    ? { power: Math.round((power / (power + others)) * 100), other: Math.round((others / (power + others)) * 100) }
+    : null;
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard label="Ranks Achieved" value={`${achievedCount} / ${data?.length ?? 10}`} change={null}
-                  icon={Trophy} chip="bg-warn-soft text-warn" loading={isLoading} />
-        <StatCard label="Power Leg" value={usd(first?.actual.powerLeg)} change={null}
-                  icon={Users} chip="bg-violet-soft text-violet" loading={isLoading} />
-        <StatCard label="Other Legs" value={usd(first?.actual.otherLegs)} change={null}
-                  icon={Wallet} chip="bg-[#E8F1FE] text-info dark:bg-[#12233D]" loading={isLoading} />
+{/* The 50:50 rule is what actually decides promotion, so the two leg
+          figures are stated against the split rather than on their own. */}
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        <Metric label="Ranks achieved" value={isLoading ? '—' : `${achievedCount} / ${data?.length ?? 10}`}
+                hint={nextRank ? `next · ${rankLabel(nextRank.level)}` : 'every rank reached'} />
+        <Metric label="Power leg" value={isLoading ? '—' : usd(first?.actual.powerLeg)}
+                hint={legSplit ? `${legSplit.power}% of your team volume` : 'no team volume yet'} />
+        <Metric label="Other legs" value={isLoading ? '—' : usd(first?.actual.otherLegs)}
+                hint={legSplit ? `${legSplit.other}% · ranks need 50%` : 'ranks need these at 50%'} />
       </div>
 
       <RewardSchedule />
 
       <Card className="mt-3.5">
         <CardHead title="How rank qualification works" />
-        <p className="px-5 pb-5 text-[12.5px] leading-relaxed text-ink-2">
+        <p className="px-3.5 pb-3.5 text-[12.5px] leading-relaxed text-ink-2">
           Each rank needs both a personal investment and a team business total. Team business counts
           <span className="font-medium text-ink"> 50:50</span> — at most half may come from your strongest leg,
           and at least half must come from all your other legs combined. Business already counted carries forward
@@ -52,7 +61,7 @@ export default function RankPage() {
           const others = Number(r.actual.otherLegs);
           return (
             <Card key={r.rankCode} className={r.achieved ? 'border-good/40' : undefined}>
-              <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-4">
+              <div className="flex flex-wrap items-start justify-between gap-3 px-3.5 pt-4">
                 <div className="flex items-center gap-3">
                   <span className={`grid h-10 w-10 place-items-center rounded-[5px] ${
                     r.achieved ? 'bg-good-soft text-good' : 'bg-canvas text-ink-3'}`}>
@@ -71,9 +80,9 @@ export default function RankPage() {
                 </div>
               </div>
 
-              <div className="px-5 pb-5 pt-3">
+              <div className="px-3.5 pb-3.5 pt-3">
                 <div className="h-2 overflow-hidden rounded-full bg-line-soft">
-                  <div className={`h-full rounded-full ${r.achieved ? 'bg-good' : 'bg-violet'}`}
+                  <div className={`h-full rounded-full ${r.achieved ? 'bg-good' : 'bg-gold'}`}
                        style={{ width: `${Math.max(1.5, Math.min(100, r.percentComplete))}%` }} />
                 </div>
 
@@ -91,7 +100,7 @@ export default function RankPage() {
                         </span>
                       </div>
                       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line-soft">
-                        <div className={`h-full rounded-full ${m.now >= m.need ? 'bg-good' : 'bg-violet'}`}
+                        <div className={`h-full rounded-full ${m.now >= m.need ? 'bg-good' : 'bg-gold'}`}
                              style={{ width: `${m.need > 0 ? Math.min(100, Math.max(1.5, (m.now / m.need) * 100)) : 100}%` }} />
                       </div>
                     </div>

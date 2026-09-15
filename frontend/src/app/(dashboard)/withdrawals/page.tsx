@@ -132,7 +132,7 @@ export default function WithdrawalsPage() {
           <Card>
             <CardHead title="Request a withdrawal" />
             <form
-              className="space-y-4 px-5 pb-5"
+              className="space-y-4 px-3.5 pb-3.5"
               onSubmit={(e) => { e.preventDefault(); if (valid) setReview(true); }}
             >
               {!terms.open && (
@@ -152,7 +152,7 @@ export default function WithdrawalsPage() {
                     ? 'Your documents are being checked. Withdrawals open as soon as they are approved.'
                     : 'Withdrawals need a verified identity. It takes a few minutes and only needs doing once.'}
                   {!underReview && (
-                    <Link href="/kyc" className="mt-1.5 block text-[12px] font-medium text-violet hover:underline">
+                    <Link href="/kyc" className="mt-1.5 block text-[12px] font-medium text-gold hover:underline">
                       Verify now →
                     </Link>
                   )}
@@ -165,7 +165,7 @@ export default function WithdrawalsPage() {
                   <button
                     type="button"
                     onClick={() => setAmount(String(Math.min(available, terms.maximum)))}
-                    className="text-[11.5px] font-medium text-violet hover:underline"
+                    className="text-[11.5px] font-medium text-gold hover:underline"
                   >
                     Available {usd(available)}
                   </button>

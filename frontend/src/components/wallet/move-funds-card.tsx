@@ -11,9 +11,9 @@ const TYPES = ['MAIN', 'FUND', 'DIGITAL'] as const;
    latter nests two interactive elements, and `display:contents` on the anchor
    would leave the link with no box to click. */
 const secondaryCls =
-  'inline-flex h-11 w-full items-center justify-center gap-2 rounded-[5px] border border-line ' +
-  'bg-card text-[13.5px] font-medium text-ink transition-colors duration-150 ' +
-  'hover:border-line-strong hover:bg-canvas ' +
+  'inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-[4px] border border-line-strong ' +
+  'bg-transparent text-[12px] font-semibold text-ink transition-colors duration-140 ' +
+  'hover:border-gold hover:text-gold ' +
   'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/25';
 
 /**
@@ -40,14 +40,14 @@ function WalletSelect({ value, onChange, label }: {
     <div className="wallet-select relative">
       <span
         aria-hidden
-        className="pointer-events-none absolute left-3 top-1/2 z-10 size-2.5 -translate-y-1/2 rounded-full"
+        className="pointer-events-none absolute left-2.5 top-1/2 z-10 size-2 -translate-y-1/2 rounded-[1px]"
         style={{ background: accent }}
       />
       <Select
         label={label}
         value={value}
         onChange={onChange}
-        className="h-11 w-full"
+        className="w-full"
         options={TYPES.map((t) => ({ value: t, label: metaFor(t).label }))}
       />
     </div>
@@ -66,26 +66,26 @@ export function MoveFundsCard({
   const disabled = sameWallet || !amount || Number(amount) <= 0;
 
   return (
-    <Card className="dash-card flex h-full flex-col">
+    <Card>
       <CardHead title="Move funds" subtitle="Transfer money between your wallets." />
 
       <form
-        className="space-y-4 px-5 pb-5"
+        className="space-y-3 p-3.5"
         onSubmit={(e) => { e.preventDefault(); onSubmit(); }}
       >
         <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3">From</span>
+            <span className="mb-1 block text-[9.5px] font-semibold uppercase tracking-[0.09em] text-ink-3">From</span>
             <WalletSelect label="Transfer from" value={from} onChange={onFrom} />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3">To</span>
+            <span className="mb-1 block text-[9.5px] font-semibold uppercase tracking-[0.09em] text-ink-3">To</span>
             <WalletSelect label="Transfer to" value={to} onChange={onTo} />
           </label>
         </div>
 
         <label className="block">
-          <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3">Amount</span>
+          <span className="mb-1 block text-[9.5px] font-semibold uppercase tracking-[0.09em] text-ink-3">Amount</span>
           <div className="relative">
             <input
               type="number" min="0.01" step="0.01" required
@@ -93,7 +93,7 @@ export function MoveFundsCard({
               onChange={(e) => onAmount(e.target.value)}
               placeholder="Enter amount"
               aria-invalid={sameWallet || undefined}
-              className={`${controlCls} h-12 w-full tabular-nums`}
+              className={`${controlCls} w-full tabular-nums`}
               style={{ paddingRight: '2rem' }}
             />
             <span aria-hidden className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[13px] font-medium text-ink-3">
@@ -104,24 +104,24 @@ export function MoveFundsCard({
 
         <Button
           type="submit"
-          className="h-13 w-full rounded-[5px] text-[14.5px]"
+          className="w-full"
           loading={pending}
           disabled={disabled}
         >
-          <ArrowLeftRight size={16} strokeWidth={2.2} /> Transfer
+          <ArrowLeftRight size={14} strokeWidth={2.2} /> Transfer
         </Button>
 
         {sameWallet && (
-          <p role="alert" className="text-[12px] text-warn">Choose two different wallets.</p>
+          <p role="alert" className="text-[11px] text-warn">Choose two different wallets.</p>
         )}
       </form>
 
-      <div className="mt-auto grid grid-cols-1 gap-3 border-t border-[var(--dash-border)] px-5 py-4 min-[420px]:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 border-t border-line px-3.5 py-2.5">
         <Link href="/deposit" className={secondaryCls}>
-          <ArrowDownToLine size={15} className="text-[var(--color-gold-on-soft)]" /> Deposit
+          <ArrowDownToLine size={13} /> Deposit
         </Link>
         <Link href="/withdrawals" className={secondaryCls}>
-          <ArrowUpFromLine size={15} className="text-[var(--color-gold-on-soft)]" /> Withdraw
+          <ArrowUpFromLine size={13} /> Withdraw
         </Link>
       </div>
     </Card>

@@ -1,11 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Lock, Unlock, Users } from 'lucide-react';
+import { Lock, Unlock } from 'lucide-react';
 import { get } from '@/lib/api';
-import { Card, CardHead, Table, Badge } from '@/components/ui/primitives';
-import { StatCard } from '@/components/dashboard/stat-card';
-import { Layers3, Percent } from 'lucide-react';
+import { Card, CardHead, Table, Badge, Metric } from '@/components/ui/primitives';
 import { usd, num } from '@/lib/format';
 
 interface Level {
@@ -20,21 +18,24 @@ export default function LevelsPage() {
   const unlocked = rows.filter((r) => r.unlocked).length;
   const totalMembers = rows.reduce((a, r) => a + r.members, 0);
   const totalVolume = rows.reduce((a, r) => a + Number(r.volume), 0);
+  const totalActive = rows.reduce((a, r) => a + r.active, 0);
+  /* The first level still locked — what the member is actually working on. */
+  const next = rows.find((r) => !r.unlocked);
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard label="Levels Unlocked" value={`${unlocked} / ${rows.length || 30}`} change={null}
-                  icon={Layers3} chip="bg-violet-soft text-violet" loading={isLoading} />
-        <StatCard label="Downline Members" value={num(totalMembers)} change={null}
-                  icon={Users} chip="bg-[#E8F1FE] text-info dark:bg-[#12233D]" loading={isLoading} />
-        <StatCard label="Downline Volume" value={usd(totalVolume)} change={null}
-                  icon={Percent} chip="bg-good-soft text-good" loading={isLoading} />
+      <div className="grid grid-cols-3 gap-2.5">
+        <Metric label="Levels unlocked" value={isLoading ? '—' : `${unlocked} / ${rows.length || 30}`}
+                hint={next ? `level ${next.level} pays ${next.percent}%` : 'every level open'} />
+        <Metric label="Downline members" value={isLoading ? '—' : num(totalMembers)}
+                hint={`${num(totalActive)} holding an active package`} />
+        <Metric label="Downline volume" value={isLoading ? '—' : usd(totalVolume)}
+                hint="capital deployed beneath you" />
       </div>
 
       <Card className="mt-3.5">
         <CardHead title="Generation levels" />
-        <p className="px-5 pb-3 text-[12.5px] leading-relaxed text-ink-2">
+        <p className="px-3.5 pb-3 text-[12.5px] leading-relaxed text-ink-2">
           Each level pays a share of the daily return earned by members at that depth. A level unlocks once you
           hold enough active direct referrals and enough team volume — both conditions must be met.
         </p>
@@ -43,7 +44,7 @@ export default function LevelsPage() {
           empty="Levels are being configured."
           rows={rows.map((l) => [
             <span key="a" className="font-semibold tabular-nums">Level {l.level}</span>,
-            <span key="b" className="font-medium tabular-nums text-violet">{l.percent}%</span>,
+            <span key="b" className="font-medium tabular-nums text-gold">{l.percent}%</span>,
             l.unlocked
               ? <Badge key="c" tone="good"><span className="inline-flex items-center gap-1"><Unlock size={10} /> unlocked</span></Badge>
               : <Badge key="c" tone="neutral"><span className="inline-flex items-center gap-1"><Lock size={10} /> locked</span></Badge>,

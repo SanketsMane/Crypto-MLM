@@ -15,7 +15,7 @@ import { Modal } from '@/components/ui/modal';
  * and redeploying the website, and the version shown can never drift from the
  * file people actually download.
  */
-const APK_URL = '/download/fortunex.apk';
+const APK_URL = '/download/app.apk';
 const MANIFEST_URL = '/download/app.json';
 
 /**
@@ -102,7 +102,7 @@ export function GetTheApp() {
       title="Get the Android app"
       description="Check your balance, deposit, invest and withdraw from your phone. Your account, plan and network are exactly as they are here — signing in on the app changes nothing about how your account works."
       icon={
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-[5px] bg-violet/10 text-violet">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[5px] bg-gold-soft text-gold-on-soft">
           <Smartphone size={20} />
         </div>
       }

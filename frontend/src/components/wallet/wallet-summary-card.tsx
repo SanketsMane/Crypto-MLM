@@ -1,10 +1,20 @@
-import { ArrowUpRight } from 'lucide-react';
 import { usd } from '@/lib/format';
+import { Label } from '@/components/member/terminal/panel';
 import { metaFor } from './wallet-meta';
 
 /**
- * One balance, as a navy brand tile. Presentation only — the figure and the
- * locked amount come straight from `/wallet`.
+ * One balance.
+ *
+ * Rebuilt from the navy "brand tile" this used to be. That tile was a
+ * 180px-tall gradient panel carrying a 44px icon chip, a decorative arrow that
+ * pointed at nothing, a 34px figure and a tinted capsule — four decorated
+ * elements around one number, in a colour scheme that stayed dark while the
+ * rest of the page followed the theme.
+ *
+ * What replaces it is the same object the dashboard already uses for a
+ * balance: an accent rule that identifies the wallet, the name, the figure,
+ * and what the wallet is FOR. The role line is the only thing here a member
+ * cannot work out for themselves, so it is the only prose that survived.
  */
 export function WalletSummaryCard({ type, balance, locked }: {
   type: string;
@@ -12,50 +22,36 @@ export function WalletSummaryCard({ type, balance, locked }: {
   locked?: string;
 }) {
   const m = metaFor(type);
-  const held = Number(locked ?? 0) > 0;
+  const heldAmount = Number(locked ?? 0);
+  const held = heldAmount > 0;
 
   return (
-    <article
-      className="wallet-tile flex flex-col p-5 sm:p-6"
-      style={{ '--tile-accent': m.accent } as React.CSSProperties}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <span
-          className="grid size-11 shrink-0 place-items-center rounded-[5px] border"
-          style={{
-            borderColor: `color-mix(in srgb, ${m.accent} 38%, transparent)`,
-            background: `color-mix(in srgb, ${m.accent} 14%, transparent)`,
-            color: m.accent,
-          }}
-        >
-          <m.icon size={19} strokeWidth={2} />
-        </span>
-        {/* Decorative: the whole tile is not a link, so this must not read as
-            one to a screen reader. */}
-        <span
-          aria-hidden
-          className="grid size-8 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-white/60"
-        >
-          <ArrowUpRight size={15} strokeWidth={2.2} />
-        </span>
-      </div>
+    <article className="flex min-w-0 items-stretch gap-3 rounded-[5px] border border-line bg-card px-3.5 py-3">
+      {/* The wallet's identity, as a rule rather than a chip. It reads as part
+          of the tile's structure instead of as an ornament sitting on it. */}
+      <span aria-hidden className="w-[3px] shrink-0 rounded-[1px]" style={{ background: m.accent }} />
 
-      <p className="mt-5 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-white/60">
-        <span aria-hidden className="size-1.5 shrink-0 rounded-full" style={{ background: m.accent }} />
-        {m.label}
-      </p>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <m.icon size={13} strokeWidth={2} className="shrink-0 text-ink-3" />
+          <Label>{m.label}</Label>
+        </div>
 
-      <p className="mt-2 truncate text-[30px] font-bold leading-none tracking-[-0.03em] text-[#F8FAFC] tabular-nums sm:text-[34px]">
-        {usd(balance)}
-      </p>
-
-      <p className="mt-2 text-[12.5px] text-[#94A3B8]">{m.role}</p>
-
-      {held && (
-        <p className="mt-2.5 inline-flex w-fit items-center rounded-full border border-warn/25 bg-warn/10 px-2.5 py-1 text-[11px] font-medium tabular-nums text-warn">
-          {usd(locked)} locked
+        <p className="mt-1.5 truncate text-[24px] font-semibold leading-none tracking-[-0.03em] text-ink tabular-nums">
+          {usd(balance)}
         </p>
-      )}
+
+        <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="text-[10.5px] text-ink-3">{m.role}</span>
+          {held && (
+            /* Stated inline rather than as a badge. A held balance is a fact
+               about the figure above it, not a status the wallet is in. */
+            <span className="text-[10.5px] tabular-nums text-warn">
+              {usd(locked)} locked
+            </span>
+          )}
+        </div>
+      </div>
     </article>
   );
 }
@@ -63,14 +59,13 @@ export function WalletSummaryCard({ type, balance, locked }: {
 /** Matches the card above so the layout does not jump when data lands. */
 export function WalletSummarySkeleton() {
   return (
-    <article className="wallet-tile flex flex-col p-5 sm:p-6" style={{ '--tile-accent': '#8B5CF6' } as React.CSSProperties}>
-      <div className="flex items-start justify-between">
-        <span className="size-11 rounded-[5px] bg-white/[0.07]" />
-        <span className="size-8 rounded-full bg-white/[0.05]" />
+    <article className="flex min-w-0 items-stretch gap-3 rounded-[5px] border border-line bg-card px-3.5 py-3">
+      <span className="w-[3px] shrink-0 rounded-[1px] bg-line-soft" />
+      <div className="min-w-0 flex-1">
+        <span className="block h-2.5 w-24 animate-pulse rounded-[2px] bg-line-soft" />
+        <span className="mt-2 block h-6 w-32 animate-pulse rounded-[2px] bg-line-soft" />
+        <span className="mt-2.5 block h-2.5 w-40 animate-pulse rounded-[2px] bg-line-soft" />
       </div>
-      <span className="mt-5 block h-3 w-24 rounded bg-white/[0.07]" />
-      <span className="mt-3 block h-8 w-32 rounded bg-white/[0.09]" />
-      <span className="mt-3 block h-3 w-40 rounded bg-white/[0.05]" />
     </article>
   );
 }

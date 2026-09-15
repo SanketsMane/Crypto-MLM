@@ -923,7 +923,7 @@ select:-webkit-autofill {
    a `pl-*` utility: `controlCls` already sets `px-3`, and between two utilities
    touching the same property the winner is stylesheet order, not class order.
    This rule is unlayered, so it wins outright. */
-.wallet-select > select { padding-left: 1.95rem; }
+.wallet-select > select { padding-left: 1.6rem; }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Plan-structure diagrams.

@@ -49,7 +49,7 @@ export function ReferralPanel({ profile, team, className }: {
               <span className="truncate">{profile?.userCode ?? '—'}</span>
             </button>
             <button onClick={share}
-                    className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[5px] bg-violet px-3 py-2.5 text-[12.5px] font-semibold text-white transition hover:bg-violet-hi">
+                    className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[5px] bg-gold px-3 py-2.5 text-[12.5px] font-semibold text-gold-on transition hover:bg-gold-hi">
               <Share2 size={14} className="shrink-0" /> Share
             </button>
           </div>

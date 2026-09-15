@@ -13,14 +13,14 @@ export interface WalletMeta {
   label: string;
   role: string;
   icon: LucideIcon;
-  /** Accent per §20: purple / green / blue. */
+  /** The wallet's identifying colour — a chart token, validated for contrast and CVD. */
   accent: string;
 }
 
 export const WALLET_META: Record<string, WalletMeta> = {
-  MAIN:    { label: 'Main wallet',    role: 'Income and withdrawals',        icon: Wallet,          accent: '#8B5CF6' },
-  FUND:    { label: 'Fund wallet',    role: 'Deposits and package purchases', icon: ArrowDownToLine, accent: '#22C55E' },
-  DIGITAL: { label: 'Digital wallet', role: 'Digital assets',                icon: Landmark,        accent: '#3B82F6' },
+  MAIN:    { label: 'Main wallet',    role: 'Income and withdrawals',        icon: Wallet,          accent: 'var(--color-gold)' },
+  FUND:    { label: 'Fund wallet',    role: 'Deposits and package purchases', icon: ArrowDownToLine, accent: 'var(--color-chart-1)' },
+  DIGITAL: { label: 'Digital wallet', role: 'Digital assets',                icon: Landmark,        accent: 'var(--color-chart-3)' },
 };
 
 const ORDER = ['MAIN', 'FUND', 'DIGITAL'];
@@ -33,4 +33,4 @@ export const byWalletOrder = <T extends { type: string }>(rows: T[]): T[] =>
   });
 
 export const metaFor = (type: string): WalletMeta =>
-  WALLET_META[type] ?? { label: `${type} wallet`, role: '', icon: Wallet, accent: '#8B5CF6' };
+  WALLET_META[type] ?? { label: `${type} wallet`, role: '', icon: Wallet, accent: 'var(--color-ink-3)' };

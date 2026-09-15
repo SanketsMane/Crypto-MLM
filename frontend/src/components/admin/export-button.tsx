@@ -36,7 +36,7 @@ export function ExportButton({ resource, filters, label = 'Export CSV' }: {
       a.href = url;
       a.download =
         (res.headers['content-disposition'] as string | undefined)?.match(/filename="(.+?)"/)?.[1]
-        ?? `fortunex-${resource}.csv`;
+        ?? `${resource}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();

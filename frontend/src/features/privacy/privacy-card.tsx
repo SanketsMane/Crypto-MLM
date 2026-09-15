@@ -48,7 +48,7 @@ export function PrivacyCard() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `fortunex-account-data-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `account-data-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success('Your data has been downloaded');
@@ -108,7 +108,7 @@ export function PrivacyCard() {
             )}
 
             <div className="flex flex-wrap items-start gap-3 rounded-[5px] border border-line bg-canvas px-4 py-3.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] bg-violet-soft text-violet">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] bg-gold-soft text-gold">
                 <Download size={16} />
               </span>
               <div className="min-w-0 flex-1">

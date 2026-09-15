@@ -103,7 +103,7 @@ function PasswordCard() {
     <Card>
       <CardHead title="Password" subtitle="Changing it signs you out everywhere else." />
       <form
-        className="space-y-3 px-5 pb-5"
+        className="space-y-3 px-3.5 pb-3.5"
         onSubmit={(e) => { e.preventDefault(); change.mutate(); }}
       >
         <label className="block">
@@ -165,7 +165,7 @@ function SessionsCard() {
           </Button>
         }
       />
-      <div className="px-5 pb-5">
+      <div className="px-3.5 pb-3.5">
         {sessions.isLoading ? <Skeleton className="h-20" /> : (
           <ul className="divide-y divide-line">
             {(sessions.data ?? []).map((s) => (
@@ -206,7 +206,7 @@ function ActivityCard() {
         title="Recent activity"
         subtitle="If something here was not you, change your password and contact support."
       />
-      <div className="px-5 pb-5">
+      <div className="px-3.5 pb-3.5">
         {activity.isLoading ? <Skeleton className="h-32" /> : (
           <ul className="divide-y divide-line">
             {(activity.data?.rows ?? []).map((r) => (

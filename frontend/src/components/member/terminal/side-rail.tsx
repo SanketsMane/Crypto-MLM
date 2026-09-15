@@ -115,10 +115,10 @@ export interface TapeEntry {
 }
 
 const STREAM_COLOR: Record<string, string> = {
-  DAILY_TRADE:  'var(--color-chart-1)',
+  DAILY_ROI:        'var(--color-chart-1)',
   DIRECT_BONUS: 'var(--color-chart-2)',
-  GENERATION:   'var(--color-chart-3)',
-  RANK_REWARD:  'var(--color-chart-4)',
+  GENERATION_BONUS: 'var(--color-chart-3)',
+  RANK_BONUS:       'var(--color-chart-4)',
   ROAMING_CLUB: 'var(--color-chart-5)',
 };
 

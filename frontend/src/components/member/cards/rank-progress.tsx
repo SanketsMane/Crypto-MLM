@@ -18,7 +18,7 @@ export function RankProgress({ rank, team }: {
   return (
     <Card className="dash-card flex h-full flex-col">
       <CardHead title="Rank Progress"
-        action={<Link href="/rank" className="text-[12.5px] font-medium text-violet hover:underline">All ranks</Link>} />
+        action={<Link href="/rank" className="text-[12.5px] font-medium text-gold hover:underline">All ranks</Link>} />
       <div className="flex flex-1 flex-col px-5 pb-5">
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-[5px] bg-gold/12 text-gold ring-1 ring-gold-line/40">
@@ -59,7 +59,7 @@ export function RankProgress({ rank, team }: {
                     <span className="tabular-nums text-ink-2">{usd(leg.value)} / {usd(half, 0)}</span>
                   </div>
                   <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line-soft">
-                    <div className="h-full rounded-full bg-violet"
+                    <div className="h-full rounded-full bg-gold"
                          style={{ width: `${half > 0 ? Math.min(100, Math.max(1.5, (leg.value / half) * 100)) : 1.5}%` }} />
                   </div>
                 </div>

@@ -4,9 +4,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Download } from 'lucide-react';
 import { get } from '@/lib/api';
-import { Card, CardHead, Table, Badge, toneFor, Select, Button } from '@/components/ui/primitives';
-import { StatCard } from '@/components/dashboard/stat-card';
-import { ArrowDownLeft, ArrowUpRight, Wallet } from 'lucide-react';
+import { Card, CardHead, Table, Badge, toneFor, Select, Button, Metric } from '@/components/ui/primitives';
 import { usd, shortDate, titleCase, num } from '@/lib/format';
 
 interface Entry {
@@ -30,7 +28,11 @@ export default function PassbookPage() {
     const rows = data?.entries ?? [];
     const credit = rows.filter((r) => r.direction === 'CREDIT').reduce((a, r) => a + Number(r.amount), 0);
     const debit = rows.filter((r) => r.direction === 'DEBIT').reduce((a, r) => a + Number(r.amount), 0);
-    return { credit, debit, net: credit - debit };
+    return {
+      credit, debit, net: credit - debit,
+      credits: rows.filter((r) => r.direction === 'CREDIT').length,
+      debits: rows.filter((r) => r.direction === 'DEBIT').length,
+    };
   }, [data]);
 
   /** Client-side export — the ledger is already loaded, no round trip needed. */
@@ -45,20 +47,22 @@ export default function PassbookPage() {
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `fortunex-passbook-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `passbook-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard label="Total Credited" value={usd(totals.credit)} change={null} icon={ArrowDownLeft}
-                  chip="bg-good-soft text-good" loading={isLoading} />
-        <StatCard label="Total Debited" value={usd(totals.debit)} change={null} icon={ArrowUpRight}
-                  chip="bg-bad-soft text-bad" loading={isLoading} />
-        <StatCard label="Net Movement" value={usd(totals.net)} change={null} icon={Wallet}
-                  chip="bg-violet-soft text-violet" loading={isLoading} />
+{/* These describe the rows currently loaded and filtered, not the
+          account's lifetime — the entry counts are what make that legible. */}
+      <div className="grid grid-cols-3 gap-2.5">
+        <Metric label="Credited" value={isLoading ? '—' : usd(totals.credit)} tone="good"
+                hint={`${num(totals.credits)} entr${totals.credits === 1 ? 'y' : 'ies'} in view`} />
+        <Metric label="Debited" value={isLoading ? '—' : usd(totals.debit)} tone="bad"
+                hint={`${num(totals.debits)} entr${totals.debits === 1 ? 'y' : 'ies'} in view`} />
+        <Metric label="Net movement" value={isLoading ? '—' : usd(totals.net)}
+                hint={totals.net >= 0 ? 'more in than out' : 'more out than in'} />
       </div>
 
       <Card className="mt-3.5">

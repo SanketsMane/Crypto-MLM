@@ -60,7 +60,7 @@ export default function RewardsPage() {
   const cards = data.data?.cards ?? [];
 
   if (data.isLoading) {
-    return <Card><div className="p-5"><Skeleton className="h-64" /></div></Card>;
+    return <Card><div className="p-3.5"><Skeleton className="h-64" /></div></Card>;
   }
 
   if (!cards.length) {
@@ -94,7 +94,7 @@ export default function RewardsPage() {
           title="Your cards"
           subtitle="Each tier unlocks once your total investment reaches its threshold."
         />
-        <div className="grid gap-3 px-5 pb-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 px-3.5 pb-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map((c) => {
             const threshold = Number(c.threshold);
             const progress = threshold > 0 ? Math.min(100, (invested / threshold) * 100) : 0;

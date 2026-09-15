@@ -35,7 +35,7 @@ export default function InvitePage() {
   const name = me.data?.profile.name ?? '';
 
   if (me.isLoading) {
-    return <Card><div className="p-5"><Skeleton className="h-64" /></div></Card>;
+    return <Card><div className="p-3.5"><Skeleton className="h-64" /></div></Card>;
   }
 
   return (
@@ -79,7 +79,7 @@ function LinkCard({ link, code }: { link: string; code: string }) {
         title="Your invite link"
         subtitle="Anyone who signs up through this is placed directly under you."
       />
-      <div className="space-y-3 px-5 pb-5">
+      <div className="space-y-3 px-3.5 pb-3.5">
         <div className="flex items-center gap-2 rounded-[5px] border border-line bg-canvas px-3 py-2.5">
           <span className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-ink">{link}</span>
           <button
@@ -154,7 +154,7 @@ function MessagesCard({ link, name }: { link: string; name: string }) {
         title="Something to send"
         subtitle="Copy one of these, or edit it into your own words."
       />
-      <div className="space-y-3 px-5 pb-5">
+      <div className="space-y-3 px-3.5 pb-3.5">
         {MESSAGES.map((m) => {
           const text = m.text(link, name, brand);
           return (
@@ -235,14 +235,14 @@ function QrCard({ link, code }: { link: string; code: string }) {
     if (!canvas.current) return;
     const a = document.createElement('a');
     a.href = canvas.current.toDataURL('image/png');
-    a.download = `fortunex-invite-${code}.png`;
+    a.download = `invite-${code}.png`;
     a.click();
   };
 
   return (
     <Card>
       <CardHead title="QR code" subtitle="For printing, or showing on your phone." />
-      <div className="flex flex-col items-center gap-3 px-5 pb-5">
+      <div className="flex flex-col items-center gap-3 px-3.5 pb-3.5">
         <div className="rounded-[5px] border border-line bg-white p-3">
           <canvas ref={canvas} className="block h-[240px] w-[240px]" />
           {!ready && (

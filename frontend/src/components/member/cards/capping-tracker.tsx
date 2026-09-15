@@ -21,7 +21,7 @@ export function CappingTracker({ capping }: {
       <CardHead
         title="Earnings Cap"
         action={
-          <span className="rounded-full bg-violet-soft px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-wide text-violet">
+          <span className="rounded-full bg-gold-soft px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-wide text-gold">
             {capping?.ceiling ?? 250}% ceiling
           </span>
         }
@@ -33,7 +33,7 @@ export function CappingTracker({ capping }: {
         </div>
 
         <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[var(--dash-well)] ring-1 ring-inset ring-[var(--dash-border)]">
-          <div className={`h-full rounded-full transition-[width] duration-700 ${capped ? 'bg-bad' : 'bg-violet'}`}
+          <div className={`h-full rounded-full transition-[width] duration-700 ${capped ? 'bg-bad' : 'bg-gold'}`}
                style={{ width: noPackage ? '0%' : `${Math.max(1.5, p)}%` }} />
         </div>
 

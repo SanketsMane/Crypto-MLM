@@ -81,7 +81,7 @@ export default function KycPage() {
       <div className="lg:col-span-5">
         <Card>
           <CardHead title="Verification status" />
-          <div className="px-5 pb-5">
+          <div className="px-3.5 pb-3.5">
             {isLoading ? (
               <p className="py-6 text-center text-[13px] text-ink-2">Loading…</p>
             ) : status === 'APPROVED' ? (
@@ -146,7 +146,7 @@ export default function KycPage() {
             title={status === 'REJECTED' ? 'Submit again' : 'Verify your identity'}
             action={locked ? <Badge tone={status === 'APPROVED' ? 'good' : 'warn'}>{status.toLowerCase()}</Badge> : undefined}
           />
-          <div className="px-5 pb-5">
+          <div className="px-3.5 pb-3.5">
             {locked ? (
               <p className="py-8 text-center text-[13px] text-ink-2">
                 {status === 'APPROVED'

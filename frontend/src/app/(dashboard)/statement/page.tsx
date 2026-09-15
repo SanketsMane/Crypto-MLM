@@ -79,7 +79,7 @@ export default function StatementPage() {
             </Button>
           }
         />
-        <div className="px-5 pb-5">
+        <div className="px-3.5 pb-3.5">
           <label className="block max-w-[220px]">
             <span className="mb-1.5 block text-[12px] font-medium text-ink-2">Month</span>
             <input
@@ -94,12 +94,12 @@ export default function StatementPage() {
       </Card>
 
       {data.isLoading ? (
-        <Card><div className="p-5"><Skeleton className="h-96" /></div></Card>
+        <Card><div className="p-3.5"><Skeleton className="h-96" /></div></Card>
       ) : !s ? null : (
         <Card className="print:border-0 print:shadow-none">
-          <div className="space-y-6 p-5 sm:p-7 print:p-0">
+          <div className="space-y-6 p-3.5 sm:p-7 print:p-0">
 
-            <header className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
+            <header className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-3.5">
               <div>
                 {/* A statement is a document someone may file or forward, so
                     this is one of the few places the operator's name genuinely

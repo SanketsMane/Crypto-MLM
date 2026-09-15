@@ -16,7 +16,7 @@ export function LevelProgress({ levels }: {
     <Card className="dash-card flex h-full flex-col">
       <CardHead
         title="Level Status"
-        action={<Link href="/levels" className="text-[12.5px] font-medium text-violet hover:underline">Details</Link>}
+        action={<Link href="/levels" className="text-[12.5px] font-medium text-gold hover:underline">Details</Link>}
       />
       <div className="flex flex-1 flex-col px-5 pb-5">
         <p className="text-[13px] text-ink-2">
@@ -28,7 +28,7 @@ export function LevelProgress({ levels }: {
           {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
             <span key={n} title={`Level ${n}`}
               className={`grid aspect-square place-items-center rounded-[5px] text-[9px] font-semibold tabular-nums ${
-                n <= unlocked ? 'bg-violet text-white' : 'bg-line-soft text-mute-on'}`}>
+                n <= unlocked ? 'bg-gold text-gold-on' : 'bg-line-soft text-mute-on'}`}>
               {n}
             </span>
           ))}

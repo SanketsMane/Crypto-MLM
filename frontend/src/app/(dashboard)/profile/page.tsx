@@ -68,7 +68,7 @@ export default function ProfilePage() {
 
         <Card className="mt-3.5">
           <CardHead title="Account status" />
-          <dl className="space-y-2.5 px-5 pb-5 text-[13px]">
+          <dl className="space-y-2.5 px-3.5 pb-3.5 text-[13px]">
             {[
               { k: 'Status', v: <Badge tone={p?.status === 'ACTIVE' ? 'good' : 'neutral'}>{p?.status ?? '—'}</Badge> },
               { k: 'Earnings cap', v: <Badge tone="info">{p?.affiliateMode === 'ACTIVE' ? '300%' : '250%'}</Badge> },
@@ -86,7 +86,7 @@ export default function ProfilePage() {
       <div className="space-y-3.5 lg:col-span-7">
         <Card>
           <CardHead title="Personal details" />
-          <form className="space-y-3.5 px-5 pb-5" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+          <form className="space-y-3.5 px-3.5 pb-3.5" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className="mb-1.5 block text-[12.5px] font-medium text-ink">First name</span>
@@ -122,10 +122,10 @@ export default function ProfilePage() {
 
         <Card>
           <CardHead title="Security" />
-          <div className="px-5 pb-5">
+          <div className="px-3.5 pb-3.5">
             <Link href="/security"
                   className="flex items-start gap-3 rounded-[5px] border border-line bg-canvas px-4 py-3.5 transition hover:border-line-strong hover:bg-line/20">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] bg-violet-soft text-violet">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] bg-gold-soft text-gold">
                 <ShieldCheck size={17} />
               </span>
               <div className="min-w-0 flex-1">

@@ -73,7 +73,7 @@ export default function DrawsPage() {
   const countdown = useCountdown(live?.closesAt ?? null);
 
   if (data.isLoading) {
-    return <Card><div className="p-5"><Skeleton className="h-64" /></div></Card>;
+    return <Card><div className="p-3.5"><Skeleton className="h-64" /></div></Card>;
   }
 
   return (
@@ -97,7 +97,7 @@ export default function DrawsPage() {
                 {live.status === 'OPEN' ? 'Entries open' : 'Entries closed'}
               </Badge>}
             />
-            <div className="grid gap-4 px-5 pb-5 lg:grid-cols-2">
+            <div className="grid gap-4 px-3.5 pb-3.5 lg:grid-cols-2">
               <div>
                 <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-ink-3">
                   Prizes
@@ -149,7 +149,7 @@ export default function DrawsPage() {
             {/* The commitment. It is the reason this is worth trusting, so it is
                 on the page rather than buried in terms. */}
             {live.seedHash && (
-              <div className="flex items-start gap-2.5 border-t border-line px-5 py-3.5">
+              <div className="flex items-start gap-2.5 border-t border-line px-3.5 py-3.5">
                 <ShieldCheck size={15} className="mt-0.5 shrink-0 text-good" />
                 <div className="min-w-0">
                   <p className="text-[12.5px] font-medium text-ink">This draw is verifiable</p>
@@ -184,7 +184,7 @@ export default function DrawsPage() {
       {data.data?.results.some((r) => r.prizes.some((p) => p.isMine && !p.claimed)) && (
         <Card>
           <CardHead title="You have a prize to claim" />
-          <div className="space-y-2 px-5 pb-5">
+          <div className="space-y-2 px-3.5 pb-3.5">
             {data.data.results.flatMap((r) =>
               r.prizes.filter((p) => p.isMine && !p.claimed).map((p) => (
                 <div key={p.prizeId}
@@ -212,7 +212,7 @@ export default function DrawsPage() {
 
       <Card>
         <CardHead title="Past draws" subtitle="Newest first, with the seed for each so results can be checked." />
-        <div className="px-5 pb-5">
+        <div className="px-3.5 pb-3.5">
           {!data.data?.results.length ? (
             <p className="py-8 text-center text-[13px] text-ink-2">No draws have been run yet.</p>
           ) : (

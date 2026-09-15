@@ -47,7 +47,7 @@ export default function GenealogyPage() {
           }
         />
         {view === 'tree' && (
-          <div className="flex flex-wrap items-center gap-2 px-5 pb-4">
+          <div className="flex flex-wrap items-center gap-2 px-3.5 pb-4">
             <span className="text-[12px] text-ink-2">Load</span>
             {DEPTHS.map((d) => (
               <button
@@ -131,7 +131,7 @@ function TreeView({ depth }: { depth: number }) {
       return next;
     });
 
-  if (data.isLoading) return <Card><div className="p-5"><Skeleton className="h-64" /></div></Card>;
+  if (data.isLoading) return <Card><div className="p-3.5"><Skeleton className="h-64" /></div></Card>;
 
   if (!root) return null;
 
@@ -152,7 +152,7 @@ function TreeView({ depth }: { depth: number }) {
           </label>
         }
       />
-      <div className="overflow-x-auto px-2 pb-4 sm:px-5">
+      <div className="overflow-x-auto px-2 pb-4 sm:px-3.5">
         <ul className="min-w-[320px]">
           <TreeNode
             node={root}
@@ -215,7 +215,7 @@ function TreeNode({
             isRoot
               ? 'bg-gradient-to-br from-gold to-gold-hi text-navy'
               : node.status === 'ACTIVE'
-                ? 'bg-violet-soft text-violet'
+                ? 'bg-gold-soft text-gold'
                 : 'bg-canvas text-ink-3',
           )}
         >
@@ -277,20 +277,20 @@ function LevelView() {
     <>
       <Card>
         <CardHead title="Choose a level" />
-        <div className="px-5 pb-5">
+        <div className="px-3.5 pb-3.5">
           <div className="flex flex-wrap gap-1.5">
             {(levels.data ?? Array.from({ length: 30 }, (_, i) => ({ level: i + 1, members: 0, unlocked: false } as Level))).map((l) => (
               <button key={l.level} onClick={() => setLevel(l.level)}
                 className={`relative h-11 w-11 rounded-[4px] border text-[12px] font-medium tabular-nums transition ${
                   l.level === level
-                    ? 'border-violet bg-violet text-white'
+                    ? 'border-gold bg-gold text-gold-on'
                     : l.unlocked
-                      ? 'border-line bg-card text-ink hover:border-violet/40'
+                      ? 'border-line bg-card text-ink hover:border-gold/40'
                       : 'border-line bg-canvas text-ink-3 hover:border-ink-3'}`}>
                 {l.level}
                 {l.members > 0 && (
                   <span className={`absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-semibold ${
-                    l.level === level ? 'bg-white text-violet' : 'bg-violet text-white'}`}>
+                    l.level === level ? 'bg-gold-on text-gold' : 'bg-gold text-gold-on'}`}>
                     {l.members}
                   </span>
                 )}

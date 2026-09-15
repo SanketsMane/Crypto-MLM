@@ -14,7 +14,7 @@ interface Banner {
 }
 
 const STYLE: Record<Severity, { wrap: string; icon: typeof Info }> = {
-  INFO:     { wrap: 'border-violet/25 bg-violet-soft', icon: Info },
+  INFO:     { wrap: 'border-gold/25 bg-gold-soft', icon: Info },
   SUCCESS:  { wrap: 'border-good/25 bg-good-soft',     icon: CheckCircle2 },
   WARNING:  { wrap: 'border-warn/30 bg-warn-soft',     icon: AlertTriangle },
   CRITICAL: { wrap: 'border-bad/30 bg-bad-soft',       icon: AlertOctagon },

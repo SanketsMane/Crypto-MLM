@@ -156,10 +156,10 @@ export default function MemberTerminal() {
             onRange={setRange}
             loading={isLoading || series.isLoading}
             streams={[
-              { label: 'Daily trade', total: streamTotal('DAILY_TRADE'),  color: 'var(--color-chart-1)' },
+              { label: 'Daily trade', total: streamTotal('DAILY_ROI'),  color: 'var(--color-chart-1)' },
               { label: 'Direct',      total: streamTotal('DIRECT_BONUS'), color: 'var(--color-chart-2)' },
-              { label: 'Generation',  total: streamTotal('GENERATION'),   color: 'var(--color-chart-3)' },
-              { label: 'Rank',        total: streamTotal('RANK_REWARD'),  color: 'var(--color-chart-4)' },
+              { label: 'Generation',  total: streamTotal('GENERATION_BONUS'),   color: 'var(--color-chart-3)' },
+              { label: 'Rank',        total: streamTotal('RANK_BONUS'),  color: 'var(--color-chart-4)' },
             ]}
           />
 
