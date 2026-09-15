@@ -87,14 +87,18 @@ one figure nobody should trust. A provider that cannot be read is reported as
 unreadable, never as zero: a zero is indistinguishable from an empty account
 and would make a shortfall look like a balanced book.
 
-Which matters right now, because **NOWPayments refuses balance reads from this
-server**: `Access denied | Invalid IP - 187.53.136.82`. Add that address to the
-IP whitelist in the NOWPayments dashboard. Deposits are unaffected — only the
-balance read is blocked.
+Both providers read successfully as of 15 September 2026 and report empty
+balances, which is a different thing from unreadable and is shown as such. The
+NOWPayments IP block that used to sit here — `Invalid IP - 187.53.136.82` — is
+resolved.
+
+A note for whoever hits it next: the address to whitelist is the IPv4 one. A
+`curl` from the host shell reports an IPv6 source, because the shell prefers v6
+for that hostname; Node inside the container egresses over v4, and the
+application error names the address that actually matters.
 
 ## Still outstanding
 
-- Whitelist `187.53.136.82` in the NOWPayments dashboard (above).
 - `PAYOUT_RAIL=manual`, so approved withdrawals are paid by hand. OxaPay payouts
   are configured and `canPay` is true, but nothing sends automatically until
   that variable changes.
@@ -106,3 +110,34 @@ balance read is blocked.
   will see it.
 - Test members with unpaid deposits are still in the database:
   `npaytest@example.com`, `webdeptest@example.com`, `oxatest@example.com`.
+
+## Credential rotation — 15 September 2026
+
+Both gateways moved to new accounts. Verified before writing anything, each
+against a deliberately wrong key so the test proves authentication rather than
+merely a 200:
+
+| Key | Endpoint | Wrong key | New key |
+|---|---|---|---|
+| OxaPay general | `GET /v1/general/account/balance` | 401 invalid | 200, balance list |
+| OxaPay payout | `GET /v1/payout` (read-only) | 401 invalid | 200, empty history |
+| OxaPay merchant | `POST /v1/payment/invoice` | 401 invalid | 200, invoice raised |
+| NOWPayments | `GET /v1/balance` | `INVALID_API_KEY` | `ENDPOINT_NOT_ALLOWED` — past auth |
+
+The payout key was checked against the read-only payout history, never by
+sending one. A payout moves real money and there is no dry-run for it.
+
+The OxaPay merchant account changed from `16112562` to `11917495`, which the
+checkout URL carries — `pay.oxapay.com/<merchant>/<track>` — so a live deposit
+through the platform proves which account issued the invoice rather than just
+that some invoice appeared.
+
+**Rotating the merchant key invalidates in-flight callbacks.** The merchant key
+is what verifies an incoming payment webhook, so any invoice raised under the
+previous key would fail its HMAC check on arrival. That cost nothing here — the
+database had been reset and no real deposit existed — but on a live platform a
+rotation needs the old invoices settled or written off first.
+
+Both accounts are empty. OxaPay payouts cannot send until the account is funded,
+which is moot while `PAYOUT_RAIL=manual`, but it is the first thing that will
+bite if that variable changes.
