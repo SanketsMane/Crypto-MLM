@@ -17,7 +17,7 @@ const NAV = [
   { href: '/team',         label: 'Team',         icon: Users },
   { href: '/genealogy',    label: 'Genealogy',    icon: Network },
   { href: '/rank',         label: 'Rank',         icon: Trophy },
-  { href: '/flyers-club', label: 'Flyers Club', icon: Plane },
+  { href: '/flyers-club', label: 'Offers', icon: Plane },
   { href: '/withdrawals',  label: 'Withdrawals',  icon: ArrowDownToLine },
   { href: '/support',      label: 'Support',      icon: LifeBuoy },
   { href: '/kyc',          label: 'Verification', icon: ShieldCheck },

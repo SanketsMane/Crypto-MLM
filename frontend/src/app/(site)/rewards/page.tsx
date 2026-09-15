@@ -170,8 +170,8 @@ export default async function RewardsPage() {
         </Container>
       </Section>
 
-      {/* ── flyers club ──────────────────────────────────────────────── */}
-      <Section tone="raised" id="flyers-club">
+      {/* ── affiliate offers ────────────────────────────────────────── */}
+      <Section tone="raised" id="offers">
         <Container>
           <SectionHead
             eyebrow="Stream four"

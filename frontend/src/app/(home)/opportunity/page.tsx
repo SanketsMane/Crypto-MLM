@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Plane, TrendingUp, Trophy, Users } from 'lucide-react';
-import { getPlan, planMoney } from '@/lib/platform-config.server';
+import { getPlan, planMoney, offerDate } from '@/lib/platform-config.server';
 import { PageHero } from '@/components/home/page-hero';
 import { Card, Container, Heading, CtaBand } from '@/components/home/sections';
 import { Reveal } from '@/components/home/motion';
 
 export const metadata: Metadata = {
   title: 'Opportunity | FortuneX',
-  description: 'The four ways FortuneX pays — a daily trade bonus on invested capital, direct and generation bonuses, executive ranks and the Flyers Club.',
+  description: 'The four ways FortuneX pays — a daily trade bonus on invested capital, direct and generation bonuses, executive ranks and the affiliate offers.',
 };
 
 export const revalidate = 60;
@@ -30,8 +30,11 @@ function PlanTable({ head, rows }: { head: string[]; rows: (string | number)[][]
         <tbody>
           {rows.map((r, i) => (
             <tr key={i} className="border-t border-[var(--home-line)] transition-colors hover:bg-white/[0.03]">
+              {/* Cells wrap. A reward reads "$1,565 car purchase fund, or a new
+                  ID top-up"; forcing that onto one line stretched the table far
+                  past the width anyone reads it at. */}
               {r.map((c, j) => (
-                <td key={j} className={`whitespace-nowrap px-5 py-3.5 text-[13.5px] tabular-nums ${
+                <td key={j} className={`px-5 py-3.5 text-[13.5px] ${
                   j === 0 ? 'font-semibold text-white' : 'text-[var(--home-text-2)]'}`}>
                   {c}
                 </td>
@@ -55,8 +58,8 @@ export default async function OpportunityPage() {
       body: `Split across your first three levels on every referred purchase — ${plan.directBonus.map((d) => `${d.percent}%`).join(' / ')}.` },
     { Icon: Trophy, title: 'Executive ranks', figure: `${plan.ranks.length}`,
       body: `A ladder from ${plan.ranks[0]?.name} to ${plan.ranks[plan.ranks.length - 1]?.name}, each with a one-off reward on qualification.` },
-    { Icon: Plane, title: 'Flyers Club', figure: `${plan.roaming.affiliate.length}`,
-      body: 'Travel rewards on performance, through two independent tracks — and outside your earnings cap.' },
+    { Icon: Plane, title: 'Affiliate offers', figure: `${plan.roaming.affiliate.length}`,
+      body: 'Campaign rewards on team performance — a trip or a cash fund, each open for a limited window and outside your earnings cap.' },
   ];
 
   return (
@@ -88,30 +91,34 @@ export default async function OpportunityPage() {
         </Container>
       </section>
 
-      {/* ── flyers club ─────────────────────────────────────────────── */}
+      {/* ── affiliate offers ────────────────────────────────────────── */}
       <section className="border-t border-[var(--home-line)] py-20 sm:py-24">
         <Container>
           <Reveal>
-            <Heading>The Flyers Club</Heading>
+            <Heading>Affiliate offers</Heading>
             <p className="mt-4 max-w-[64ch] text-[14.5px] leading-[1.8] text-[var(--home-text-2)]">
-              Two independent tracks — qualify on either. Flyers Club awards are travel
-              entitlements rather than cash, and sit outside your earnings cap.
+              Campaign rewards for team performance, each open for a limited window and sitting
+              outside your earnings cap. They are entitlements rather than credited income — a
+              trip is arranged, a fund is paid toward its purpose.
             </p>
           </Reveal>
 
-          <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          {/* One table, and only the columns that exist.
+              This was two tables headed "Affiliate track" and "Self-capitalist
+              track". The offers replaced that split: the second track has no
+              tiers, so it rendered an empty table under a heading promising a
+              programme, and the first quoted "$0 self capital" for every row
+              because the offers qualify on team business alone. */}
+          <div className="mt-10">
             <Reveal from="left">
-              <h3 className="mb-4 text-[16px] font-bold text-white">Affiliate track</h3>
               <PlanTable
-                head={['Destination', 'Self capital', 'Team business']}
-                rows={plan.roaming.affiliate.map((r) => [r.destination, planMoney(r.self), planMoney(r.team)])}
-              />
-            </Reveal>
-            <Reveal from="right">
-              <h3 className="mb-4 text-[16px] font-bold text-white">Self-capitalist track</h3>
-              <PlanTable
-                head={['Destination', 'Self capital']}
-                rows={plan.roaming.selfCapitalist.map((r) => [r.destination, planMoney(r.self)])}
+                head={['Offer', 'Team business', 'Reward', 'Closes']}
+                rows={plan.roaming.affiliate.map((r) => [
+                  r.destination,
+                  planMoney(r.team),
+                  r.reward ?? '—',
+                  r.validUntil ? offerDate(r.validUntil) : 'No closing date',
+                ])}
               />
             </Reveal>
           </div>

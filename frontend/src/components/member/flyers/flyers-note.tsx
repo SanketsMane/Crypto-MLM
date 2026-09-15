@@ -29,7 +29,7 @@ export function FlyersNote() {
         <div className="min-w-0">
           <h2 className="text-[13.5px] font-semibold text-ink">Important note</h2>
           <p className="mt-1 max-w-[70ch] text-[12.5px] leading-relaxed text-ink-2">
-            Flyers Club rewards are outside your earnings cap and are based on performance across the
+            Offer rewards are outside your earnings cap and are based on performance across the
             two independent routes. Awards are travel entitlements rather than cash, so nothing is
             posted to your wallet — fulfilment is arranged by the FortuneX team once a tier is reached.
           </p>

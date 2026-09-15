@@ -57,7 +57,7 @@ export function FlyersHero({ standing }: { standing: Standing | null }) {
           id="flyers-title"
           className="mt-2.5 text-[27px] font-semibold leading-[1.05] tracking-[-0.03em] text-white sm:text-[34px]"
         >
-          The Flyers Club
+          Affiliate offers
         </h1>
 
         <p className="mt-1.5 max-w-[36ch] text-[14px] font-medium leading-snug text-brand-gold-hi sm:text-[15px]">

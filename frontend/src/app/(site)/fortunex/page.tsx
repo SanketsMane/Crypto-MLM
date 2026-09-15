@@ -24,7 +24,7 @@ const PILLARS = (plan: Plan) => [
   },
   {
     Icon: Trophy,
-    title: 'Ranks and the Flyers Club',
+    title: 'Ranks and affiliate offers',
     body: `Ten executive ranks pay one-off rewards from ${planMoney(plan.ranks[0].reward)} to ${planMoney(plan.ranks[plan.ranks.length - 1].reward)}. Travel awards sit outside the earnings ceiling entirely.`,
   },
 ];

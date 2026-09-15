@@ -84,7 +84,7 @@ export const NAV: NavItem[] = ADMIN_NAV.flatMap((g) => g.items);
 export const PAGE_TITLE: Record<string, { title: string; subtitle: string }> = {
   '/admin':              { title: 'Dashboard',         subtitle: "Welcome back, Admin! Here's what's happening with your platform." },
   '/admin/users':        { title: 'Users',             subtitle: 'Every member on the platform, with balances and network position.' },
-  '/admin/plans':        { title: 'Plans',             subtitle: 'Investment tiers, commission levels, ranks and Flyers Club.' },
+  '/admin/plans':        { title: 'Plans',             subtitle: 'Investment tiers, commission levels, ranks and affiliate offers.' },
   '/admin/investments':  { title: 'Investments',       subtitle: 'Active and completed packages across the platform.' },
   '/admin/trading':      { title: 'Trading',           subtitle: 'Live trading desk.' },
   '/admin/network':      { title: 'Network',           subtitle: 'Genealogy, team volume and level distribution.' },

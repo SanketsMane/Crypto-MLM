@@ -203,7 +203,7 @@ function AllReached() {
       <div className="min-w-0">
         <h3 className="text-[14.5px] font-semibold tracking-[-0.01em] text-ink">Every destination qualified</h3>
         <p className="mt-1 max-w-[60ch] text-[12.5px] leading-relaxed text-ink-2">
-          You have reached every Flyers Club tier currently open. Fulfilment is handled by the
+          You have reached every offer currently open. Fulfilment is handled by the
           FortuneX team — your awards are listed below.
         </p>
       </div>

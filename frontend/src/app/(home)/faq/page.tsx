@@ -30,14 +30,23 @@ export default async function FaqPage() {
       a: `Two ways. A direct sponsor bonus splits ${plan.directBonus.reduce((s, d) => s + d.percent, 0)}% across your first three levels, and a generation bonus pays on the daily trade bonus earned beneath you, reaching thirty levels with a stated qualification at each band.` },
     { q: 'What are executive ranks?',
       a: `A ${plan.ranks.length}-rank ladder from ${plan.ranks[0]?.name} to ${plan.ranks[plan.ranks.length - 1]?.name}, each with a self-capital and team-business requirement and a one-off reward on qualification. Business already counted carries forward to the next rank.` },
-    { q: 'What is the Flyers Club?',
-      a: 'Travel rewards earned on performance, through two independent tracks — one on your own capital alone, one on capital plus team business. Flyers Club awards sit outside your earnings cap and are travel entitlements rather than cash.' },
+    /* Derived from the offers actually running, so a closed campaign does not
+       keep being advertised here after it ends. */
+    { q: 'What are the affiliate offers?',
+      a: plan.roaming.affiliate.length === 0
+        ? 'Campaign rewards for team performance, run from time to time. None is open at the moment; any that opens is published here and on the rewards page with its qualifying figure and closing date.'
+        : `Campaign rewards for team performance — currently ${plan.roaming.affiliate.length}, `
+          + `qualifying from ${planMoney(Math.min(...plan.roaming.affiliate.map((r) => r.team)))} of team business. `
+          + 'They sit outside your earnings cap and are entitlements rather than credited income: a trip is arranged, a fund is paid toward its purpose. Each offer runs for a limited window, and the closing date is shown against it.' },
     { q: 'Do I need to verify my identity?',
       a: 'Yes. Documents are held privately, outside any public path, and are visible only to a reviewer holding the compliance capability. Every decision records who made it and why.' },
     { q: 'Is FortuneX secure?',
       a: 'No balance is ever written directly — every movement of value is an append-only ledger entry. Operator actions are audited with who, what, when and from where, and the log has no update or delete path.' },
+    /* There is one, and there has been since the signed build was published.
+       This said "not yet" while the APK was live on the download page — the
+       kind of answer that makes a visitor distrust the rest of the page. */
     { q: 'Does FortuneX have a mobile app?',
-      a: 'Not yet. The platform is built mobile-first and works in any browser; a native app is on the roadmap rather than available today.' },
+      a: 'Yes — an Android app, downloadable from your dashboard once you sign in. It covers deposits, withdrawals, your team and your earnings. The platform is also built mobile-first, so everything works in a browser if you would rather not install anything.' },
   ];
 
   return (

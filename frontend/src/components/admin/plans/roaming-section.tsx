@@ -37,13 +37,13 @@ export function RoamingSection() {
     <div className="space-y-3.5">
       <Card>
         <CardHead
-          title="Flyers Club tiers"
+          title="Affiliate offers"
           subtitle="Travel awards, on two tracks. These sit outside the earnings ceiling — qualifying for a trip never counts against a member's cap."
         />
         <SectionBody q={tiers} rows={5}>
           <Table
             head={['Track', 'Destination', 'Self capital required', 'Team business required']}
-            empty="No Flyers Club tiers configured. Nobody can qualify for a trip until at least one exists."
+            empty="No offers configured. Nobody can qualify until at least one exists."
             rows={(tiers.data ?? []).map((t) => [
               <Badge key="a" tone={t.track === 'AFFILIATE' ? 'info' : 'neutral'}>{t.track.replace('_', ' ')}</Badge>,
               <span key="b" className="font-medium">{t.destination}</span>,

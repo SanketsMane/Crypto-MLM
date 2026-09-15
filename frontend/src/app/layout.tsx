@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://fortunex.com'),
   title: 'FortuneX — Trade. Invest. Earn.',
   description:
-    'A daily trade bonus on invested capital, a thirty-level affiliate network, executive ranks and the Flyers Club — settled in USDT on BEP-20, on a compensation plan published in full.',
+    'A daily trade bonus on invested capital, a thirty-level affiliate network, executive ranks and campaign offers — settled in USDT on BEP-20, on a compensation plan published in full.',
   applicationName: 'FortuneX',
   manifest: '/manifest.webmanifest',
   // Standalone on iOS too, which reads these rather than the manifest.

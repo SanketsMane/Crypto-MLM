@@ -71,7 +71,7 @@ export default function FlyersClubPage() {
 
 function FlyersSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading the Flyers Club">
+    <div aria-busy="true" aria-label="Loading the affiliate offers">
       <Skeleton className="mb-7 h-[330px] rounded-[18px]" />
       <Skeleton className="mb-4 h-[120px] rounded-[13px]" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

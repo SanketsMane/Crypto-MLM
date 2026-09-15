@@ -10,7 +10,7 @@ const COLUMNS: { title: string; links: { href: string; label: string; external?:
       { href: '/how-it-works', label: 'How it works' },
       { href: '/plans', label: 'Investment plans' },
       { href: '/rewards', label: 'Rewards & ranks' },
-      { href: '/rewards#flyers-club', label: 'Flyers Club' },
+      { href: '/rewards#offers', label: 'Affiliate offers' },
     ],
   },
   {

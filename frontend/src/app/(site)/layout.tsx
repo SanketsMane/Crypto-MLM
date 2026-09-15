@@ -5,7 +5,7 @@ import { SiteFooter } from '@/components/site/site-footer';
 export const metadata: Metadata = {
   title: { default: 'FortuneX — Trade. Invest. Earn.', template: '%s · FortuneX' },
   description:
-    'FortuneX is a trading and affiliate platform: a daily trade bonus on invested capital, a thirty-level network, executive ranks and the Flyers Club — settled in USDT on BEP-20.',
+    'FortuneX is a trading and affiliate platform: a daily trade bonus on invested capital, a thirty-level network, executive ranks and campaign offers — settled in USDT on BEP-20.',
   openGraph: {
     title: 'FortuneX — Trade. Invest. Earn.',
     description: 'A transparent compensation plan, published in full. Settled in USDT on BEP-20.',

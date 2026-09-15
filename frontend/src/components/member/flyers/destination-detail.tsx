@@ -89,11 +89,17 @@ export function DestinationDetail({ tier, onClose }: { tier: TierView | null; on
         )}
 
         <p className="text-[12.5px] leading-relaxed text-ink-2">
+          {/* "Travel entitlements, not cash" was true of the old club and is
+              not true of the offers — two of the three are cash funds. What
+              still holds is that nothing is credited to a wallet: an award is
+              fulfilled by a person, not by the ledger. */}
           {tier.achieved
-            ? `Qualified${tier.achievedAt ? ` on ${shortDate(tier.achievedAt)}` : ''}${tier.status ? ` · award status: ${tier.status.toLowerCase()}` : ''}. Flyers Club awards are travel entitlements, not cash — the FortuneX team arranges fulfilment and will be in touch.`
-            : tier.needsTeam
-              ? 'Both requirements must be met before this destination is awarded. Qualification is evaluated automatically as your capital and team business grow.'
-              : 'This destination is awarded on your own capital alone. Qualification is evaluated automatically as your capital grows.'}
+            ? `Qualified${tier.achievedAt ? ` on ${shortDate(tier.achievedAt)}` : ''}${tier.status ? ` · award status: ${tier.status.toLowerCase()}` : ''}. Awards are entitlements rather than credited income — the FortuneX team arranges fulfilment and will be in touch.`
+            : tier.needsTeam && tier.needsSelf
+              ? 'Both requirements must be met before this is awarded. Qualification is evaluated automatically as your capital and team business grow.'
+              : tier.needsTeam
+                ? 'Awarded on team business. Qualification is evaluated automatically as your team business grows.'
+                : 'Awarded on your own capital alone. Qualification is evaluated automatically as your capital grows.'}
         </p>
       </div>
     </Modal>

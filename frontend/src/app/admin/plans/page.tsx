@@ -23,7 +23,7 @@ const TABS = [
   { id: 'commissions', label: 'Commissions', render: () => <CommissionsSection /> },
   { id: 'ranks', label: 'Ranks', render: () => <RanksSection /> },
   { id: 'rewards', label: 'Reward cards', render: () => <RewardsSection /> },
-  { id: 'roaming', label: 'Flyers Club', render: () => <RoamingSection /> },
+  { id: 'roaming', label: 'Offers', render: () => <RoamingSection /> },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -51,7 +51,7 @@ export default function PlansPage() {
     <>
       <PageHeader
         title="Plans"
-        subtitle="Investment tiers, commission levels, ranks, reward cards and the Flyers Club. The plan is data — every change here is audited and applies from the next payout run, never retroactively."
+        subtitle="Investment tiers, commission levels, ranks, reward cards and affiliate offers. The plan is data — every change here is audited and applies from the next payout run, never retroactively."
       />
 
       <div

@@ -36,9 +36,20 @@ export default async function AboutPage() {
       body: 'Any operator action records who, what, when and from where. The log has no update or delete path, including for the person who wrote it.' },
   ];
 
+  /**
+   * Enough decimals to state the rate exactly, and no more.
+   *
+   * This was fixed at one decimal place, which rendered a 0.43% bonus as
+   * "0.4%" — understating the rate in the headline figure while the paragraph
+   * directly below it said 0.43%. Two different numbers for the same thing on
+   * one page is worse than either being wrong on its own. Derived from the
+   * value so a whole-number rate still shows as "1%", not "1.00%".
+   */
+  const rateDecimals = (String(plan.dailyReturnPercent).split('.')[1] ?? '').length;
+
   const FACTS = [
     { v: plan.packages.length, suffix: '', label: 'Investment tiers' },
-    { v: plan.dailyReturnPercent, suffix: '%', label: 'Daily trade bonus', decimals: 1 },
+    { v: plan.dailyReturnPercent, suffix: '%', label: 'Daily trade bonus', decimals: rateDecimals },
     { v: 30, suffix: '', label: 'Network levels' },
     { v: plan.ranks.length, suffix: '', label: 'Executive ranks' },
   ];

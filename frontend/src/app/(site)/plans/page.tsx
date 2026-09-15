@@ -146,7 +146,7 @@ export default async function PlansPage() {
                 { t: `${plan.dailyReturnPercent}% daily trade bonus`, b: `Applied ${plan.tradingDays} to your invested capital.` },
                 { t: 'Full network eligibility', b: 'Direct bonus across three levels and generation bonus to thirty, subject to the published qualifications.' },
                 { t: 'Rank progression', b: 'All ten executive ranks are reachable from any tier — they qualify on self capital and team business.' },
-                { t: 'Flyers Club access', b: 'Travel awards sit outside the earnings ceiling and do not consume your cap.' },
+                { t: 'Affiliate offers', b: 'Campaign rewards sit outside the earnings ceiling and do not consume your cap.' },
                 { t: 'Same withdrawal terms', b: `${plan.withdraw.feePercent}% fee and a ${plan.withdraw.slaHours}-hour processing window, whatever your tier.` },
                 { t: 'Full ledger visibility', b: 'Every accrual, commission and fee is a line you can open in your own account.' },
               ].map((f) => (

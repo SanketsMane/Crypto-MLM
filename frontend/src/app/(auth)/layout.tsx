@@ -49,7 +49,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
             </h2>
             <p className="mt-4 max-w-[38ch] text-[14px] leading-[1.75] text-white/60">
               A {plan.dailyReturnPercent}% daily trade bonus {plan.tradingDays}, a thirty-level network,
-              executive ranks and the Flyers Club — settled in {plan.withdraw.network}.
+              executive ranks and campaign offers — settled in {plan.withdraw.network}.
             </p>
 
             <ul className="mt-8 space-y-3.5">
