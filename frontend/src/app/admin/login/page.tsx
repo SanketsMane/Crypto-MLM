@@ -117,7 +117,7 @@ export default function AdminLoginPage() {
             <ul className="mt-8 space-y-3.5">
               {ACCOUNTABILITY.map(({ Icon, text }) => (
                 <li key={text} className="flex items-start gap-3 text-[13.5px] leading-relaxed text-white/65">
-                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
+                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-[4px] border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
                     <Icon size={14} strokeWidth={2} />
                   </span>
                   {text}
@@ -231,14 +231,14 @@ export default function AdminLoginPage() {
                 <button
                   type="button"
                   onClick={() => { setChallenge(null); setCode(''); setError(''); setPassword(''); }}
-                  className="w-full rounded-lg py-1.5 text-center text-[12.5px] text-white/58 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="w-full rounded-[4px] py-1.5 text-center text-[12.5px] text-white/58 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   Use a different account
                 </button>
               )}
             </form>
 
-            <p className="mt-8 flex items-start gap-2.5 rounded-[10px] border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 text-[12px] leading-relaxed text-white/58">
+            <p className="mt-8 flex items-start gap-2.5 rounded-[5px] border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 text-[12px] leading-relaxed text-white/58">
               <ShieldCheck size={14} className="mt-0.5 shrink-0 text-white/40" />
               FortuneX staff will never ask for your console password or a two-factor code.
               If someone has, stop and report it.

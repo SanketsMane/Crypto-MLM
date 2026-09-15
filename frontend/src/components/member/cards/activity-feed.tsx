@@ -35,7 +35,7 @@ export function ActivityFeed({ items, loading }: { items: Entry[]; loading?: boo
           const credit = e.direction === 'CREDIT';
           return (
             <li key={e.id} className="flex items-center gap-3 border-b border-line-soft py-3 last:border-b-0">
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${cls}`}>
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-[4px] ${cls}`}>
                 <Icon size={16} strokeWidth={2} />
               </span>
               <div className="min-w-0 flex-1">

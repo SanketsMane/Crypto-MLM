@@ -54,7 +54,7 @@ export default function RankPage() {
             <Card key={r.rankCode} className={r.achieved ? 'border-good/40' : undefined}>
               <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-4">
                 <div className="flex items-center gap-3">
-                  <span className={`grid h-10 w-10 place-items-center rounded-xl ${
+                  <span className={`grid h-10 w-10 place-items-center rounded-[5px] ${
                     r.achieved ? 'bg-good-soft text-good' : 'bg-canvas text-ink-3'}`}>
                     {r.achieved ? <Check size={18} strokeWidth={2.4} /> : <Trophy size={17} />}
                   </span>

@@ -136,12 +136,23 @@ export default async function FortuneXHome() {
 
   return (
     <main>
-      <Hero />
-      <CurrencyBand />
+      {/* Live figures, read from the platform config above. The hero component
+          never states a rate of its own — same rule as every other section. */}
+      <Hero
+        stats={[
+          { value: `${plan.dailyReturnPercent}%`, label: 'Daily trade bonus' },
+          { value: `${plan.capPassivePercent}%`, label: 'Earnings ceiling' },
+          { value: '30', label: 'Generation levels' },
+          { value: planMoney(minimum), label: 'Minimum entry' },
+        ]}
+      />
+      {/* Raw amounts, not pre-formatted strings: the rail derives the per-day
+          accrual and the relative-size bar from the numbers themselves. */}
+      <CurrencyBand tiers={plan.packages} daily={plan.dailyReturnPercent} />
       <Features daily={plan.dailyReturnPercent} minimum={minimum} direct={directTotal} />
       <HowToStart />
       <Markets tabs={tabs} />
-      <Calculator daily={plan.dailyReturnPercent} minimum={minimum} packages={plan.packages} />
+      <Calculator daily={plan.dailyReturnPercent} minimum={minimum} packages={plan.packages} ceiling={plan.capPassivePercent} />
       <Rewards rewards={rewards} />
       <Trust />
       <OneStop solutions={solutions} />

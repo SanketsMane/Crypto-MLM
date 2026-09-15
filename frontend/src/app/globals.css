@@ -1,16 +1,22 @@
 @import "tailwindcss";
 
-/* ── FortuneX design system ────────────────────────────────────────────────
-   One source of truth for the admin surface. Every screen consumes these
-   tokens; nothing hardcodes a hex.
+/* ── Terminal design system ───────────────────────────────────────────────
+   One source of truth for every surface. Every screen consumes these tokens;
+   nothing hardcodes a hex.
 
-   Light  = "FortuneX Financial SaaS"    — white cards, cool grey canvas,
-                                           navy ink, refined gold, purple analytics.
-   Dark   = "FortuneX Trading Terminal"  — deep navy, metallic gold, purple analytics.
+   Dark  = the designed theme — near-black ground, hairline rules, signal
+           teal accent, tabular figures, terminal density.
+   Light = the supported alternate — a paper terminal, not a white-card SaaS
+           dashboard: same density, same accent, same components.
 
-   Both themes are authored deliberately: dark is NOT an inversion of light.
-   The sidebar and the promotional artwork stay navy in BOTH themes — they are
-   the brand anchor, not a surface.                                          */
+   Both are authored deliberately: light is NOT an inversion of dark, and the
+   rail stays near-black in both because it is the brand anchor, not a surface.
+
+   Replaces the navy-and-gold palette this project shipped with. The `gold-*`
+   token names survive because ~200 call sites read them; they now carry the
+   teal accent ramp. Renaming them is a follow-up sweep, not a blocker.
+
+   The chart ramps are validated, not chosen by eye — see the note on them.  */
 
 /* `dark:` utilities follow the selected theme, and fall back to the OS
    preference only while no explicit choice has been applied to <html>. */
@@ -23,137 +29,164 @@
 
 @theme {
   /* ── surfaces ─────────────────────────────────────────────────────────
-     canvas = page, canvas-2 = main working area, card = surface,
-     card-2 = elevated surface (table heads, popovers, inset panels)        */
-  --color-canvas:      #F5F7FA;
+     Light is the supported alternate: a cool paper surface at the same
+     density, with the same accent stepped deeper so it holds on white.    */
+  --color-canvas:      #F2F5F9;
   --color-canvas-2:    #F8FAFC;
   --color-card:        #FFFFFF;
-  --color-card-2:      #FFFFFF;
-  --color-line:        #E4E7EC;
-  --color-line-strong: #D0D5DD;
-  --color-line-soft:   #F1F3F7;
+  --color-card-2:      #F6F8FC;
+  --color-line:        #DCE3ED;
+  --color-line-strong: #C2CBD9;
+  --color-line-soft:   #EBEFF5;
 
-  /* sidebar — deliberately navy in both themes */
-  --color-sidebar:      #08080E;
-  --color-sidebar-line: #1E1E26;
+  /* The rail is navy in both themes — it is the brand anchor, not a surface. */
+  --color-sidebar:      #0A1019;
+  --color-sidebar-line: #1E2735;
 
   /* ── brand ────────────────────────────────────────────────────────────
-     Navy is a fixed brand constant (promo artwork, sidebar, gold-on-navy);
-     it does not move between themes.                                       */
-  --color-navy:        #08080E;
-  --color-navy-deep:   #000000;
-  --color-navy-card:   #0B0B12;
-  --color-navy-soft:   #12121A;
+     The navy ground. Deep and slightly blue rather than neutral black: it is
+     what makes this read as a trading platform rather than a code editor.  */
+  --color-navy:        #070B12;
+  --color-navy-deep:   #04070C;
+  --color-navy-card:   #0E1520;
+  --color-navy-soft:   #151D2B;
 
-  /* metallic gold, never bright yellow — light runs a deeper, less
-     luminous step so it holds contrast against white                       */
-  --color-gold:        #C89B2C;
-  --color-gold-hi:     #DDBB57;
-  --color-gold-dark:   #A77C18;
-  --color-gold-hover:  #DDBB57;
-  --color-gold-line:   #8F7020;
-  --color-gold-soft:   #FBF4E3;
-  /* readable ink on a filled gold surface, and on the soft gold tint */
+  /* ── accent ───────────────────────────────────────────────────────────
+     One warm signal colour, used ONLY for action, focus and active state.
+     Never a chart series — the series palette is separate and validated.
+
+     Still named `gold-*`: ~200 call sites read those names, and renaming them
+     is a mechanical sweep that should not ride along with a palette change.  */
+  --color-gold:        #E2670A;
+  --color-gold-hi:     #FF7A1A;
+  --color-gold-dark:   #B84E00;
+  --color-gold-hover:  #B84E00;
+  --color-gold-line:   #FFD5B0;
+  --color-gold-soft:   #FFF3E9;
   --color-gold-on:     #FFFFFF;
-  --color-gold-on-soft:#8A6A16;
+  --color-gold-on-soft:#B84E00;
 
-  /* fixed purple ramp — the member-facing pages reference `brand-*` shades
-     directly; the ramp itself does not move between themes */
-  --color-brand-50:    #F6F3FF;
-  --color-brand-100:   #EEEAFE;
-  --color-brand-200:   #DDD6FE;
-  --color-brand-300:   #BBB0F7;
-  --color-brand-500:   #6046E8;
-  --color-brand-600:   #5433D6;
-  --color-brand-700:   #4526B0;
+  /* Analytics purple — member pages reference these shades directly. */
+  --color-brand-50:    #F5F3FF;
+  --color-brand-100:   #EDE9FE;
+  --color-brand-200:   #DDD4FE;
+  --color-brand-300:   #C0ABFA;
+  --color-brand-500:   #7C3AED;
+  --color-brand-600:   #6D28D9;
+  --color-brand-700:   #5B21B6;
 
-  /* Fixed brand gold for the public site. `--color-gold` deliberately shifts
-     between the console's two themes; the marketing site has one identity and
-     must not move with it. */
-  --color-brand-gold:    #D4AF37;
-  --color-brand-gold-hi: #E5C158;
+  /* The public site has one identity and must not move with the console. */
+  --color-brand-gold:    #E2670A;
+  --color-brand-gold-hi: #FF7A1A;
 
   /* ── analytics accent ─────────────────────────────────────────────── */
-  --color-violet:      #6046E8;
-  --color-violet-hi:   #8170F0;
-  --color-violet-soft: #EEEAFE;
-  --color-violet-bg:   #F6F3FF;
-  --color-violet-on:   #5925DC;
+  --color-violet:      #7C3AED;
+  --color-violet-hi:   #8B5CF6;
+  --color-violet-soft: #EDE9FE;
+  --color-violet-bg:   #F5F3FF;
+  --color-violet-on:   #5B21B6;
 
   /* ── semantics ────────────────────────────────────────────────────────
-     `-soft` is the badge/chip background, `-on` the text that sits on it.  */
-  --color-good:        #12B76A;
-  --color-good-soft:   #ECFDF3;
-  --color-good-on:     #027A48;
+     Reserved. Green and red mean direction of money and nothing else, and
+     `warn` is a yellow rather than an amber so it cannot be mistaken for the
+     orange accent sitting next to it.                                      */
+  --color-good:        #0E9F6E;
+  --color-good-soft:   #E7F8F1;
+  --color-good-on:     #05704C;
   --color-bad:         #D92D20;
-  --color-bad-soft:    #FEF3F2;
+  --color-bad-soft:    #FEF2F2;
   --color-bad-on:      #B42318;
-  --color-warn:        #DC6803;
-  --color-warn-soft:   #FFFAEB;
-  --color-warn-on:     #B54708;
+  --color-warn:        #B7791F;
+  --color-warn-soft:   #FFFBEB;
+  --color-warn-on:     #8A5A11;
   --color-info:        #2563EB;
   --color-info-soft:   #EFF4FF;
-  --color-info-on:     #1849A9;
-  --color-mute-soft:   #F2F4F7;
-  --color-mute-on:     #475467;
+  --color-info-on:     #1D4ED8;
+  --color-mute-soft:   #EFF2F7;
+  --color-mute-on:     #48566B;
 
   /* ── ink ──────────────────────────────────────────────────────────── */
-  --color-ink:         #101828;
-  --color-ink-2:       #475467;
-  --color-ink-3:       #667085;
-  --color-ink-4:       #98A2B3;
+  --color-ink:         #0C1320;
+  --color-ink-2:       #48566B;
+  --color-ink-3:       #68768A;
+  --color-ink-4:       #96A1B2;
 
   /* ── form controls ────────────────────────────────────────────────── */
   --color-field:       #FFFFFF;
-  --color-field-line:  #D0D5DD;
-  --color-field-ph:    #98A2B3;
+  --color-field-line:  #C2CBD9;
+  --color-field-ph:    #96A1B2;
 
   /* ── tables ───────────────────────────────────────────────────────── */
-  --color-thead:       #F9FAFB;
-  --color-row-hover:   #F9FAFB;
+  --color-thead:       #F2F5F9;
+  --color-row-hover:   #F6F8FC;
 
   /* ── charts ───────────────────────────────────────────────────────────
-     Light leads with purple (analytical, reads cleanly on white); dark
-     leads with gold (the terminal's own accent). Series are re-picked per
-     theme rather than reused blindly.                                      */
-  --color-chart-1:     #6046E8;
-  --color-chart-2:     #C89B2C;
-  --color-chart-3:     #2563EB;
-  --color-chart-grid:  #E4E7EC;
-  --color-chart-axis:  #667085;
+     Fixed order, assigned by entity, never cycled:
+       1 daily trade · 2 direct · 3 generation · 4 rank · 5 offers
+     Validated against this mode's surface — lightness band, chroma floor,
+     colour-blind separation, normal-vision floor and 3:1 contrast all pass.
+     Re-run scripts/validate_palette.js before changing any of these.
+     The UI accent is deliberately NOT in this list.                        */
+  --color-chart-1:     #2563EB;
+  --color-chart-2:     #0A8F6F;
+  --color-chart-3:     #7C3AED;
+  --color-chart-4:     #C2620A;
+  --color-chart-5:     #C02663;
+  --color-chart-grid:  #E2E7EF;
+  --color-chart-axis:  #68768A;
 
   /* legacy series aliases — kept so existing chart code keeps compiling */
   --color-s1:          var(--color-chart-1);
   --color-s2:          var(--color-chart-2);
   --color-s3:          var(--color-chart-3);
 
-  /* ── elevation — extremely soft; the data is the loudest thing here ── */
-  --shadow-card:       0 2px 8px rgba(16, 24, 40, 0.04);
-  --shadow-raise:      0 8px 24px -10px rgba(16, 24, 40, 0.14);
-  --shadow-pop:        0 12px 32px -8px rgba(16, 24, 40, 0.18);
+  /* ── elevation ────────────────────────────────────────────────────────
+     Surfaces are separated by a rule, not a drop shadow. Near-flat by
+     design; deleting them outright would break call sites.                */
+  --shadow-card:       0 1px 2px rgba(12, 19, 32, 0.04);
+  --shadow-raise:      0 4px 12px -6px rgba(12, 19, 32, 0.10);
+  --shadow-pop:        0 8px 24px -8px rgba(12, 19, 32, 0.14);
 
-  /* ── investment plan card ─────────────────────────────────────────────
-     A layered ground rather than a flat fill: a gold bloom anchored to the
-     corner the artwork occupies, over the surface colour. Declared as tokens
-     because the card is identical in both themes apart from these values. */
+  /* ── investment plan card ─────────────────────────────────────────── */
   --plan-bg:
-    radial-gradient(circle at 100% 100%, rgba(200, 155, 44, 0.09), transparent 46%),
+    radial-gradient(circle at 100% 100%, rgba(226,103,10, 0.06), transparent 46%),
     #FFFFFF;
-  --plan-border:       #E4E7EC;
-  --plan-border-hover: rgba(200, 155, 44, 0.55);
-  --plan-shadow:       0 1px 2px rgba(16, 24, 40, 0.05);
-  --plan-shadow-hover: 0 16px 42px -18px rgba(16, 24, 40, 0.24), 0 0 26px rgba(200, 155, 44, 0.10);
+  --plan-border:       #DCE3ED;
+  --plan-border-hover: rgba(226,103,10, 0.50);
+  --plan-shadow:       0 1px 2px rgba(12, 19, 32, 0.05);
+  --plan-shadow-hover: 0 10px 28px -14px rgba(12, 19, 32, 0.20);
 
-  /* dashboard workspace — softer and airier than the dense table surfaces */
-  --dash-border:        rgba(15, 23, 42, 0.08);
-  --dash-shadow:        0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 30px rgba(15, 23, 42, 0.06);
-  --dash-shadow-hover:  0 2px 4px rgba(15, 23, 42, 0.05), 0 14px 40px rgba(15, 23, 42, 0.10);
-  --dash-well:          #F7F8FA;
+  /* dashboard workspace */
+  --dash-border:        #DCE3ED;
+  --dash-shadow:        0 1px 2px rgba(12, 19, 32, 0.04);
+  --dash-shadow-hover:  0 2px 6px rgba(12, 19, 32, 0.07);
+  --dash-well:          #F2F5F9;
 
-  --radius-card:       14px;
-  --radius-ctl:        9px;
+  /* ── geometry ─────────────────────────────────────────────────────── */
+  --radius-card:       5px;
+  --radius-ctl:        4px;
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* ── density ──────────────────────────────────────────────────────────
+     Density is a token, not a hardcoded row height. These are the phone
+     values; the breakpoint below tightens them to terminal density.       */
+  --density-row:       44px;
+  --density-pad:       16px;
+  --density-gap:       12px;
+  --density-text:      13px;
+
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Terminal density from tablet up. Below this the same components render at
+   thumb density — 44px targets, tables as cards — rather than shrinking. */
+@media (min-width: 768px) {
+  :root {
+    --density-row:  32px;
+    --density-pad:  12px;
+    --density-gap:  10px;
+    --density-text: 12px;
+  }
 }
 
 /* ── DARK — FortuneX premium trading theme ───────────────────────────────
@@ -166,81 +199,92 @@
    declaration list between a selector and a media query, and the no-JS
    path is worth the repetition.                                          */
 :root[data-theme="dark"] {
-  --color-canvas:      #000000;
-  --color-canvas-2:    #08080E;
-  --color-card:        #0B0B12;
-  --color-card-2:      #12121A;
-  --color-line:        #1E1E26;
-  --color-line-strong: #2C2C36;
-  --color-line-soft:   #141419;
+  --color-canvas:      #070B12;
+  --color-canvas-2:    #0A1019;
+  --color-card:        #0E1520;
+  --color-card-2:      #151D2B;
+  --color-line:        #1E2735;
+  --color-line-strong: #2C3849;
+  --color-line-soft:   #141B27;
 
-  --color-sidebar:      #08080E;
-  --color-sidebar-line: #1E1E26;
+  --color-sidebar:      #0A1019;
+  --color-sidebar-line: #1E2735;
 
-  --color-gold:        #D4AF37;
-  --color-gold-hi:     #E5C158;
-  --color-gold-dark:   #B8860B;
-  --color-gold-hover:  #E5C158;
-  --color-gold-soft:   rgba(212, 175, 55, 0.12);
-  --color-gold-on:     #08080E;
-  --color-gold-on-soft:#E5C158;
+  --color-navy:        #070B12;
+  --color-navy-deep:   #04070C;
+  --color-navy-card:   #0E1520;
+  --color-navy-soft:   #151D2B;
 
-  --color-violet:      #6046E8;
-  --color-violet-hi:   #8170F0;
-  --color-violet-soft: rgba(96, 70, 232, 0.16);
-  --color-violet-bg:   rgba(96, 70, 232, 0.09);
-  --color-violet-on:   #A79BF5;
+  /* The accent brightens on navy — the deep light step would go muddy here. */
+  --color-gold:        #FF7A1A;
+  --color-gold-hi:     #FF9647;
+  --color-gold-dark:   #E2670A;
+  --color-gold-hover:  #FF9647;
+  --color-gold-line:   #5C2E08;
+  --color-gold-soft:   rgba(255,122,26, 0.13);
+  --color-gold-on:     #0B0F16;
+  --color-gold-on-soft:#FF9647;
 
-  --color-good:        #16B364;
-  --color-good-soft:   rgba(18, 183, 106, 0.12);
-  --color-good-on:     #32D583;
-  --color-bad:         #F04438;
-  --color-bad-soft:    rgba(240, 68, 56, 0.12);
-  --color-bad-on:      #F97066;
-  --color-warn:        #F79009;
-  --color-warn-soft:   rgba(247, 144, 9, 0.12);
-  --color-warn-on:     #FDB022;
-  --color-info:        #3B82F6;
-  --color-info-soft:   rgba(59, 130, 246, 0.14);
-  --color-info-on:     #84ADFF;
-  --color-mute-soft:   rgba(255, 255, 255, 0.06);
-  --color-mute-on:     #98A2B3;
+  --color-brand-gold:    #FF7A1A;
+  --color-brand-gold-hi: #FF9647;
 
-  --color-ink:         #F8FAFC;
-  --color-ink-2:       #98A2B3;
-  --color-ink-3:       #667085;
-  --color-ink-4:       #5A6980;
+  --color-violet:      #8B5FD6;
+  --color-violet-hi:   #A78BFA;
+  --color-violet-soft: rgba(139,95,214, 0.16);
+  --color-violet-bg:   rgba(139,95,214, 0.09);
+  --color-violet-on:   #A78BFA;
 
-  --color-field:       #08080E;
-  --color-field-line:  #1E1E26;
-  --color-field-ph:    #667085;
+  --color-good:        #26C281;
+  --color-good-soft:   rgba(38,194,129, 0.13);
+  --color-good-on:     #4ADE9B;
+  --color-bad:         #FF4D4D;
+  --color-bad-soft:    rgba(255,77,77, 0.13);
+  --color-bad-on:      #FF7A7A;
+  --color-warn:        #FFC53D;
+  --color-warn-soft:   rgba(255,197,61, 0.13);
+  --color-warn-on:     #FFD76B;
+  --color-info:        #3B82D9;
+  --color-info-soft:   rgba(59,130,217, 0.14);
+  --color-info-on:     #7DB0F0;
+  --color-mute-soft:   rgba(255, 255, 255, 0.05);
+  --color-mute-on:     #94A2B8;
 
-  --color-thead:       #12121A;
-  --color-row-hover:   #12121A;
+  --color-ink:         #E9EEF6;
+  --color-ink-2:       #94A2B8;
+  --color-ink-3:       #5E6D82;
+  --color-ink-4:       #46546A;
 
-  --color-chart-1:     #D4AF37;
-  --color-chart-2:     #6046E8;
-  --color-chart-3:     #3B82F6;
-  --color-chart-grid:  #1E1E26;
-  --color-chart-axis:  #98A2B3;
+  --color-field:       #0A1019;
+  --color-field-line:  #2C3849;
+  --color-field-ph:    #5E6D82;
+
+  --color-thead:       #0B111A;
+  --color-row-hover:   #141B27;
+
+  --color-chart-1:     #3B82D9;
+  --color-chart-2:     #14A06B;
+  --color-chart-3:     #8B5FD6;
+  --color-chart-4:     #BC830E;
+  --color-chart-5:     #D45585;
+  --color-chart-grid:  #18202C;
+  --color-chart-axis:  #5E6D82;
 
   --plan-bg:
-    radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.08), transparent 42%),
-    linear-gradient(145deg, #12121A 0%, #0B0B12 55%, #08080E 100%);
-  --plan-border:       rgba(212, 175, 55, 0.28);
-  --plan-border-hover: rgba(212, 175, 55, 0.65);
-  --plan-shadow:       0 12px 40px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --plan-shadow-hover: 0 16px 50px rgba(0, 0, 0, 0.25), 0 0 30px rgba(212, 175, 55, 0.06);
+    radial-gradient(circle at 100% 100%, rgba(255,122,26, 0.05), transparent 44%),
+    #0E1520;
+  --plan-border:       #1E2735;
+  --plan-border-hover: rgba(255,122,26, 0.42);
+  --plan-shadow:       none;
+  --plan-shadow-hover: 0 0 0 1px rgba(255,122,26, 0.12);
 
-  /* dashboard workspace — softer and airier than the dense table surfaces */
-  --dash-border:        rgba(255, 255, 255, 0.09);
-  --dash-shadow:        0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 30px rgba(0, 0, 0, 0.28);
-  --dash-shadow-hover:  0 2px 6px rgba(0, 0, 0, 0.38), 0 16px 44px rgba(0, 0, 0, 0.42);
-  --dash-well:          #0B0B12;
+  --dash-border:        #1E2735;
+  --dash-shadow:        none;
+  --dash-shadow-hover:  none;
+  --dash-well:          #0A1019;
 
-  --shadow-card:       0 2px 8px rgba(0, 0, 0, 0.28);
-  --shadow-raise:      0 10px 26px -12px rgba(0, 0, 0, 0.55);
-  --shadow-pop:        0 16px 38px -10px rgba(0, 0, 0, 0.62);
+  --shadow-card:       none;
+  --shadow-raise:      0 4px 16px -8px rgba(0, 0, 0, 0.60);
+  --shadow-pop:        0 10px 30px -10px rgba(0, 0, 0, 0.70);
 
   color-scheme: dark;
 }
@@ -249,81 +293,92 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
-    --color-canvas:      #000000;
-    --color-canvas-2:    #08080E;
-    --color-card:        #0B0B12;
-    --color-card-2:      #12121A;
-    --color-line:        #1E1E26;
-    --color-line-strong: #2C2C36;
-    --color-line-soft:   #141419;
+    --color-canvas:      #070B12;
+    --color-canvas-2:    #0A1019;
+    --color-card:        #0E1520;
+    --color-card-2:      #151D2B;
+    --color-line:        #1E2735;
+    --color-line-strong: #2C3849;
+    --color-line-soft:   #141B27;
 
-    --color-sidebar:      #08080E;
-    --color-sidebar-line: #1E1E26;
+    --color-sidebar:      #0A1019;
+    --color-sidebar-line: #1E2735;
 
-    --color-gold:        #D4AF37;
-    --color-gold-hi:     #E5C158;
-    --color-gold-dark:   #B8860B;
-    --color-gold-hover:  #E5C158;
-    --color-gold-soft:   rgba(212, 175, 55, 0.12);
-    --color-gold-on:     #08080E;
-    --color-gold-on-soft:#E5C158;
+    --color-navy:        #070B12;
+    --color-navy-deep:   #04070C;
+    --color-navy-card:   #0E1520;
+    --color-navy-soft:   #151D2B;
 
-    --color-violet:      #6046E8;
-    --color-violet-hi:   #8170F0;
-    --color-violet-soft: rgba(96, 70, 232, 0.16);
-    --color-violet-bg:   rgba(96, 70, 232, 0.09);
-    --color-violet-on:   #A79BF5;
+    /* The accent brightens on navy — the deep light step would go muddy here. */
+    --color-gold:        #FF7A1A;
+    --color-gold-hi:     #FF9647;
+    --color-gold-dark:   #E2670A;
+    --color-gold-hover:  #FF9647;
+    --color-gold-line:   #5C2E08;
+    --color-gold-soft:   rgba(255,122,26, 0.13);
+    --color-gold-on:     #0B0F16;
+    --color-gold-on-soft:#FF9647;
 
-    --color-good:        #16B364;
-    --color-good-soft:   rgba(18, 183, 106, 0.12);
-    --color-good-on:     #32D583;
-    --color-bad:         #F04438;
-    --color-bad-soft:    rgba(240, 68, 56, 0.12);
-    --color-bad-on:      #F97066;
-    --color-warn:        #F79009;
-    --color-warn-soft:   rgba(247, 144, 9, 0.12);
-    --color-warn-on:     #FDB022;
-    --color-info:        #3B82F6;
-    --color-info-soft:   rgba(59, 130, 246, 0.14);
-    --color-info-on:     #84ADFF;
-    --color-mute-soft:   rgba(255, 255, 255, 0.06);
-    --color-mute-on:     #98A2B3;
+    --color-brand-gold:    #FF7A1A;
+    --color-brand-gold-hi: #FF9647;
 
-    --color-ink:         #F8FAFC;
-    --color-ink-2:       #98A2B3;
-    --color-ink-3:       #667085;
-    --color-ink-4:       #5A6980;
+    --color-violet:      #8B5FD6;
+    --color-violet-hi:   #A78BFA;
+    --color-violet-soft: rgba(139,95,214, 0.16);
+    --color-violet-bg:   rgba(139,95,214, 0.09);
+    --color-violet-on:   #A78BFA;
 
-    --color-field:       #08080E;
-    --color-field-line:  #1E1E26;
-    --color-field-ph:    #667085;
+    --color-good:        #26C281;
+    --color-good-soft:   rgba(38,194,129, 0.13);
+    --color-good-on:     #4ADE9B;
+    --color-bad:         #FF4D4D;
+    --color-bad-soft:    rgba(255,77,77, 0.13);
+    --color-bad-on:      #FF7A7A;
+    --color-warn:        #FFC53D;
+    --color-warn-soft:   rgba(255,197,61, 0.13);
+    --color-warn-on:     #FFD76B;
+    --color-info:        #3B82D9;
+    --color-info-soft:   rgba(59,130,217, 0.14);
+    --color-info-on:     #7DB0F0;
+    --color-mute-soft:   rgba(255, 255, 255, 0.05);
+    --color-mute-on:     #94A2B8;
 
-    --color-thead:       #12121A;
-    --color-row-hover:   #12121A;
+    --color-ink:         #E9EEF6;
+    --color-ink-2:       #94A2B8;
+    --color-ink-3:       #5E6D82;
+    --color-ink-4:       #46546A;
 
-    --color-chart-1:     #D4AF37;
-    --color-chart-2:     #6046E8;
-    --color-chart-3:     #3B82F6;
-    --color-chart-grid:  #1E1E26;
-    --color-chart-axis:  #98A2B3;
+    --color-field:       #0A1019;
+    --color-field-line:  #2C3849;
+    --color-field-ph:    #5E6D82;
+
+    --color-thead:       #0B111A;
+    --color-row-hover:   #141B27;
+
+    --color-chart-1:     #3B82D9;
+    --color-chart-2:     #14A06B;
+    --color-chart-3:     #8B5FD6;
+    --color-chart-4:     #BC830E;
+    --color-chart-5:     #D45585;
+    --color-chart-grid:  #18202C;
+    --color-chart-axis:  #5E6D82;
 
     --plan-bg:
-      radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.08), transparent 42%),
-      linear-gradient(145deg, #12121A 0%, #0B0B12 55%, #08080E 100%);
-    --plan-border:       rgba(212, 175, 55, 0.28);
-    --plan-border-hover: rgba(212, 175, 55, 0.65);
-    --plan-shadow:       0 12px 40px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-    --plan-shadow-hover: 0 16px 50px rgba(0, 0, 0, 0.25), 0 0 30px rgba(212, 175, 55, 0.06);
+      radial-gradient(circle at 100% 100%, rgba(255,122,26, 0.05), transparent 44%),
+      #0E1520;
+    --plan-border:       #1E2735;
+    --plan-border-hover: rgba(255,122,26, 0.42);
+    --plan-shadow:       none;
+    --plan-shadow-hover: 0 0 0 1px rgba(255,122,26, 0.12);
 
-    /* dashboard workspace — softer and airier than the dense table surfaces */
-    --dash-border:        rgba(255, 255, 255, 0.09);
-    --dash-shadow:        0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 30px rgba(0, 0, 0, 0.28);
-    --dash-shadow-hover:  0 2px 6px rgba(0, 0, 0, 0.38), 0 16px 44px rgba(0, 0, 0, 0.42);
-    --dash-well:          #0B0B12;
+    --dash-border:        #1E2735;
+    --dash-shadow:        none;
+    --dash-shadow-hover:  none;
+    --dash-well:          #0A1019;
 
-    --shadow-card:       0 2px 8px rgba(0, 0, 0, 0.28);
-    --shadow-raise:      0 10px 26px -12px rgba(0, 0, 0, 0.55);
-    --shadow-pop:        0 16px 38px -10px rgba(0, 0, 0, 0.62);
+    --shadow-card:       none;
+    --shadow-raise:      0 4px 16px -8px rgba(0, 0, 0, 0.60);
+    --shadow-pop:        0 10px 30px -10px rgba(0, 0, 0, 0.70);
 
     color-scheme: dark;
   }
@@ -351,7 +406,9 @@ html, body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-feature-settings: "cv02","cv03","cv04","cv11";
+  /* Every figure in this product is money. Tabular by default so digits
+     keep their column as values update. */
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -390,8 +447,8 @@ html.theme-switching *::after {
    so the eye lands on it before it reads a single number. One ring expanding
    out of the dot; nothing else on the page animates on a loop. */
 @keyframes fx-stop-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.38); }
-  55%      { box-shadow: 0 0 0 7px rgba(212, 175, 55, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,122,26, 0.38); }
+  55%      { box-shadow: 0 0 0 7px rgba(255,122,26, 0); }
 }
 .fx-stop-pulse { animation: fx-stop-pulse 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 
@@ -662,26 +719,66 @@ select:-webkit-autofill {
    unreachable.
    ───────────────────────────────────────────────────────────────────────────*/
 .dash-card {
-  /* Radius lives here, not in a utility. `Card` already ships `rounded-[14px]`,
+  /* Radius lives here, not in a utility. `Card` already ships its own rounding,
      and between two utilities of the same property the winner is stylesheet
-     order, not class order — this rule is unlayered, so it beats both. */
-  border-radius: 18px;
+     order, not class order — this rule is unlayered, so it beats both.
+
+     Was 18px. A terminal panel is a rectangle with a rule around it; soft
+     18px corners on a data surface were the single loudest "generic SaaS"
+     tell in the old build. */
+  border-radius: var(--radius-card);
   background: var(--color-card);
   border: 1px solid var(--dash-border);
   box-shadow: var(--dash-shadow);
-  transition:
-    transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 180ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 180ms ease;
+  transition: border-color 140ms ease, background-color 140ms ease;
 }
 
-/* Lift is opt-in: it belongs on a card you can act on, not on every panel. And
-   it is gated on a real pointer so a tap does not leave a phone stuck hovered. */
+/* Hover marks a panel you can act on. It used to lift the card 2px — cards
+   that float on hover read as marketing, not instrumentation — so the cue is
+   now the border picking up the accent. Still gated on a real pointer so a tap
+   does not leave a phone stuck hovered. */
 @media (hover: hover) and (pointer: fine) {
   .dash-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--dash-shadow-hover);
+    border-color: var(--color-line-strong);
+    background: var(--color-card-2);
   }
+}
+
+/* ── figures ──────────────────────────────────────────────────────────────
+   Tailwind's `tabular-nums` utility is redefined to also carry the mono face.
+
+   That is a deliberate widening of a utility's meaning, and it is worth it:
+   87 files already mark their money and counts with it, so this one rule puts
+   every figure in the product into IBM Plex Mono with fixed-width digits
+   without touching 87 files. In a product where almost every number is
+   currency, "this value is a figure" and "render it as a figure" are the same
+   statement.
+
+   Columns therefore stay put as values update — the single most visible
+   difference between an instrument and a web page. */
+.tabular-nums {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ── figures ──────────────────────────────────────────────────────────────
+   Every number in this product is money. `.fx-num` puts it in Plex Mono with
+   tabular figures so digits hold their column as values update, and slightly
+   tightens tracking so long balances stay compact.                          */
+.fx-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Section labels: small, spaced, uppercase — the terminal's own voice. */
+.fx-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
 }
 
 /* The wallet panel is the hero of the dashboard, and it has to earn that in
@@ -694,13 +791,10 @@ select:-webkit-autofill {
    straight into the artwork); from `sm` up it becomes a diagonal that keeps
    the left clean for text and lets the wallet show through on the right. */
 .balance-panel {
-  background-color: #08080E;
-  background-image: url('/brand/wallet-bg.webp');
-  background-size: cover;
-  background-position: right center;
-  background-repeat: no-repeat;
-  border: 1px solid rgba(217, 173, 50, 0.18);
-  box-shadow: var(--dash-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  /* Artwork removed — see the note above. A panel, not a poster. */
+  background-color: var(--color-navy-card);
+  border: 1px solid var(--color-line);
+  box-shadow: none;
   /* The strip below sizes against the card, not the viewport. This card lives
      in a half-width column, so a viewport breakpoint says "desktop" while the
      card is only ~570px wide and all four labels truncate. */
@@ -717,30 +811,8 @@ select:-webkit-autofill {
     padding-left: 1rem;
   }
 }
-.balance-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.82) 0%,
-    rgba(0, 0, 0, 0.90) 52%,
-    rgba(0, 0, 0, 0.96) 100%
-  );
-}
-@media (min-width: 640px) {
-  .balance-panel::before {
-    background: linear-gradient(
-      100deg,
-      rgba(0, 0, 0, 0.95) 0%,
-      rgba(0, 0, 0, 0.86) 34%,
-      rgba(0, 0, 0, 0.48) 62%,
-      rgba(0, 0, 0, 0.12) 100%
-    );
-  }
-}
+.balance-panel::before { content: none; }
+
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Wallet actions.
@@ -756,46 +828,38 @@ select:-webkit-autofill {
   justify-content: space-between;
   gap: 0.75rem;
   width: 100%;
-  padding: 0 1.25rem;
-  border-radius: 16px;
+  padding: 0 1rem;
+  border-radius: var(--radius-ctl);
   font-weight: 600;
-  transition:
-    transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 180ms cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 180ms ease,
-    border-color 180ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease;
 }
 .wallet-action:focus-visible {
   outline: 2px solid var(--color-gold-hi);
   outline-offset: 2px;
 }
 
+/* Flat fill. No gradient, no coloured glow, no lift.
+
+   This was a two-stop gold-to-teal gradient with a 20px accent-coloured drop
+   shadow that also translated on hover. All three are what made the primary
+   money action read as a consumer app rather than an instrument — the accent
+   on its own is already the loudest thing on a near-black surface. */
 .wallet-action-gold {
-  background: linear-gradient(135deg, #E8C65A 0%, #D9AD32 100%);
-  color: #08080E;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24), 0 8px 20px -10px rgba(217, 173, 50, 0.9);
+  background: var(--color-gold);
+  color: var(--color-gold-on);
 }
 .wallet-action-ghost {
-  background: rgba(255, 255, 255, 0.055);
+  background: transparent;
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
-/* Hover is a pointer affordance — a tap must not leave a phone stuck in it. */
+/* Hover is a pointer affordance — a tap must not leave a phone stuck in it.
+   It shifts colour rather than lifting the button off the surface. */
 @media (hover: hover) and (pointer: fine) {
-  .wallet-action-gold:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.05);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.26), 0 12px 26px -10px rgba(217, 173, 50, 1);
-  }
-  .wallet-action-ghost:hover {
-    transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.24);
-  }
+  .wallet-action-gold:hover  { background: var(--color-gold-hi); }
+  .wallet-action-ghost:hover { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.28); }
 }
-.wallet-action-gold:active,
-.wallet-action-ghost:active { transform: translateY(0); }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Wallet workspace.
@@ -809,43 +873,28 @@ select:-webkit-autofill {
 .wallet-hero {
   position: relative;
   isolation: isolate;
-  border-radius: 24px;
-  background: linear-gradient(135deg, #0B0B12 0%, #08182C 45%, #061426 100%);
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  box-shadow: var(--dash-shadow);
+  border-radius: var(--radius-card);
+  background: var(--color-navy-card);
+  border: 1px solid var(--color-line);
+  box-shadow: none;
 }
 
-/* Atmosphere, not illustration. The artwork is masked so it fades in from the
-   middle with no hard edge, and sits far enough right that it never runs under
-   the title. */
-.wallet-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background-image: url('/brand/wallet-bg.webp');
-  background-size: cover;
-  background-position: right center;
-  opacity: 0.55;
-  -webkit-mask-image: linear-gradient(90deg, transparent 30%, rgba(0, 0, 0, 0.55) 62%, #000 100%);
-  mask-image: linear-gradient(90deg, transparent 30%, rgba(0, 0, 0, 0.55) 62%, #000 100%);
-}
+/* The artwork is gone.
+
+   It was a gold wallet render masked to fade in from the right — "atmosphere,
+   not illustration". On a near-black terminal the atmosphere it added was the
+   old brand's, and the panel reads better carrying nothing at all. */
 .wallet-hero > * { position: relative; z-index: 1; }
 
 /* One balance. `--tile-accent` is set per wallet by the component. */
 .wallet-tile {
   position: relative;
   isolation: isolate;
-  border-radius: 20px;
-  background: linear-gradient(155deg, #12121A 0%, #0B0B12 52%, #08080E 100%);
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  box-shadow: var(--dash-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  transition:
-    transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 180ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 180ms ease;
+  border-radius: var(--radius-card);
+  background: var(--color-navy-card);
+  border: 1px solid var(--color-line);
+  box-shadow: none;
+  transition: border-color 140ms ease, background-color 140ms ease;
 }
 .wallet-tile::before {
   content: '';

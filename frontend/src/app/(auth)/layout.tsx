@@ -45,7 +45,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
           <div>
             <h2 className="max-w-[16ch] text-[30px] font-semibold leading-[1.15] tracking-[-0.03em] text-white xl:text-[34px]">
-              Trade. Invest. <span className="text-[#D4AF37]">Earn.</span>
+              Trade. Invest. <span className="text-[#FF7A1A]">Earn.</span>
             </h2>
             <p className="mt-4 max-w-[38ch] text-[14px] leading-[1.75] text-white/60">
               A {plan.dailyReturnPercent}% daily trade bonus {plan.tradingDays}, a thirty-level network,
@@ -55,7 +55,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
             <ul className="mt-8 space-y-3.5">
               {ASSURANCES(plan).map(({ Icon, text }) => (
                 <li key={text} className="flex items-start gap-3 text-[13.5px] leading-relaxed text-white/65">
-                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-[#D4AF37]/25 bg-[#D4AF37]/10 text-[#D4AF37]">
+                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-[4px] border border-[#FF7A1A]/25 bg-[#FF7A1A]/10 text-[#FF7A1A]">
                     <Icon size={14} strokeWidth={2} />
                   </span>
                   {text}
@@ -67,7 +67,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           <p className="text-[12px] leading-relaxed text-white/55">
             Trading carries risk, including loss of capital. Returns describe the compensation
             plan, not a guarantee.{' '}
-            <Link href="/legal/risk-disclosure" className="text-white/50 underline underline-offset-2 hover:text-[#D4AF37]">
+            <Link href="/legal/risk-disclosure" className="text-white/50 underline underline-offset-2 hover:text-[#FF7A1A]">
               Risk disclosure
             </Link>
           </p>

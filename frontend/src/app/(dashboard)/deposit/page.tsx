@@ -193,7 +193,7 @@ export default function DepositPage() {
                         type="button"
                         aria-pressed={active}
                         onClick={() => setProvider(p.id)}
-                        className={`rounded-[10px] border px-3 py-2.5 text-left transition ${
+                        className={`rounded-[5px] border px-3 py-2.5 text-left transition ${
                           active
                             ? 'border-violet bg-violet/[0.06] ring-1 ring-violet/30'
                             : 'border-line hover:border-violet/40'
@@ -265,7 +265,7 @@ export default function DepositPage() {
                   <span className="font-semibold text-ink">any supported coin</span>. Your Fund wallet is
                   credited automatically once the payment confirms on the network.
                 </p>
-                <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+                <div className="rounded-[5px] border border-line bg-canvas px-3 py-2.5">
                   <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">Payment is handled by</p>
                   {/* Named only once it is settled. Before that it reads as the
                       pending choice, not as a provider already decided on. */}
@@ -275,7 +275,7 @@ export default function DepositPage() {
                       : 'Your selected payment provider'}
                   </p>
                 </div>
-                <p className="flex gap-2 rounded-[10px] bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-warn">
+                <p className="flex gap-2 rounded-[5px] bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-warn">
                   <AlertCircle size={15} className="mt-0.5 shrink-0" />
                   Pay the exact amount shown at the checkout. An underpayment is held for review rather
                   than credited automatically.
@@ -289,7 +289,7 @@ export default function DepositPage() {
                   the transaction on-chain.
                 </p>
 
-                <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+                <div className="rounded-[5px] border border-line bg-canvas px-3 py-2.5">
                   <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">Network</p>
                   <p className="mt-0.5 text-[13px] font-semibold text-ink">BEP-20 (Binance Smart Chain)</p>
                 </div>
@@ -297,7 +297,7 @@ export default function DepositPage() {
                 {deposit.isLoading ? (
                   <Skeleton className="h-[70px]" />
                 ) : deposit.data?.configured ? (
-                  <div className="flex items-center gap-2 rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+                  <div className="flex items-center gap-2 rounded-[5px] border border-line bg-canvas px-3 py-2.5">
                     <div className="min-w-0 flex-1">
                       <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">
                         Your deposit address
@@ -307,7 +307,7 @@ export default function DepositPage() {
                       </p>
                     </div>
                     <button type="button" onClick={copyAddress}
-                            className="shrink-0 rounded-md p-1.5 text-ink-2 transition hover:bg-line/40 hover:text-ink"
+                            className="shrink-0 rounded-[3px] p-1.5 text-ink-2 transition hover:bg-line/40 hover:text-ink"
                             title="Copy address">
                       {copied ? <Check size={15} className="text-good" /> : <Copy size={15} />}
                     </button>
@@ -315,7 +315,7 @@ export default function DepositPage() {
                 ) : (
                   /* No address is shown rather than a placeholder that looks like
                      one — funds sent to a fake address are gone for good. */
-                  <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+                  <div className="rounded-[5px] border border-line bg-canvas px-3 py-2.5">
                     <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">Deposit address</p>
                     <p className="mt-0.5 text-[12.5px] text-ink-2">
                       {canCharge
@@ -325,7 +325,7 @@ export default function DepositPage() {
                   </div>
                 )}
 
-                <p className="flex gap-2 rounded-[10px] bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-warn">
+                <p className="flex gap-2 rounded-[5px] bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-warn">
                   <AlertCircle size={15} className="mt-0.5 shrink-0" />
                   Only send USDT on BEP-20. Funds sent on another network cannot be recovered.
                   {deposit.data?.configured && deposit.data.confirmations

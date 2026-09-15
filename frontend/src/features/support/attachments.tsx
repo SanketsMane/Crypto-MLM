@@ -79,7 +79,7 @@ export function AttachmentPicker({
         type="button"
         onClick={() => input.current?.click()}
         disabled={busy || files.length >= MAX_FILES}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[12px] font-medium text-ink-2 transition hover:border-line-strong hover:text-ink disabled:opacity-40"
+        className="inline-flex items-center gap-1.5 rounded-[4px] border border-line px-2.5 py-1.5 text-[12px] font-medium text-ink-2 transition hover:border-line-strong hover:text-ink disabled:opacity-40"
       >
         <Paperclip size={13} />
         {files.length ? `${files.length}/${MAX_FILES} attached` : 'Attach a screenshot'}
@@ -89,7 +89,7 @@ export function AttachmentPicker({
         <ul className="space-y-1">
           {files.map((f, i) => (
             <li key={`${f.fileName}-${i}`}
-                className="flex items-center gap-2 rounded-lg border border-line bg-canvas px-2.5 py-1.5">
+                className="flex items-center gap-2 rounded-[4px] border border-line bg-canvas px-2.5 py-1.5">
               {f.mimeType.startsWith('image/')
                 ? <ImageIcon size={13} className="shrink-0 text-ink-3" />
                 : <FileText size={13} className="shrink-0 text-ink-3" />}
@@ -164,7 +164,7 @@ export function AttachmentList({
             type="button"
             onClick={() => void open(a.id, a.fileName)}
             disabled={opening === a.id}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-card px-2 py-1 text-[11.5px] text-ink-2 transition hover:border-line-strong hover:text-ink disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-[4px] border border-line bg-card px-2 py-1 text-[11.5px] text-ink-2 transition hover:border-line-strong hover:text-ink disabled:opacity-50"
           >
             {a.mimeType.startsWith('image/')
               ? <ImageIcon size={12} /> : <FileText size={12} />}

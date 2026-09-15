@@ -64,7 +64,7 @@ export default async function TermsPage() {
                     <span className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--home-gold)]/12 text-[var(--home-gold)] ring-1 ring-[var(--home-gold)]/25">
                       <Icon size={20} strokeWidth={1.9} aria-hidden />
                     </span>
-                    <h3 className="mt-5 text-[18px] font-bold text-white">{title}</h3>
+                    <h3 className="mt-5 text-[18px] font-bold text-[var(--home-text)]">{title}</h3>
                     <p className="mt-3 flex-1 text-[13.5px] leading-[1.75] text-[var(--home-text-2)]">{body}</p>
                     <span className="mt-6 inline-flex items-center gap-2 text-[13.5px] font-semibold text-[var(--home-gold)]">
                       Read it <ArrowRight size={14} strokeWidth={2.6} aria-hidden />

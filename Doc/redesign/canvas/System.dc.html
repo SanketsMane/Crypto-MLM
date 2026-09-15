@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #080A0E; font-family: 'IBM Plex Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #5EEAD4; text-decoration: none; } a:hover { color: #99F6E4; }
+    .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    .lbl { font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #5D6979; font-weight: 600; }
+    .pnl { background: #0F131A; border: 1px solid #1E2631; border-radius: 4px; }
+    .sec { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+    .sw { display: flex; align-items: center; gap: 9px; }
+    .chip { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 2px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; }
+  </style>
+</helmet>
+
+<div style="width: 1180px; height: 860px; overflow: hidden; color: #E8ECF3; background: #080A0E; padding: 22px 26px; box-sizing: border-box;">
+
+  <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px;">
+    <span style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">Terminal — design system</span>
+    <span style="font-size: 11.5px; color: #5D6979;">the token layer the 71-page rebuild consumes</span>
+  </div>
+  <div style="font-size: 11.5px; color: #93A0B2; margin-bottom: 18px; line-height: 1.5; max-width: 96ch;">
+    Replaces the navy-and-gold SaaS palette. Density is a <span class="num" style="color: #E8ECF3;">token</span>, not a fixed row height —
+    the same components render at terminal density on desktop and at thumb density on a phone.
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+    <!-- ── left ── -->
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+
+      <div>
+        <div class="sec">Surfaces &amp; ink</div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px;">
+          <div class="sw"><span style="width: 30px; height: 30px; border-radius: 3px; background: #080A0E; border: 1px solid #1E2631;"></span><div><div class="num" style="font-size: 10.5px;">#080A0E</div><div style="font-size: 10px; color: #5D6979;">canvas</div></div></div>
+          <div class="sw"><span style="width: 30px; height: 30px; border-radius: 3px; background: #0B0E13; border: 1px solid #1E2631;"></span><div><div class="num" style="font-size: 10.5px;">#0B0E13</div><div style="font-size: 10px; color: #5D6979;">chrome</div></div></div>
+          <div class="sw"><span style="width: 30px; height: 30px; border-radius: 3px; background: #0F131A; border: 1px solid #1E2631;"></span><div><div class="num" style="font-size: 10.5px;">#0F131A</div><div style="font-size: 10px; color: #5D6979;">panel</div></div></div>
+          <div class="sw"><span style="width: 30px; height: 30px; border-radius: 3px; background: #151B24; border: 1px solid #1E2631;"></span><div><div class="num" style="font-size: 10.5px;">#151B24</div><div style="font-size: 10px; color: #5D6979;">raised</div></div></div>
+          <div class="sw"><span style="width: 30px; height: 30px; border-radius: 3px; background: #1E2631;"></span><div><div class="num" style="font-size: 10.5px;">#1E2631</div><div style="font-size: 10px; color: #5D6979;">line</div></div></div>
+          <div class="sw"><span style="width: 30px; height: 30px; border-radius: 3px; background: #2B3543;"></span><div><div class="num" style="font-size: 10.5px;">#2B3543</div><div style="font-size: 10px; color: #5D6979;">line strong</div></div></div>
+          <div class="sw"><span style="width: 30px; height: 30px; border-radius: 3px; background: #E8ECF3;"></span><div><div class="num" style="font-size: 10.5px;">#E8ECF3</div><div style="font-size: 10px; color: #5D6979;">ink</div></div></div>
+          <div class="sw"><span style="width: 30px; height: 30px; border-radius: 3px; background: #93A0B2;"></span><div><div class="num" style="font-size: 10.5px;">#93A0B2</div><div style="font-size: 10px; color: #5D6979;">ink 2</div></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec">Income streams <span style="font-weight: 400; color: #5D6979; font-size: 10.5px;">— categorical, fixed order, never cycled</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div class="sw"><span style="width: 44px; height: 18px; border-radius: 2px; background: #3B82D9;"></span><span class="num" style="font-size: 10.5px; width: 62px;">#3B82D9</span><span style="font-size: 11px; color: #93A0B2;">Daily trade bonus</span></div>
+          <div class="sw"><span style="width: 44px; height: 18px; border-radius: 2px; background: #14A06B;"></span><span class="num" style="font-size: 10.5px; width: 62px;">#14A06B</span><span style="font-size: 11px; color: #93A0B2;">Direct sponsor</span></div>
+          <div class="sw"><span style="width: 44px; height: 18px; border-radius: 2px; background: #8B5FD6;"></span><span class="num" style="font-size: 10.5px; width: 62px;">#8B5FD6</span><span style="font-size: 11px; color: #93A0B2;">Generation</span></div>
+          <div class="sw"><span style="width: 44px; height: 18px; border-radius: 2px; background: #BC830E;"></span><span class="num" style="font-size: 10.5px; width: 62px;">#BC830E</span><span style="font-size: 11px; color: #93A0B2;">Rank reward</span></div>
+          <div class="sw"><span style="width: 44px; height: 18px; border-radius: 2px; background: #D45585;"></span><span class="num" style="font-size: 10.5px; width: 62px;">#D45585</span><span style="font-size: 11px; color: #93A0B2;">Affiliate offers</span></div>
+        </div>
+        <div style="font-size: 10.5px; color: #5D6979; margin-top: 9px; line-height: 1.45;">
+          All six checks pass against <span class="num">#0F131A</span> — lightness band, chroma floor,
+          colour-blind separation (worst adjacent ΔE <span class="num">12.2</span> deutan), normal-vision floor
+          and 3:1 contrast. Status colours below are reserved and never reused as a sixth stream.
+        </div>
+      </div>
+
+      <div>
+        <div class="sec">Status <span style="font-weight: 400; color: #5D6979; font-size: 10.5px;">— reserved; always with a label, never colour alone</span></div>
+        <div style="display: flex; gap: 7px; flex-wrap: wrap;">
+          <span class="chip" style="background: #0C1F14; color: #22C55E; border: 1px solid #14372E;">● APPROVED</span>
+          <span class="chip" style="background: #1A1408; color: #F5A524; border: 1px solid #3D2F0C;">● PENDING</span>
+          <span class="chip" style="background: #1C0D0D; color: #FF5A5A; border: 1px solid #3D1717;">● PAST SLA</span>
+          <span class="chip" style="background: #151B24; color: #93A0B2; border: 1px solid #2B3543;">● CANCELLED</span>
+          <span class="chip" style="background: #0B1A20; color: #5EEAD4; border: 1px solid #14372E;">● SETTLED</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec">Density is a token</div>
+        <div class="pnl" style="padding: 11px 13px;">
+          <div style="display: grid; grid-template-columns: 96px 1fr 1fr; gap: 10px; font-size: 10.5px;">
+            <span class="lbl" style="grid-column: 1;"></span>
+            <span class="lbl">Terminal ≥1024px</span>
+            <span class="lbl">Thumb &lt;768px</span>
+
+            <span style="color: #93A0B2;">--density-row</span><span class="num">30px</span><span class="num">44px</span>
+            <span style="color: #93A0B2;">--density-pad</span><span class="num">12px</span><span class="num">16px</span>
+            <span style="color: #93A0B2;">Table body</span><span class="num">11px</span><span class="num">12.5px</span>
+            <span style="color: #93A0B2;">Rows visible</span><span class="num">14–18</span><span class="num">5–7</span>
+            <span style="color: #93A0B2;">Tables become</span><span class="num">grid rows</span><span class="num">cards</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── right ── -->
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+
+      <div>
+        <div class="sec">Type — IBM Plex Sans / IBM Plex Mono</div>
+        <div class="pnl" style="padding: 13px 15px;">
+          <div style="font-size: 26px; font-weight: 600; letter-spacing: -0.03em;">Headroom $12,392.60</div>
+          <div style="font-size: 12.5px; font-weight: 600; margin-top: 9px;">Panel heading · 12.5/600</div>
+          <div style="font-size: 11.5px; color: #93A0B2; margin-top: 5px;">Body copy at 11.5px, ink-2, for anything explanatory.</div>
+          <div class="lbl" style="margin-top: 9px;">Label · 9.5 · 0.09em · uppercase</div>
+          <div style="height: 1px; background: #1E2631; margin: 11px 0;"></div>
+          <div class="num" style="font-size: 15px;">1,234,567.89 · 0.500% · 60.2%</div>
+          <div style="font-size: 10.5px; color: #5D6979; margin-top: 5px; line-height: 1.45;">
+            Every figure is tabular. Digits keep their column as values update — the old build let
+            them jump, which is the single most visible tell of a non-financial UI.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec">Controls</div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div style="height: 30px; padding: 0 13px; border-radius: 3px; background: {{accent}}; color: #08111A; font-size: 11.5px; font-weight: 600; display: grid; place-items: center;">Primary</div>
+          <div style="height: 30px; padding: 0 13px; border-radius: 3px; border: 1px solid #2B3543; font-size: 11.5px; display: grid; place-items: center;">Secondary</div>
+          <div style="height: 30px; padding: 0 13px; border-radius: 3px; background: #14A06B; color: #041109; font-size: 11.5px; font-weight: 600; display: grid; place-items: center;">Approve</div>
+          <div style="height: 30px; padding: 0 13px; border-radius: 3px; border: 1px solid #3D1717; color: #FF8080; font-size: 11.5px; display: grid; place-items: center;">Reject</div>
+          <div style="height: 30px; padding: 0 13px; border-radius: 3px; background: #151B24; color: #5D6979; font-size: 11.5px; display: grid; place-items: center;">Disabled</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px;">
+          <div style="height: 32px; width: 168px; border-radius: 3px; border: 1px solid #2B3543; background: #0B0E13; display: flex; align-items: center; padding: 0 10px;"><span class="num" style="font-size: 11.5px; color: #5D6979;">0.00</span></div>
+          <div style="height: 32px; width: 168px; border-radius: 3px; border: 1px solid {{accent}}; background: #0B0E13; display: flex; align-items: center; padding: 0 10px;"><span class="num" style="font-size: 11.5px;">500.00</span></div>
+          <div style="height: 32px; width: 168px; border-radius: 3px; border: 1px solid #3D1717; background: #0B0E13; display: flex; align-items: center; padding: 0 10px;"><span class="num" style="font-size: 11.5px; color: #FF8080;">5,400.00</span></div>
+        </div>
+        <div style="font-size: 10.5px; color: #FF8080; margin-top: 6px;">Above the $5,000 maximum — stated on the field, not after submit.</div>
+      </div>
+
+      <div>
+        <div class="sec">Money, signed and coloured by direction</div>
+        <div class="pnl" style="padding: 4px 0;">
+          <div style="display: flex; align-items: center; justify-content: space-between; height: 30px; padding: 0 13px; border-bottom: 1px solid #141A22;">
+            <span style="font-size: 11px; color: #93A0B2;">Credit</span><span class="num" style="font-size: 12px; color: #22C55E;">+1,090.00</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; height: 30px; padding: 0 13px; border-bottom: 1px solid #141A22;">
+            <span style="font-size: 11px; color: #93A0B2;">Debit</span><span class="num" style="font-size: 12px; color: #FF5A5A;">−2,500.00</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; height: 30px; padding: 0 13px; border-bottom: 1px solid #141A22;">
+            <span style="font-size: 11px; color: #93A0B2;">Neutral transfer</span><span class="num" style="font-size: 12px; color: #93A0B2;">1,900.00</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; height: 30px; padding: 0 13px;">
+            <span style="font-size: 11px; color: #93A0B2;">Held</span><span class="num" style="font-size: 12px; color: #5D6979;">350.00</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec">Operator accent <span style="font-weight: 400; color: #5D6979; font-size: 10.5px;">— set from the console, not compiled in</span></div>
+        <div style="display: flex; gap: 8px;">
+          <div style="flex-grow: 1; height: 36px; border-radius: 3px; background: #5EEAD4;"></div>
+          <div style="flex-grow: 1; height: 36px; border-radius: 3px; background: #7C9CFF;"></div>
+          <div style="flex-grow: 1; height: 36px; border-radius: 3px; background: #C6F24E;"></div>
+          <div style="flex-grow: 1; height: 36px; border-radius: 3px; background: #F5A524;"></div>
+        </div>
+        <div style="font-size: 10.5px; color: #5D6979; margin-top: 7px; line-height: 1.45;">
+          Drives primary buttons, focus rings, links and the leading chart series. Everything else
+          in the palette stays fixed, so an operator cannot break contrast.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "accent": {"editor": "color", "default": "#5EEAD4", "options": ["#5EEAD4", "#7C9CFF", "#C6F24E", "#F5A524"]},
+  "$preview": {"width": 1180, "height": 860}
+}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? "#5EEAD4" };
+  }
+}
+</script>
+</body>
+</html>

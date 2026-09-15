@@ -68,7 +68,7 @@ export function PlanStructureCard({
 
       <div className="px-5 pb-5">
         {locked ? (
-          <p className="mb-4 flex items-start gap-2.5 rounded-[10px] border border-line bg-canvas px-3.5 py-3 text-[12.5px] leading-relaxed text-ink-2">
+          <p className="mb-4 flex items-start gap-2.5 rounded-[5px] border border-line bg-canvas px-3.5 py-3 text-[12.5px] leading-relaxed text-ink-2">
             <Lock size={14} className="mt-px shrink-0 text-ink-3" />
             <span>
               {lock?.reason}
@@ -78,7 +78,7 @@ export function PlanStructureCard({
             </span>
           </p>
         ) : (
-          <p className="mb-4 flex items-start gap-2.5 rounded-[10px] border border-gold-line/30 bg-gold/[0.06] px-3.5 py-3 text-[12.5px] leading-relaxed text-ink-2">
+          <p className="mb-4 flex items-start gap-2.5 rounded-[5px] border border-gold-line/30 bg-gold/[0.06] px-3.5 py-3 text-[12.5px] leading-relaxed text-ink-2">
             <AlertTriangle size={14} className="mt-px shrink-0 text-[var(--color-gold-on-soft)]" />
             <span>
               This can still be changed because no member has joined under a sponsor yet.
@@ -97,7 +97,7 @@ export function PlanStructureCard({
               <div
                 key={s.code}
                 className={clsx(
-                  'relative flex flex-col rounded-[14px] border p-4 transition-all duration-200',
+                  'relative flex flex-col rounded-[5px] border p-4 transition-all duration-200',
                   active
                     ? 'border-gold bg-gold/[0.05] shadow-card'
                     : 'border-line bg-card',
@@ -121,7 +121,7 @@ export function PlanStructureCard({
                 </div>
 
                 {/* frozen unless it is a live option the operator could pick */}
-                <div className="my-3 rounded-[10px] border border-line-soft bg-canvas py-1">
+                <div className="my-3 rounded-[5px] border border-line-soft bg-canvas py-1">
                   <Diagram still={locked || !s.implemented} />
                 </div>
 
@@ -178,7 +178,7 @@ export function PlanStructureCard({
       >
         {pending && (
           <div className="space-y-3">
-            <ul className="space-y-1.5 rounded-[10px] border border-line bg-canvas px-3.5 py-3">
+            <ul className="space-y-1.5 rounded-[5px] border border-line bg-canvas px-3.5 py-3">
               {pending.effects.map((e) => (
                 <li key={e} className="flex items-start gap-2 text-[12px] leading-relaxed text-ink-2">
                   <span aria-hidden className="mt-[6px] size-1 shrink-0 rounded-full bg-ink-4" />
@@ -195,7 +195,7 @@ export function PlanStructureCard({
                 onChange={(e) => setTyped(e.target.value)}
                 autoComplete="off"
                 aria-label={`Type ${pending.label} to confirm`}
-                className="h-10 w-full rounded-[9px] border border-field-line bg-field px-3 text-[13px] text-ink outline-none transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15"
+                className="h-10 w-full rounded-[4px] border border-field-line bg-field px-3 text-[13px] text-ink outline-none transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15"
               />
             </label>
           </div>

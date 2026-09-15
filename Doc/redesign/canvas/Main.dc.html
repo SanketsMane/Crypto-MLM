@@ -1,0 +1,349 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #080A0E; font-family: 'IBM Plex Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #5EEAD4; text-decoration: none; } a:hover { color: #99F6E4; }
+    /* Every figure in this product is money. Tabular by default, not per-element. */
+    .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    .lbl { font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #5D6979; font-weight: 600; }
+    .pnl { background: #0F131A; border: 1px solid #1E2631; border-radius: 4px; }
+    .hd { height: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; border-bottom: 1px solid #1E2631; }
+    .nav { display: flex; align-items: center; gap: 9px; height: 26px; padding: 0 9px; border-radius: 3px; color: #93A0B2; font-size: 12px; font-weight: 500; }
+    .nav.on { background: #151B24; color: #E8ECF3; box-shadow: inset 2px 0 0 #5EEAD4; }
+    td, th { padding: 0; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; overflow: hidden; color: #E8ECF3;">
+
+  <!-- ─────────── rail ─────────── -->
+  <div style="width: 196px; flex-shrink: 0; background: #0B0E13; border-right: 1px solid #1E2631; display: flex; flex-direction: column;">
+    <div style="height: 46px; display: flex; align-items: center; gap: 9px; padding: 0 14px; border-bottom: 1px solid #1E2631;">
+      <div style="width: 22px; height: 22px; border-radius: 3px; background: {{accent}}; display: grid; place-items: center;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#08111A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 6-8"/><path d="M15 7h4v4"/></svg>
+      </div>
+      <span style="font-size: 12.5px; font-weight: 700; letter-spacing: -0.01em;">{{brand}}</span>
+      <span class="num" style="margin-left: auto; font-size: 8.5px; color: #5D6979; border: 1px solid #1E2631; border-radius: 2px; padding: 1px 3px;">v4</span>
+    </div>
+
+    <div style="padding: 10px 8px; display: flex; flex-direction: column; gap: 1px; overflow: hidden;">
+      <div class="lbl" style="padding: 6px 9px 5px;">Trading</div>
+      <div class="nav on">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Terminal
+      </div>
+      <div class="nav">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M16 12h3"/></svg>
+        Wallet
+      </div>
+      <div class="nav">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 20h16"/></svg>
+        Withdraw
+      </div>
+      <div class="nav">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>
+        Packages
+      </div>
+
+      <div class="lbl" style="padding: 14px 9px 5px;">Network</div>
+      <div class="nav">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5v4M12 11.5H5.5v5M12 11.5h6.5v5"/></svg>
+        Genealogy
+      </div>
+      <div class="nav">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M17 11a3 3 0 100-6"/><path d="M21 20c0-2.5-1.5-4.6-3.6-5.5"/></svg>
+        Team
+        <span class="num" style="margin-left: auto; font-size: 9.5px; color: #5D6979;">1,284</span>
+      </div>
+      <div class="nav">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20h-20"/></svg>
+        Levels
+        <span class="num" style="margin-left: auto; font-size: 9.5px; color: #5D6979;">12/30</span>
+      </div>
+      <div class="nav">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3l2.5 5.5 6 .7-4.5 4 1.3 6-5.3-3-5.3 3 1.3-6-4.5-4 6-.7z"/></svg>
+        Rank
+      </div>
+
+      <div class="lbl" style="padding: 14px 9px 5px;">Account</div>
+      <div class="nav">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h4"/></svg>
+        Passbook
+      </div>
+      <div class="nav">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3l8 3.5v5c0 4.5-3.2 8.4-8 9.5-4.8-1.1-8-5-8-9.5v-5z"/><path d="M9.5 12l1.8 1.8 3.4-3.6"/></svg>
+        Verification
+        <span style="margin-left: auto; width: 5px; height: 5px; border-radius: 50%; background: #F5A524;"></span>
+      </div>
+    </div>
+
+    <!-- The plan, always on screen. A member should never have to remember the terms. -->
+    <div style="margin-top: auto; border-top: 1px solid #1E2631; padding: 10px 14px;">
+      <div class="lbl" style="margin-bottom: 7px;">Plan in force</div>
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #93A0B2;"><span>Daily</span><span class="num" style="color: #E8ECF3;">0.500%</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #93A0B2;"><span>Trading days</span><span class="num" style="color: #E8ECF3;">Mon–Fri</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #93A0B2;"><span>Ceiling</span><span class="num" style="color: #E8ECF3;">250%</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #93A0B2;"><span>Settles</span><span class="num" style="color: #E8ECF3;">15 · 30</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── main ─────────── -->
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <!-- top bar + live tape -->
+    <div style="height: 46px; flex-shrink: 0; border-bottom: 1px solid #1E2631; display: flex; align-items: center; gap: 16px; padding: 0 14px; background: #0B0E13;">
+      <span style="font-size: 13px; font-weight: 600;">Terminal</span>
+      <span class="num" style="font-size: 10px; color: #5D6979;">FX-88241</span>
+
+      <div style="display: flex; align-items: center; gap: 16px; margin-left: 10px; padding-left: 16px; border-left: 1px solid #1E2631;">
+        <div style="display: flex; align-items: baseline; gap: 6px;"><span class="lbl">Today</span><span class="num" style="font-size: 12px; color: #22C55E;">+$62.25</span></div>
+        <div style="display: flex; align-items: baseline; gap: 6px;"><span class="lbl">Yest</span><span class="num" style="font-size: 12px; color: #22C55E;">+$62.25</span></div>
+        <div style="display: flex; align-items: baseline; gap: 6px;"><span class="lbl">30d</span><span class="num" style="font-size: 12px; color: #22C55E;">+$1,384.20</span></div>
+        <div style="display: flex; align-items: baseline; gap: 6px;"><span class="lbl">Next payout</span><span class="num" style="font-size: 12px;">30 Sep</span></div>
+      </div>
+
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border: 1px solid #1E2631; border-radius: 3px;">
+          <span style="width: 5px; height: 5px; border-radius: 50%; background: #22C55E;"></span>
+          <span class="num" style="font-size: 10px; color: #93A0B2;">accruing</span>
+        </div>
+        <div style="width: 24px; height: 24px; border-radius: 3px; background: #151B24; border: 1px solid #1E2631; display: grid; place-items: center;">
+          <span class="num" style="font-size: 10px; color: #93A0B2;">SK</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex-grow: 1; padding: 12px; display: flex; gap: 12px; min-height: 0;">
+
+      <!-- ── left: the answer, then the evidence ── -->
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+
+        <!-- Cap headroom. The plan's hardest limit, so it leads the screen
+             rather than sitting three scrolls down as a progress bar. -->
+        <div class="pnl" style="padding: 13px 15px;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;">
+            <div>
+              <div class="lbl">Earnings ceiling · 250% passive</div>
+              <div style="display: flex; align-items: baseline; gap: 9px; margin-top: 7px;">
+                <span class="num" style="font-size: 31px; font-weight: 600; letter-spacing: -0.03em;">$12,392.60</span>
+                <span style="font-size: 12px; color: #93A0B2;">headroom left</span>
+              </div>
+              <div style="font-size: 11.5px; color: #5D6979; margin-top: 4px;">
+                <span class="num" style="color: #93A0B2;">$18,732.40</span> earned of
+                <span class="num" style="color: #93A0B2;">$31,125.00</span> · at today's rate you reach the ceiling in
+                <span class="num" style="color: #E8ECF3;">199</span> trading days
+              </div>
+            </div>
+            <div style="text-align: right; flex-shrink: 0;">
+              <div class="num" style="font-size: 22px; font-weight: 600; color: {{accent}};">60.2%</div>
+              <div class="lbl" style="margin-top: 2px;">used</div>
+            </div>
+          </div>
+
+          <!-- Segmented by stream, so "what is eating my cap" is answerable at a glance. -->
+          <div style="display: flex; gap: 2px; height: 8px; margin-top: 12px; border-radius: 2px; overflow: hidden; background: #151B24;">
+            <div style="width: 34%; background: #3B82D9;"></div>
+            <div style="width: 11%; background: #14A06B;"></div>
+            <div style="width: 9.5%; background: #8B5FD6;"></div>
+            <div style="width: 3.5%; background: #BC830E;"></div>
+            <div style="width: 2.2%; background: #D45585;"></div>
+            <div style="flex-grow: 1;"></div>
+          </div>
+          <div style="display: flex; gap: 14px; margin-top: 9px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 7px; height: 7px; border-radius: 1px; background: #3B82D9;"></span><span style="font-size: 10.5px; color: #93A0B2;">Daily trade</span><span class="num" style="font-size: 10.5px;">$10,584.00</span></div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 7px; height: 7px; border-radius: 1px; background: #14A06B;"></span><span style="font-size: 10.5px; color: #93A0B2;">Direct</span><span class="num" style="font-size: 10.5px;">$3,422.10</span></div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 7px; height: 7px; border-radius: 1px; background: #8B5FD6;"></span><span style="font-size: 10.5px; color: #93A0B2;">Generation</span><span class="num" style="font-size: 10.5px;">$2,956.30</span></div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 7px; height: 7px; border-radius: 1px; background: #BC830E;"></span><span style="font-size: 10.5px; color: #93A0B2;">Rank</span><span class="num" style="font-size: 10.5px;">$1,090.00</span></div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 7px; height: 7px; border-radius: 1px; background: #D45585;"></span><span style="font-size: 10.5px; color: #93A0B2;">Offers</span><span class="num" style="font-size: 10.5px;">$680.00</span></div>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+          <div class="pnl" style="padding: 10px 12px;">
+            <div class="lbl">Capital deployed</div>
+            <div class="num" style="font-size: 18px; font-weight: 600; margin-top: 5px;">$12,450</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+              <span class="num" style="font-size: 10px; color: #5D6979;">4 packages</span>
+              <svg width="54" height="16" viewBox="0 0 54 16" fill="none"><path d="M0 13L9 12L18 12L27 8L36 8L45 4L54 3" stroke="#3B82D9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="pnl" style="padding: 10px 12px;">
+            <div class="lbl">Total earned</div>
+            <div class="num" style="font-size: 18px; font-weight: 600; margin-top: 5px; color: #22C55E;">$18,732.40</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+              <span class="num" style="font-size: 10px; color: #5D6979;">150.5% of capital</span>
+              <svg width="54" height="16" viewBox="0 0 54 16" fill="none"><path d="M0 14L9 13L18 10L27 9L36 6L45 4L54 1" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="pnl" style="padding: 10px 12px;">
+            <div class="lbl">Team business</div>
+            <div class="num" style="font-size: 18px; font-weight: 600; margin-top: 5px;">$486,200</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+              <span class="num" style="font-size: 10px; color: #5D6979;">1,284 members</span>
+              <svg width="54" height="16" viewBox="0 0 54 16" fill="none"><path d="M0 12L9 11L18 11L27 7L36 6L45 5L54 2" stroke="#8B5FD6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="pnl" style="padding: 10px 12px;">
+            <div class="lbl">Power leg / other</div>
+            <div class="num" style="font-size: 18px; font-weight: 600; margin-top: 5px;">62<span style="color: #5D6979;">/</span>38</div>
+            <div style="display: flex; align-items: center; gap: 2px; margin-top: 8px; height: 5px;">
+              <div style="width: 62%; background: #BC830E; height: 5px; border-radius: 1px;"></div>
+              <div style="flex-grow: 1; background: #2B3543; height: 5px; border-radius: 1px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The chart is the page's centre of gravity, not an ornament. -->
+        <div class="pnl" style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
+          <div class="hd">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 11.5px; font-weight: 600;">Daily accrual</span>
+              <span class="num" style="font-size: 10px; color: #5D6979;">USDT · 30 sessions</span>
+            </div>
+            <div style="display: flex; gap: 1px; background: #151B24; border-radius: 3px; padding: 1px;">
+              <span class="num" style="font-size: 10px; padding: 3px 8px; color: #5D6979;">7D</span>
+              <span class="num" style="font-size: 10px; padding: 3px 8px; border-radius: 2px; background: #202836; color: #E8ECF3;">30D</span>
+              <span class="num" style="font-size: 10px; padding: 3px 8px; color: #5D6979;">90D</span>
+              <span class="num" style="font-size: 10px; padding: 3px 8px; color: #5D6979;">ALL</span>
+            </div>
+          </div>
+
+          <div style="flex-grow: 1; padding: 12px 14px 8px; display: flex; flex-direction: column; min-height: 0;">
+            <svg viewBox="0 0 900 190" preserveAspectRatio="none" style="width: 100%; flex-grow: 1; min-height: 0;">
+              <defs>
+                <linearGradient id="fillA" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#3B82D9" stop-opacity="0.30"/>
+                  <stop offset="100%" stop-color="#3B82D9" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <!-- recessive grid -->
+              <line x1="0" y1="20"  x2="900" y2="20"  stroke="#1A212B" stroke-width="1"/>
+              <line x1="0" y1="62"  x2="900" y2="62"  stroke="#1A212B" stroke-width="1"/>
+              <line x1="0" y1="104" x2="900" y2="104" stroke="#1A212B" stroke-width="1"/>
+              <line x1="0" y1="146" x2="900" y2="146" stroke="#1A212B" stroke-width="1"/>
+              <line x1="0" y1="188" x2="900" y2="188" stroke="#2B3543" stroke-width="1"/>
+              <!-- weekend gaps are real: the plan pays Mon–Fri, so the line rests -->
+              <path d="M0 150 L30 150 L60 138 L90 138 L120 138 L150 126 L180 126 L210 126 L240 112 L270 112 L300 100 L330 100 L360 100 L390 88 L420 88 L450 76 L480 76 L510 76 L540 66 L570 66 L600 58 L630 58 L660 58 L690 48 L720 48 L750 40 L780 40 L810 40 L840 32 L870 26 L900 26"
+                    fill="none" stroke="#3B82D9" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+              <path d="M0 150 L30 150 L60 138 L90 138 L120 138 L150 126 L180 126 L210 126 L240 112 L270 112 L300 100 L330 100 L360 100 L390 88 L420 88 L450 76 L480 76 L510 76 L540 66 L570 66 L600 58 L630 58 L660 58 L690 48 L720 48 L750 40 L780 40 L810 40 L840 32 L870 26 L900 26 L900 190 L0 190 Z"
+                    fill="url(#fillA)"/>
+              <!-- crosshair on the latest session -->
+              <line x1="870" y1="0" x2="870" y2="190" stroke="#2B3543" stroke-width="1" stroke-dasharray="2 3"/>
+              <circle cx="870" cy="26" r="3.5" fill="#3B82D9" stroke="#0F131A" stroke-width="2"/>
+            </svg>
+            <div style="display: flex; justify-content: space-between; margin-top: 6px;">
+              <span class="num" style="font-size: 9.5px; color: #5D6979;">18 Aug</span>
+              <span class="num" style="font-size: 9.5px; color: #5D6979;">25 Aug</span>
+              <span class="num" style="font-size: 9.5px; color: #5D6979;">01 Sep</span>
+              <span class="num" style="font-size: 9.5px; color: #5D6979;">08 Sep</span>
+              <span class="num" style="font-size: 9.5px; color: #5D6979;">15 Sep</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── right: balances and the tape ── -->
+      <div style="width: 310px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+
+        <div class="pnl">
+          <div class="hd"><span style="font-size: 11.5px; font-weight: 600;">Balances</span><span class="lbl">USDT · BEP-20</span></div>
+          <div style="padding: 4px 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 12px;">
+              <div style="display: flex; align-items: center; gap: 8px;"><span style="width: 3px; height: 16px; border-radius: 1px; background: {{accent}};"></span><span style="font-size: 11.5px;">Main</span></div>
+              <span class="num" style="font-size: 14px; font-weight: 600;">$4,281.55</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 12px;">
+              <div style="display: flex; align-items: center; gap: 8px;"><span style="width: 3px; height: 16px; border-radius: 1px; background: #3B82D9;"></span><span style="font-size: 11.5px;">Fund</span></div>
+              <span class="num" style="font-size: 14px; font-weight: 600;">$1,900.00</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 12px;">
+              <div style="display: flex; align-items: center; gap: 8px;"><span style="width: 3px; height: 16px; border-radius: 1px; background: #5D6979;"></span><span style="font-size: 11.5px;">Locked</span></div>
+              <span class="num" style="font-size: 14px; font-weight: 600; color: #93A0B2;">$350.00</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px; padding: 9px 12px; border-top: 1px solid #1E2631;">
+            <div style="flex-grow: 1; height: 28px; border-radius: 3px; background: {{accent}}; color: #08111A; font-size: 11.5px; font-weight: 600; display: grid; place-items: center;">Deposit</div>
+            <div style="flex-grow: 1; height: 28px; border-radius: 3px; border: 1px solid #2B3543; color: #E8ECF3; font-size: 11.5px; font-weight: 500; display: grid; place-items: center;">Withdraw</div>
+          </div>
+        </div>
+
+        <div class="pnl">
+          <div class="hd"><span style="font-size: 11.5px; font-weight: 600;">Rank</span><span class="num" style="font-size: 10px; color: #5D6979;">6 of 10</span></div>
+          <div style="padding: 11px 12px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between;">
+              <span style="font-size: 14px; font-weight: 600;">Director</span>
+              <span style="font-size: 11px; color: #5D6979;">next · Executive</span>
+            </div>
+            <div style="height: 5px; border-radius: 2px; background: #151B24; margin-top: 10px; display: flex; gap: 2px; overflow: hidden;">
+              <div style="width: 68%; background: #BC830E;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 9px;">
+              <div><div class="lbl">Self capital</div><div class="num" style="font-size: 11.5px; margin-top: 3px;">$12,450 <span style="color: #5D6979;">/ 15,000</span></div></div>
+              <div style="text-align: right;"><div class="lbl">Team business</div><div class="num" style="font-size: 11.5px; margin-top: 3px;">$486k <span style="color: #5D6979;">/ 750k</span></div></div>
+            </div>
+            <div style="margin-top: 10px; padding-top: 9px; border-top: 1px solid #1E2631; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 11px; color: #93A0B2;">Reward on promotion</span>
+              <span class="num" style="font-size: 12.5px; color: #BC830E; font-weight: 600;">$2,500</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- The tape. Dense, monospaced, scannable — the thing a member checks. -->
+        <div class="pnl" style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
+          <div class="hd"><span style="font-size: 11.5px; font-weight: 600;">Ledger</span><a style="font-size: 10.5px;">Passbook →</a></div>
+          <div style="flex-grow: 1; overflow: hidden;">
+            <sc-for list="{{tape}}" as="e" hint-placeholder-count="9">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 0 11px; height: 30px; border-bottom: 1px solid #151B24;">
+                <span class="num" style="font-size: 9.5px; color: #5D6979; width: 34px; flex-shrink: 0;">{{e.t}}</span>
+                <span style="width: 5px; height: 5px; border-radius: 1px; background: {{e.c}}; flex-shrink: 0;"></span>
+                <span style="font-size: 11px; color: #93A0B2; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">{{e.label}}</span>
+                <span class="num" style="font-size: 11.5px; color: {{e.tone}}; flex-shrink: 0;">{{e.amt}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "brand":  {"editor": "text",  "default": "TERMINAL"},
+  "accent": {"editor": "color", "default": "#5EEAD4", "options": ["#5EEAD4", "#7C9CFF", "#C6F24E", "#F5A524"]},
+  "$preview": {"width": 1440, "height": 900}
+}'>
+class Component extends DCLogic {
+  renderVals() {
+    const G = "#22C55E", R = "#FF5A5A", M = "#93A0B2";
+    return {
+      brand:  this.props.brand  ?? "TERMINAL",
+      accent: this.props.accent ?? "#5EEAD4",
+      tape: [
+        { t: "09:00", label: "Daily trade bonus",      amt: "+62.25",    tone: G, c: "#3B82D9" },
+        { t: "08:41", label: "Generation · L3 · Priya", amt: "+8.40",     tone: G, c: "#8B5FD6" },
+        { t: "08:41", label: "Direct · L1 · Arun",      amt: "+24.00",    tone: G, c: "#14A06B" },
+        { t: "Ystr",  label: "Withdrawal · pending",    amt: "−500.00",   tone: R, c: "#FF5A5A" },
+        { t: "Ystr",  label: "Daily trade bonus",       amt: "+62.25",    tone: G, c: "#3B82D9" },
+        { t: "14 Sep", label: "Transfer Fund → Main",   amt: "1,900.00",  tone: M, c: "#5D6979" },
+        { t: "14 Sep", label: "Package · Growth 2,500", amt: "−2,500.00", tone: R, c: "#5D6979" },
+        { t: "13 Sep", label: "Rank reward · Director", amt: "+1,090.00", tone: G, c: "#BC830E" },
+        { t: "13 Sep", label: "Deposit confirmed",      amt: "+2,500.00", tone: G, c: "#14A06B" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

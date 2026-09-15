@@ -109,7 +109,7 @@ export function RewardsSection() {
                 <label key={f.key} className={clsx('block', f.key === 'name' && 'sm:col-span-2')}>
                   <span className="mb-1 block text-[12px] font-medium text-ink-2">{f.label}</span>
                   <span className={clsx(
-                    'flex h-10 items-center gap-1 rounded-[9px] border bg-field px-3 transition',
+                    'flex h-10 items-center gap-1 rounded-[4px] border bg-field px-3 transition',
                     'focus-within:ring-4 focus-within:ring-gold/15',
                     invalid ? 'border-bad ring-2 ring-bad/25' : 'border-field-line focus-within:border-gold',
                   )}>

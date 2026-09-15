@@ -67,7 +67,7 @@ export function Modal({
         aria-labelledby={headingId}
         tabIndex={-1}
         className={clsx(
-          'relative my-auto w-full overflow-hidden rounded-[14px] border border-line bg-card shadow-pop outline-none',
+          'relative my-auto w-full overflow-hidden rounded-[5px] border border-line bg-card shadow-pop outline-none',
           width === 'lg' ? 'max-w-[620px]' : 'max-w-[440px]',
         )}
       >
@@ -78,7 +78,7 @@ export function Modal({
             {description && <p className="mt-1 text-[12.5px] leading-relaxed text-ink-2">{description}</p>}
           </div>
           <button onClick={onClose} aria-label="Close"
-                  className="-mr-1 -mt-1 rounded-lg p-1.5 text-ink-3 transition hover:bg-canvas hover:text-ink">
+                  className="-mr-1 -mt-1 rounded-[4px] p-1.5 text-ink-3 transition hover:bg-canvas hover:text-ink">
             <X size={16} />
           </button>
         </header>

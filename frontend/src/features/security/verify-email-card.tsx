@@ -58,8 +58,8 @@ export function VerifyEmailCard() {
         right={<Badge tone="warn">Unverified</Badge>}
       />
       <div className="space-y-3 px-5 pb-5">
-        <div className="flex items-start gap-3 rounded-[10px] border border-warn/30 bg-warn-soft px-4 py-3.5">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-warn/15 text-warn">
+        <div className="flex items-start gap-3 rounded-[5px] border border-warn/30 bg-warn-soft px-4 py-3.5">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] bg-warn/15 text-warn">
             <MailWarning size={17} />
           </span>
           <div className="min-w-0">

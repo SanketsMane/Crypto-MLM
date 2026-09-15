@@ -178,7 +178,7 @@ export default function UsersPage() {
                 Cap {capPassive}%
               </Button>
               <button type="button" onClick={() => setSelected(new Set())}
-                      className="rounded-lg px-2 py-1.5 text-[12px] text-ink-3 transition hover:text-ink">
+                      className="rounded-[4px] px-2 py-1.5 text-[12px] text-ink-3 transition hover:text-ink">
                 Clear
               </button>
             </div>

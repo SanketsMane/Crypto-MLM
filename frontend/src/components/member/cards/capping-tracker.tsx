@@ -42,7 +42,7 @@ export function CappingTracker({ capping }: {
           <span className="tabular-nums text-ink-2">{usd(capping?.remaining)} remaining</span>
         </div>
 
-        <p className={`mt-auto pt-4 rounded-lg px-3 py-2.5 text-[12px] leading-relaxed ${
+        <p className={`mt-auto pt-4 rounded-[4px] px-3 py-2.5 text-[12px] leading-relaxed ${
           capped ? 'bg-bad-soft text-bad' : noPackage ? 'bg-gold/[0.08] text-ink-2' : 'bg-canvas text-ink-2'}`}>
           {capped
             ? 'You have reached your cap. Top up a package to start earning again.'

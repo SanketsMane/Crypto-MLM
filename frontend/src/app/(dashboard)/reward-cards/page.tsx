@@ -104,9 +104,9 @@ export default function RewardsPage() {
             if (c.status === 'LOCKED') {
               return (
                 <div key={c.id}
-                     className="rounded-[12px] border border-dashed border-line bg-canvas p-4">
+                     className="rounded-[5px] border border-dashed border-line bg-canvas p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-line/40 text-ink-3">
+                    <span className="grid h-9 w-9 place-items-center rounded-[4px] bg-line/40 text-ink-3">
                       <Lock size={16} />
                     </span>
                     <Badge tone="neutral">Locked</Badge>
@@ -135,7 +135,7 @@ export default function RewardsPage() {
               <div
                 key={c.id}
                 className={clsx(
-                  'relative overflow-hidden rounded-[12px] border p-4 transition',
+                  'relative overflow-hidden rounded-[5px] border p-4 transition',
                   claimed
                     ? 'border-line bg-card'
                     : 'border-gold/40 bg-gradient-to-br from-gold-soft to-card shadow-card',
@@ -143,7 +143,7 @@ export default function RewardsPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className={clsx(
-                    'grid h-9 w-9 place-items-center rounded-lg',
+                    'grid h-9 w-9 place-items-center rounded-[4px]',
                     claimed ? 'bg-good-soft text-good' : 'bg-gold/20 text-gold-ink',
                   )}>
                     {claimed ? <Check size={16} /> : <Sparkles size={16} />}
@@ -169,7 +169,7 @@ export default function RewardsPage() {
                       type="button"
                       disabled={busy}
                       onClick={() => claim.mutate(c.id)}
-                      className="w-full rounded-[9px] bg-gradient-to-br from-gold to-gold-hi px-3 py-2 text-[13px] font-semibold text-navy transition hover:brightness-105 disabled:opacity-60"
+                      className="w-full rounded-[4px] bg-gradient-to-br from-gold to-gold-hi px-3 py-2 text-[13px] font-semibold text-navy transition hover:brightness-105 disabled:opacity-60"
                     >
                       {busy ? 'Adding…' : 'Add to my wallet'}
                     </button>
@@ -180,7 +180,7 @@ export default function RewardsPage() {
                   <button
                     type="button"
                     onClick={() => setRevealed((prev) => new Set(prev).add(c.id))}
-                    className="mt-3 w-full rounded-[9px] border border-dashed border-gold/50 bg-gold/10 px-3 py-4 text-[13px] font-semibold text-gold-ink transition hover:bg-gold/15"
+                    className="mt-3 w-full rounded-[4px] border border-dashed border-gold/50 bg-gold/10 px-3 py-4 text-[13px] font-semibold text-gold-ink transition hover:bg-gold/15"
                   >
                     Scratch to reveal
                   </button>

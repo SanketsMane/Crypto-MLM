@@ -5,7 +5,7 @@ import { Info } from 'lucide-react';
 /** Closing note. Deliberately quiet — it explains, it does not sell. */
 export function FlyersNote() {
   return (
-    <aside className="relative isolate overflow-hidden rounded-[14px] border border-gold/25 bg-card px-5 py-4 shadow-card">
+    <aside className="relative isolate overflow-hidden rounded-[5px] border border-gold/25 bg-card px-5 py-4 shadow-card">
       {/* decorative flight arc, echoing the rail above */}
       <svg
         aria-hidden
@@ -23,7 +23,7 @@ export function FlyersNote() {
       </svg>
 
       <div className="relative flex items-start gap-3">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[9px] bg-gold-soft text-gold-on-soft ring-1 ring-gold/30">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[4px] bg-gold-soft text-gold-on-soft ring-1 ring-gold/30">
           <Info size={15} strokeWidth={2.2} aria-hidden />
         </span>
         <div className="min-w-0">

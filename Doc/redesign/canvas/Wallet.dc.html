@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #080A0E; font-family: 'IBM Plex Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #5EEAD4; text-decoration: none; } a:hover { color: #99F6E4; }
+    .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    .lbl { font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #5D6979; font-weight: 600; }
+    .pnl { background: #0F131A; border: 1px solid #1E2631; border-radius: 4px; }
+    .hd { height: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid #1E2631; }
+    .fld { height: 32px; border-radius: 3px; border: 1px solid #2B3543; background: #0B0E13; display: flex; align-items: center; padding: 0 10px; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; overflow: hidden; color: #E8ECF3;">
+
+  <div style="height: 46px; flex-shrink: 0; border-bottom: 1px solid #1E2631; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: #0B0E13;">
+    <span style="font-size: 13px; font-weight: 600;">Wallet</span>
+    <span class="num" style="font-size: 10.5px; color: #5D6979;">USDT · BEP-20 · FX-88241</span>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+      <div style="height: 26px; padding: 0 12px; border-radius: 3px; border: 1px solid #2B3543; font-size: 11.5px; display: grid; place-items: center;">Withdraw</div>
+      <div style="height: 26px; padding: 0 12px; border-radius: 3px; background: {{accent}}; color: #08111A; font-size: 11.5px; font-weight: 600; display: grid; place-items: center;">Deposit</div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+
+    <!-- Three balances, and — the part the old build buried — what each one is FOR. -->
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+      <div class="pnl" style="padding: 14px 15px; box-shadow: inset 2px 0 0 {{accent}};">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span class="lbl">Main</span>
+          <span class="num" style="font-size: 9px; color: {{accent}}; border: 1px solid #14372E; border-radius: 2px; padding: 2px 5px;">WITHDRAWABLE</span>
+        </div>
+        <div class="num" style="font-size: 26px; font-weight: 600; margin-top: 9px; letter-spacing: -0.03em;">$4,281.55</div>
+        <div style="font-size: 11px; color: #5D6979; margin-top: 6px; line-height: 1.45;">Where earnings land. This is the only balance a withdrawal can draw from.</div>
+      </div>
+      <div class="pnl" style="padding: 14px 15px; box-shadow: inset 2px 0 0 #3B82D9;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span class="lbl">Fund</span>
+          <span class="num" style="font-size: 9px; color: #5D6979; border: 1px solid #1E2631; border-radius: 2px; padding: 2px 5px;">FOR PACKAGES</span>
+        </div>
+        <div class="num" style="font-size: 26px; font-weight: 600; margin-top: 9px; letter-spacing: -0.03em;">$1,900.00</div>
+        <div style="font-size: 11px; color: #5D6979; margin-top: 6px; line-height: 1.45;">Deposits arrive here. Buy a package from this balance, or move it to Main.</div>
+      </div>
+      <div class="pnl" style="padding: 14px 15px; box-shadow: inset 2px 0 0 #5D6979;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span class="lbl">Locked</span>
+          <span class="num" style="font-size: 9px; color: #F5A524; border: 1px solid #3D2F0C; border-radius: 2px; padding: 2px 5px;">HELD</span>
+        </div>
+        <div class="num" style="font-size: 26px; font-weight: 600; margin-top: 9px; letter-spacing: -0.03em; color: #93A0B2;">$350.00</div>
+        <div style="font-size: 11px; color: #5D6979; margin-top: 6px; line-height: 1.45;">A rank reward vesting until 01 Oct. Released automatically — nothing to do.</div>
+      </div>
+    </div>
+
+    <div style="flex-grow: 1; display: flex; gap: 12px; min-height: 0;">
+
+      <!-- ── move funds ── -->
+      <div style="width: 330px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;">
+        <div class="pnl">
+          <div class="hd"><span style="font-size: 11.5px; font-weight: 600;">Move funds</span><span class="lbl">Instant · no fee</span></div>
+          <div style="padding: 13px 14px;">
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <div style="flex-grow: 1;">
+                <div class="lbl" style="margin-bottom: 5px;">From</div>
+                <div class="fld" style="justify-content: space-between;">
+                  <span style="font-size: 11.5px;">Fund</span>
+                  <span class="num" style="font-size: 10.5px; color: #5D6979;">$1,900.00</span>
+                </div>
+              </div>
+              <div style="margin-top: 17px; color: #5D6979;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+              </div>
+              <div style="flex-grow: 1;">
+                <div class="lbl" style="margin-bottom: 5px;">To</div>
+                <div class="fld" style="justify-content: space-between;">
+                  <span style="font-size: 11.5px;">Main</span>
+                  <span class="num" style="font-size: 10.5px; color: #5D6979;">$4,281.55</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 13px;">
+              <div class="lbl" style="margin-bottom: 5px;">Amount</div>
+              <div class="fld" style="height: 40px; justify-content: space-between; border-color: #3A4757;">
+                <span class="num" style="font-size: 18px;">1,900.00</span>
+                <span class="num" style="font-size: 10px; color: {{accent}};">MAX</span>
+              </div>
+            </div>
+
+            <div style="height: 34px; border-radius: 3px; background: {{accent}}; color: #08111A; font-size: 12px; font-weight: 600; display: grid; place-items: center; margin-top: 13px;">Transfer $1,900.00</div>
+            <div style="font-size: 10.5px; color: #5D6979; margin-top: 9px; line-height: 1.45;">Moving to Main makes the balance withdrawable. It does not buy a package.</div>
+          </div>
+        </div>
+
+        <div class="pnl" style="flex-grow: 1;">
+          <div class="hd"><span style="font-size: 11.5px; font-weight: 600;">Deposit address</span><span class="num" style="font-size: 9.5px; color: #22C55E;">watching</span></div>
+          <div style="padding: 13px 14px;">
+            <div style="width: 96px; height: 96px; border-radius: 3px; background: #E8ECF3; margin: 0 auto;"></div>
+            <div class="num" style="font-size: 11px; word-break: break-all; line-height: 1.5; margin-top: 11px; text-align: center; color: #93A0B2;">0x9c41<span style="color: #E8ECF3;">B7e2A5d38F0c61aE4b92</span>D77f3</div>
+            <div style="display: flex; gap: 6px; margin-top: 11px;">
+              <div style="flex-grow: 1; height: 28px; border-radius: 3px; border: 1px solid #2B3543; font-size: 11px; display: grid; place-items: center;">Copy</div>
+              <div style="flex-grow: 1; height: 28px; border-radius: 3px; border: 1px solid #2B3543; font-size: 11px; display: grid; place-items: center;">Share</div>
+            </div>
+            <div style="font-size: 10.5px; color: #F5A524; margin-top: 10px; line-height: 1.45;">BEP-20 only. Sending any other network loses the funds permanently.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── the ledger, in full ── -->
+      <div class="pnl" style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+        <div style="height: 38px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid #1E2631;">
+          <span style="font-size: 11.5px; font-weight: 600;">Ledger</span>
+          <div style="display: flex; gap: 1px; background: #151B24; border-radius: 3px; padding: 1px; margin-left: 6px;">
+            <span class="num" style="font-size: 10px; padding: 3px 8px; border-radius: 2px; background: #202836;">All</span>
+            <span class="num" style="font-size: 10px; padding: 3px 8px; color: #5D6979;">Credits</span>
+            <span class="num" style="font-size: 10px; padding: 3px 8px; color: #5D6979;">Debits</span>
+          </div>
+          <span class="num" style="margin-left: auto; font-size: 10px; color: #5D6979;">every entry carries a reference · append-only</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 96px 118px 1fr 118px 104px 104px; align-items: center; height: 24px; flex-shrink: 0; padding: 0 12px; background: #0C1016; border-bottom: 1px solid #1E2631;">
+          <span class="lbl">When</span><span class="lbl">Stream</span><span class="lbl">Detail</span>
+          <span class="lbl">Reference</span>
+          <span class="lbl" style="text-align: right;">Amount</span>
+          <span class="lbl" style="text-align: right;">Balance</span>
+        </div>
+
+        <div style="flex-grow: 1; overflow: hidden;">
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="18">
+            <div style="display: grid; grid-template-columns: 96px 118px 1fr 118px 104px 104px; align-items: center; height: 29px; padding: 0 12px; border-bottom: 1px solid #141A22;">
+              <span class="num" style="font-size: 10.5px; color: #93A0B2;">{{r.when}}</span>
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 6px; height: 6px; border-radius: 1px; background: {{r.c}}; flex-shrink: 0;"></span>
+                <span style="font-size: 10.5px; color: #93A0B2;">{{r.stream}}</span>
+              </span>
+              <span style="font-size: 11px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-right: 12px;">{{r.detail}}</span>
+              <span class="num" style="font-size: 10px; color: #5D6979;">{{r.ref}}</span>
+              <span class="num" style="font-size: 11.5px; text-align: right; color: {{r.tone}};">{{r.amt}}</span>
+              <span class="num" style="font-size: 11px; text-align: right; color: #93A0B2;">{{r.bal}}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-top: 1px solid #1E2631;">
+          <span class="num" style="font-size: 10.5px; color: #5D6979;">1–18 of 1,204</span>
+          <div style="display: flex; gap: 6px;">
+            <span class="num" style="font-size: 10.5px; color: #5EEAD4;">Export CSV</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "accent": {"editor": "color", "default": "#5EEAD4", "options": ["#5EEAD4", "#7C9CFF", "#C6F24E", "#F5A524"]},
+  "$preview": {"width": 1440, "height": 900}
+}'>
+class Component extends DCLogic {
+  renderVals() {
+    const G = "#22C55E", R = "#FF5A5A", M = "#93A0B2";
+    const r = (when, stream, c, detail, ref, amt, tone, bal) =>
+      ({ when, stream, c, detail, ref, amt, tone, bal });
+    return {
+      accent: this.props.accent ?? "#5EEAD4",
+      rows: [
+        r("16 Sep 09:00", "Daily trade",  "#3B82D9", "Growth 2,500 · session 41 of 500",      "ROI-2026-0916", "+62.25",    G, "4,281.55"),
+        r("16 Sep 08:41", "Direct",       "#14A06B", "L1 · Arun Desai · 4.0%",                "DIR-884120",    "+24.00",    G, "4,219.30"),
+        r("16 Sep 08:41", "Generation",   "#8B5FD6", "L3 · Priya Nair · 5.0% of daily",       "GEN-884121",    "+8.40",     G, "4,195.30"),
+        r("15 Sep 17:22", "Withdrawal",   "#FF5A5A", "Pending review · 0x7F3a…8e2F51",        "WDL-40218",     "−500.00",   R, "4,186.90"),
+        r("15 Sep 09:00", "Daily trade",  "#3B82D9", "Growth 2,500 · session 40 of 500",      "ROI-2026-0915", "+62.25",    G, "4,686.90"),
+        r("14 Sep 21:10", "Transfer",     "#5D6979", "Fund → Main",                           "TRF-91044",     "1,900.00",  M, "4,624.65"),
+        r("14 Sep 20:58", "Package",      "#5D6979", "Growth 2,500 purchased",                "INV-77210",     "−2,500.00", R, "2,724.65"),
+        r("14 Sep 09:00", "Daily trade",  "#3B82D9", "Starter 1,000 · session 88 of 500",     "ROI-2026-0914", "+58.40",    G, "5,224.65"),
+        r("13 Sep 14:03", "Rank reward",  "#BC830E", "Director · 50:50 power-leg met",        "RNK-00619",     "+1,090.00", G, "5,166.25"),
+        r("13 Sep 11:47", "Deposit",      "#14A06B", "Confirmed · 12 blocks",                 "DEP-55830",     "+2,500.00", G, "4,076.25"),
+        r("12 Sep 09:00", "Daily trade",  "#3B82D9", "Starter 1,000 · session 87 of 500",     "ROI-2026-0912", "+58.40",    G, "1,576.25"),
+        r("12 Sep 08:30", "Offer",        "#D45585", "Affiliate offer · Bali tier reached",   "OFR-01122",     "+680.00",   G, "1,517.85"),
+        r("11 Sep 09:00", "Daily trade",  "#3B82D9", "Starter 1,000 · session 86 of 500",     "ROI-2026-0911", "+58.40",    G, "837.85"),
+        r("10 Sep 16:12", "Withdrawal",   "#14A06B", "Settled · 0x7F3a…8e2F51",               "WDL-39877",     "−250.00",   R, "779.45"),
+        r("09 Sep 09:00", "Daily trade",  "#3B82D9", "Starter 1,000 · session 85 of 500",     "ROI-2026-0909", "+58.40",    G, "1,029.45"),
+        r("08 Sep 12:41", "Generation",   "#8B5FD6", "L5 · Vikram Rao · 3.0% of daily",       "GEN-881904",    "+4.10",     G, "971.05"),
+        r("08 Sep 09:00", "Daily trade",  "#3B82D9", "Starter 1,000 · session 84 of 500",     "ROI-2026-0908", "+58.40",    G, "966.95"),
+        r("07 Sep 10:15", "Adjustment",   "#5D6979", "Operator correction · duplicate ROI",   "ADJ-00204",     "−58.40",    R, "908.55")
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

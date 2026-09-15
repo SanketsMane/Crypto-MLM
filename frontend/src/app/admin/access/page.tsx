@@ -261,7 +261,7 @@ export default function AccessPage() {
       />
 
       {can('admins.view') && (
-        <div className="mb-3.5 grid gap-px overflow-hidden rounded-[14px] border border-line bg-line shadow-card sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-3.5 grid gap-px overflow-hidden rounded-[5px] border border-line bg-line shadow-card sm:grid-cols-2 lg:grid-cols-4">
           {facts.map((f) => (
             <div key={f.k} className="bg-card px-4 py-3">
               <p className="text-[10.5px] font-medium uppercase tracking-[0.04em] text-ink-2">{f.k}</p>
@@ -393,12 +393,12 @@ export default function AccessPage() {
                   <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-2">Unsaved changes</p>
                   <ul className="mt-2 flex flex-wrap gap-1.5">
                     {added.map((id) => (
-                      <li key={id} className="inline-flex items-center gap-1 rounded-md bg-good-soft px-2 py-[3px] font-mono text-[10.5px] text-good-on">
+                      <li key={id} className="inline-flex items-center gap-1 rounded-[3px] bg-good-soft px-2 py-[3px] font-mono text-[10.5px] text-good-on">
                         + {keyById.get(id)}
                       </li>
                     ))}
                     {removed.map((id) => (
-                      <li key={id} className="inline-flex items-center gap-1 rounded-md bg-bad-soft px-2 py-[3px] font-mono text-[10.5px] text-bad-on">
+                      <li key={id} className="inline-flex items-center gap-1 rounded-[3px] bg-bad-soft px-2 py-[3px] font-mono text-[10.5px] text-bad-on">
                         − {keyById.get(id)}
                       </li>
                     ))}
@@ -453,7 +453,7 @@ export default function AccessPage() {
                             ids.forEach((id) => (allOn ? n.delete(id) : n.add(id)));
                             return n;
                           })}
-                          className="rounded-md px-2 py-1 text-[11.5px] font-medium text-ink-2 transition hover:bg-canvas hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+                          className="rounded-[3px] px-2 py-1 text-[11.5px] font-medium text-ink-2 transition hover:bg-canvas hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
                           {allOn ? 'Clear all' : 'Select all'}
                         </button>
                       )}
@@ -469,7 +469,7 @@ export default function AccessPage() {
                         return (
                           <label key={p.id}
                             className={clsx(
-                              'flex items-start gap-2.5 rounded-[10px] border px-3 py-2.5 transition',
+                              'flex items-start gap-2.5 rounded-[5px] border px-3 py-2.5 transition',
                               on ? 'border-violet/35 bg-violet-bg' : 'border-line bg-card',
                               editable ? 'cursor-pointer hover:border-line-strong' : 'cursor-not-allowed opacity-75',
                             )}>
@@ -500,7 +500,7 @@ export default function AccessPage() {
 
       {/* ── admin accounts ──────────────────────────────────────────────── */}
       {can('admins.view') && (
-        <section className="mt-3.5 overflow-hidden rounded-[14px] border border-line bg-card shadow-card">
+        <section className="mt-3.5 overflow-hidden rounded-[5px] border border-line bg-card shadow-card">
           <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
             <div className="min-w-0">
               <h2 className="text-[16px] font-semibold leading-tight tracking-[-0.01em] text-ink">Admin accounts</h2>
@@ -675,7 +675,7 @@ export default function AccessPage() {
             if (!r) return null;
             const { money, access } = weigh(r.permissionIds);
             return (
-              <div className="rounded-[10px] border border-line bg-canvas px-3.5 py-3">
+              <div className="rounded-[5px] border border-line bg-canvas px-3.5 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-2">This grants</p>
                 <p className="mt-1 text-[12.5px] tabular-nums text-ink">
                   {r.permissionIds.length} of {total} permissions

@@ -11,7 +11,7 @@ const TYPES = ['MAIN', 'FUND', 'DIGITAL'] as const;
    latter nests two interactive elements, and `display:contents` on the anchor
    would leave the link with no box to click. */
 const secondaryCls =
-  'inline-flex h-11 w-full items-center justify-center gap-2 rounded-[12px] border border-line ' +
+  'inline-flex h-11 w-full items-center justify-center gap-2 rounded-[5px] border border-line ' +
   'bg-card text-[13.5px] font-medium text-ink transition-colors duration-150 ' +
   'hover:border-line-strong hover:bg-canvas ' +
   'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/25';
@@ -104,7 +104,7 @@ export function MoveFundsCard({
 
         <Button
           type="submit"
-          className="h-13 w-full rounded-[14px] text-[14.5px]"
+          className="h-13 w-full rounded-[5px] text-[14.5px]"
           loading={pending}
           disabled={disabled}
         >

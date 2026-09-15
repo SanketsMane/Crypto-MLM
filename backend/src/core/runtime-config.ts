@@ -22,11 +22,11 @@ import { payoutDays } from './payout-calendar.js';
  * save is visible on the next request rather than up to the TTL later.
  */
 
-export type SettingType = 'percent' | 'money' | 'int' | 'bool' | 'weekdays' | 'text' | 'enum';
+export type SettingType = 'percent' | 'money' | 'int' | 'bool' | 'weekdays' | 'text' | 'enum' | 'email' | 'color';
 
 export interface SettingSpec {
   key: string;
-  group: 'Payouts' | 'Withdrawals' | 'Investments' | 'Compliance' | 'Security' | 'Platform' | 'Gateways';
+  group: 'Payouts' | 'Withdrawals' | 'Investments' | 'Compliance' | 'Security' | 'Platform' | 'Gateways' | 'Branding';
   label: string;
   help: string;
   type: SettingType;
@@ -264,6 +264,56 @@ export const SPECS: SettingSpec[] = [
     help: 'Turn off to stop sending approved withdrawals through OxaPay. Approvals continue and fall back to being paid by hand, so nothing is stranded — but nothing leaves automatically either. NOWPayments has no payout support in this platform, so there is no equivalent switch for it.',
     enforcedIn: 'Withdrawal approval',
   },
+
+  /**
+   * ── Branding ──────────────────────────────────────────────────────────
+   * This platform is white-label: nothing about the brand is a build-time
+   * constant. Every key here ships as a placeholder and is expected to be set
+   * before launch, which is why the console shows an unmissable banner until
+   * `BRAND_NAME` has been changed.
+   *
+   * All public, because every one of them is rendered to visitors who are not
+   * logged in — the page title, the footer, the support link.
+   *
+   * The artwork is NOT here. Images cannot live in a string column, so they
+   * are held in `branding_assets` and served by `core/brand-storage.ts`.
+   */
+  {
+    key: 'BRAND_NAME', group: 'Branding', type: 'text', public: true,
+    label: 'Brand name',
+    help: 'The wordmark, used in the page title, the header, emails and legal copy. Keep it short — it sits next to the logo in a fixed-width sidebar.',
+    enforcedIn: 'Every page, and outgoing email',
+  },
+  {
+    key: 'BRAND_TAGLINE', group: 'Branding', type: 'text', public: true,
+    label: 'Tagline',
+    help: 'One short line under the wordmark on the public site, and the subtitle in search results and social cards.',
+    enforcedIn: 'Public site · Page metadata',
+  },
+  {
+    key: 'BRAND_LEGAL_NAME', group: 'Branding', type: 'text', public: true,
+    label: 'Registered company name',
+    help: 'The full legal entity, as it should appear in the terms, the privacy policy and email footers. Usually longer than the brand name.',
+    enforcedIn: 'Legal pages · Email footers',
+  },
+  {
+    key: 'SUPPORT_EMAIL', group: 'Branding', type: 'email', public: true,
+    label: 'Support email',
+    help: 'Shown on the contact page and in the footer, and used as the reply-to on outgoing mail. Members will write to this address, so it has to be one somebody reads.',
+    enforcedIn: 'Contact page · Footer · Outgoing email',
+  },
+  {
+    key: 'SUPPORT_URL', group: 'Branding', type: 'text', public: true,
+    label: 'Help centre link',
+    help: 'Optional. A link to an external helpdesk or knowledge base. Leave empty to show only the email address.',
+    enforcedIn: 'Contact page · Footer',
+  },
+  {
+    key: 'BRAND_PRIMARY_COLOR', group: 'Branding', type: 'color', public: true,
+    label: 'Accent colour',
+    help: 'The single accent used for primary buttons, links, focus rings and the leading chart series. Pick something that holds contrast on both the dark and light themes — it is used on both.',
+    enforcedIn: 'Theme · Every surface',
+  },
 ];
 
 export const SPEC_BY_KEY = new Map(SPECS.map((s) => [s.key, s]));
@@ -302,6 +352,28 @@ export const DEFAULTS: Record<string, string> = {
   GATEWAY_NOWPAYMENTS_DEPOSITS: 'true',
   GATEWAY_OXAPAY_DEPOSITS: 'true',
   GATEWAY_OXAPAY_PAYOUTS: 'true',
+
+  /* Placeholders on purpose — see the Branding specs above. `brandingUnset()`
+     reports whether these are still in force so the console can say so.
+
+     SUPPORT_EMAIL is the exception: it seeds to a syntactically valid address
+     rather than "TBD" because it is rendered into `mailto:` hrefs. A malformed
+     value there produces a link that silently does nothing, which is worse than
+     one that is visibly a placeholder. */
+  BRAND_NAME: 'TBD',
+  BRAND_TAGLINE: 'TBD',
+  BRAND_LEGAL_NAME: 'TBD',
+  SUPPORT_EMAIL: 'support@example.com',
+  SUPPORT_URL: '',
+  BRAND_PRIMARY_COLOR: '#FF7A1A',
+};
+
+/** The placeholder values, so "still unset" is defined in exactly one place. */
+export const BRANDING_PLACEHOLDERS: Record<string, string> = {
+  BRAND_NAME: 'TBD',
+  BRAND_TAGLINE: 'TBD',
+  BRAND_LEGAL_NAME: 'TBD',
+  SUPPORT_EMAIL: 'support@example.com',
 };
 
 export interface RuntimeConfig {
@@ -340,6 +412,22 @@ export interface RuntimeConfig {
    * `GatewaySwitches` in core/gateway/switches.ts.
    */
   gateways: GatewaySwitches;
+  /**
+   * The operator's identity. Text only — artwork lives in `branding_assets`
+   * and is resolved by the branding service, which has to hit a second table.
+   */
+  branding: {
+    name: string;
+    tagline: string;
+    legalName: string;
+    supportEmail: string;
+    supportUrl: string | null;
+    primaryColor: string;
+    /** Whether the wordmark is still the shipped placeholder. */
+    unset: boolean;
+    /** Setting keys still sitting on their shipped placeholder. */
+    placeholders: string[];
+  };
 }
 
 /**
@@ -390,6 +478,29 @@ export function parseSetting(key: string, raw: string): string {
     case 'text': {
       if (value.length > 500) throw badRequest(`${spec.label} cannot be longer than 500 characters`);
       return value;
+    }
+    /**
+     * Branding values are rendered into `mailto:` hrefs and CSS custom
+     * properties, so an unvalidated one does not fail loudly — it produces a
+     * dead link or a theme that silently falls back. Both are the kind of
+     * fault an operator discovers from a member, which is too late.
+     */
+    case 'email': {
+      // Deliberately permissive: the goal is to catch a typo or a pasted
+      // sentence, not to adjudicate RFC 5322. Anything that gets past this is
+      // a real address shape, and delivery proves the rest.
+      if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(value)) {
+        throw badRequest(`${spec.label} must be a valid email address`);
+      }
+      if (value.length > 254) throw badRequest(`${spec.label} is too long to be a real address`);
+      return value.toLowerCase();
+    }
+    case 'color': {
+      const hex = value.startsWith('#') ? value : `#${value}`;
+      if (!/^#([0-9a-fA-F]{6})$/.test(hex)) {
+        throw badRequest(`${spec.label} must be a six-digit hex colour, such as #FF7A1A`);
+      }
+      return hex.toUpperCase();
     }
     case 'percent':
     case 'money': {
@@ -447,6 +558,26 @@ function build(stored: Record<string, string>): RuntimeConfig {
       nowpaymentsDeposits: bool('GATEWAY_NOWPAYMENTS_DEPOSITS'),
       oxapayDeposits: bool('GATEWAY_OXAPAY_DEPOSITS'),
       oxapayPayouts: bool('GATEWAY_OXAPAY_PAYOUTS'),
+    },
+    branding: {
+      name: v('BRAND_NAME'),
+      tagline: v('BRAND_TAGLINE'),
+      legalName: v('BRAND_LEGAL_NAME'),
+      supportEmail: v('SUPPORT_EMAIL'),
+      supportUrl: v('SUPPORT_URL') || null,
+      primaryColor: v('BRAND_PRIMARY_COLOR'),
+      /* The wordmark is the one field nothing can sensibly fall back to, so it
+         alone decides whether the brand counts as configured. Drives the
+         console banner — shipping is a bad moment to notice it still says TBD. */
+      unset: v('BRAND_NAME') === BRANDING_PLACEHOLDERS.BRAND_NAME,
+      /* Every field still sitting on its shipped placeholder.
+         A bare boolean told an operator that "something" was unconfigured and
+         left them to hunt for it; this lets the console name the fields. A
+         tagline left at its default is a deliberate choice an operator is
+         allowed to make, so it is listed here but does not raise `unset`. */
+      placeholders: Object.entries(BRANDING_PLACEHOLDERS)
+        .filter(([k, placeholder]) => v(k) === placeholder)
+        .map(([k]) => k),
     },
   };
 

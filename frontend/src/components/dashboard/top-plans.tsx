@@ -25,7 +25,7 @@ export function TopPlans({ plans, range, onRange, loading }: {
         ) : plans.map((p) => (
           <div key={p.rank}>
             <div className="flex items-center gap-3">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-violet-soft text-[11px] font-semibold tabular-nums text-violet">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-[3px] bg-violet-soft text-[11px] font-semibold tabular-nums text-violet">
                 {p.rank}
               </span>
               <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium text-ink">{p.name}</span>

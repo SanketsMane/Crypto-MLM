@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #080A0E; font-family: 'IBM Plex Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #5EEAD4; text-decoration: none; } a:hover { color: #99F6E4; }
+    .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    .lbl { font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #5D6979; font-weight: 600; }
+    .pnl { background: #0F131A; border: 1px solid #1E2631; border-radius: 4px; }
+    .node { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 9px; border-radius: 3px; border: 1px solid #1E2631; background: #131922; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; overflow: hidden; color: #E8ECF3;">
+
+  <div style="height: 46px; flex-shrink: 0; border-bottom: 1px solid #1E2631; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: #0B0E13;">
+    <span style="font-size: 13px; font-weight: 600;">Genealogy</span>
+    <span class="num" style="font-size: 10.5px; color: #5D6979;">1,284 members · deepest L23 · 12 of 30 unlocked</span>
+
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 7px; height: 26px; padding: 0 10px; border: 1px solid #1E2631; border-radius: 3px; width: 190px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5D6979" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <span style="font-size: 11px; color: #5D6979;">Find by code or name</span>
+      </div>
+      <div style="display: flex; gap: 1px; background: #151B24; border-radius: 3px; padding: 1px;">
+        <span class="num" style="font-size: 10px; padding: 4px 9px; border-radius: 2px; background: #202836;">Tree</span>
+        <span class="num" style="font-size: 10px; padding: 4px 9px; color: #5D6979;">Levels</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; gap: 12px; padding: 12px; min-height: 0;">
+
+    <!-- ── the tree ── -->
+    <div class="pnl" style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+      <div style="height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid #1E2631;">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="font-size: 11.5px; font-weight: 600;">Downline</span>
+          <span class="num" style="font-size: 10px; color: #5D6979;">loaded 5 levels · 218 nodes</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span class="num" style="font-size: 9.5px; color: #5D6979;">depth</span>
+          <div style="display: flex; gap: 1px; background: #151B24; border-radius: 3px; padding: 1px;">
+            <span class="num" style="font-size: 10px; padding: 3px 7px; color: #5D6979;">3</span>
+            <span class="num" style="font-size: 10px; padding: 3px 7px; border-radius: 2px; background: #202836;">5</span>
+            <span class="num" style="font-size: 10px; padding: 3px 7px; color: #5D6979;">10</span>
+            <span class="num" style="font-size: 10px; padding: 3px 7px; color: #5D6979;">30</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indentation alone stops working past four levels, so every level keeps
+           a rail and a level tag. Volume rides on the node, not in a tooltip. -->
+      <div style="flex-grow: 1; padding: 12px 14px; overflow: hidden;">
+        <sc-for list="{{tree}}" as="n" hint-placeholder-count="16">
+          <div style="display: flex; align-items: center; height: 34px; padding-left: {{n.pad}};">
+            <span style="width: {{n.rail}}; height: 1px; background: #232B36; flex-shrink: 0;"></span>
+            <div class="node" style="border-color: {{n.line}}; background: {{n.bg}}; min-width: 330px;">
+              <span class="num" style="font-size: 8.5px; color: #5D6979; width: 22px;">{{n.lv}}</span>
+              <span style="width: 18px; height: 18px; border-radius: 2px; background: {{n.avBg}}; display: grid; place-items: center;">
+                <span class="num" style="font-size: 8.5px; color: {{n.avInk}};">{{n.initials}}</span>
+              </span>
+              <span style="font-size: 11.5px; width: 104px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">{{n.name}}</span>
+              <span class="num" style="font-size: 10px; color: #5D6979; width: 62px;">{{n.code}}</span>
+              <span class="num" style="font-size: 11px; width: 66px; text-align: right;">{{n.vol}}</span>
+              <span style="width: 5px; height: 5px; border-radius: 50%; background: {{n.dot}}; margin-left: auto;"></span>
+              <span class="num" style="font-size: 9.5px; color: #5D6979; width: 30px; text-align: right;">{{n.kids}}</span>
+            </div>
+          </div>
+        </sc-for>
+
+        <div style="display: flex; align-items: center; gap: 9px; margin-top: 8px; padding-left: 64px;">
+          <span class="num" style="font-size: 10.5px; color: #5EEAD4;">Load levels 6–10</span>
+          <span class="num" style="font-size: 10px; color: #5D6979;">· 412 more members</span>
+        </div>
+      </div>
+
+      <div style="height: 30px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 0 14px; border-top: 1px solid #1E2631;">
+        <span style="display: flex; align-items: center; gap: 5px; font-size: 10px; color: #5D6979;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #22C55E;"></span>Active package</span>
+        <span style="display: flex; align-items: center; gap: 5px; font-size: 10px; color: #5D6979;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #5D6979;"></span>No package</span>
+        <span style="display: flex; align-items: center; gap: 5px; font-size: 10px; color: #5D6979;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #F5A524;"></span>Capped out</span>
+        <span class="num" style="margin-left: auto; font-size: 10px; color: #5D6979;">scroll to pan · ⌘+ to zoom</span>
+      </div>
+    </div>
+
+    <!-- ── the 30 levels, and what each one pays ── -->
+    <div style="width: 380px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+
+      <div class="pnl" style="padding: 11px 13px;">
+        <div class="lbl">Generation depth unlocked</div>
+        <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 6px;">
+          <span class="num" style="font-size: 26px; font-weight: 600;">12</span>
+          <span style="font-size: 12px; color: #5D6979;">of 30 levels</span>
+        </div>
+        <!-- 30 cells: the whole plan on one line, no scrolling to understand it -->
+        <div style="display: flex; gap: 2px; margin-top: 11px;">
+          <sc-for list="{{cells}}" as="c" hint-placeholder-count="30">
+            <div style="flex-grow: 1; height: 22px; border-radius: 1px; background: {{c.bg}};"></div>
+          </sc-for>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+          <span class="num" style="font-size: 9px; color: #5D6979;">L1</span>
+          <span class="num" style="font-size: 9px; color: {{accent}};">L12 · unlocked</span>
+          <span class="num" style="font-size: 9px; color: #5D6979;">L30</span>
+        </div>
+        <div style="margin-top: 11px; padding-top: 10px; border-top: 1px solid #1E2631;">
+          <div style="font-size: 11px; color: #93A0B2; line-height: 1.5;">
+            Level 13 needs <span class="num" style="color: #E8ECF3;">2</span> more directs and
+            <span class="num" style="color: #E8ECF3;">$64,000</span> more team volume. It pays
+            <span class="num" style="color: #E8ECF3;">2.0%</span> of downline daily return.
+          </div>
+        </div>
+      </div>
+
+      <div class="pnl" style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
+        <div style="height: 30px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid #1E2631;">
+          <span style="font-size: 11.5px; font-weight: 600;">By level</span>
+          <span class="lbl">Members · Volume · Rate</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 34px 1fr 62px 78px 48px; height: 24px; flex-shrink: 0; align-items: center; padding: 0 12px; background: #0C1016; border-bottom: 1px solid #1E2631;">
+          <span class="lbl">Lv</span><span class="lbl">Depth</span>
+          <span class="lbl" style="text-align: right;">Memb</span>
+          <span class="lbl" style="text-align: right;">Volume</span>
+          <span class="lbl" style="text-align: right;">Rate</span>
+        </div>
+
+        <div style="flex-grow: 1; overflow: hidden;">
+          <sc-for list="{{levels}}" as="l" hint-placeholder-count="14">
+            <div style="display: grid; grid-template-columns: 34px 1fr 62px 78px 48px; align-items: center; height: 29px; padding: 0 12px; border-bottom: 1px solid #141A22; opacity: {{l.op}};">
+              <span class="num" style="font-size: 10.5px; color: {{l.lvTone}};">{{l.lv}}</span>
+              <span style="height: 5px; border-radius: 1px; background: #151B24; margin-right: 10px; overflow: hidden;">
+                <span style="display: block; height: 5px; width: {{l.bar}}; background: {{l.barTone}}; border-radius: 1px;"></span>
+              </span>
+              <span class="num" style="font-size: 10.5px; text-align: right;">{{l.members}}</span>
+              <span class="num" style="font-size: 10.5px; text-align: right;">{{l.volume}}</span>
+              <span class="num" style="font-size: 10.5px; text-align: right; color: {{l.rateTone}};">{{l.rate}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "accent": {"editor": "color", "default": "#5EEAD4", "options": ["#5EEAD4", "#7C9CFF", "#C6F24E", "#F5A524"]},
+  "$preview": {"width": 1440, "height": 900}
+}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? "#5EEAD4";
+
+    const node = (lv, name, code, vol, kids, state, sel) => {
+      const dot = state === "active" ? "#22C55E" : state === "capped" ? "#F5A524" : "#5D6979";
+      return {
+        lv: lv === 0 ? "YOU" : "L" + lv,
+        pad: (lv * 26) + "px",
+        rail: lv === 0 ? "0px" : "16px",
+        name, code, vol, kids: kids ? "+" + kids : "—",
+        initials: name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(),
+        dot,
+        line:  sel ? accent : "#1E2631",
+        bg:    sel ? "#0D1714" : "#131922",
+        avBg:  lv === 0 ? accent : "#202836",
+        avInk: lv === 0 ? "#08111A" : "#93A0B2"
+      };
+    };
+
+    // Generation rates as published: 13% at L1 tapering to 0.5% by L30.
+    const rateFor = (lv) =>
+      lv === 1 ? 13 : lv === 2 ? 8 : lv === 3 ? 5 : lv <= 6 ? 3 : lv <= 10 ? 2.5 : lv <= 15 ? 2 : lv <= 22 ? 1 : 0.5;
+
+    const members = [42, 118, 206, 288, 241, 168, 96, 54, 31, 18, 12, 7, 2, 1];
+    const volumes = ["86.4k", "112.0k", "98.2k", "74.6k", "51.3k", "29.8k", "16.2k", "9.4k", "5.1k", "2.8k", "1.6k", "0.9k", "0.3k", "0.1k"];
+
+    return {
+      accent,
+      tree: [
+        node(0, "Sanket Kale", "FX-88241", "$486k", 14, "active", true),
+        node(1, "Arun Desai",  "FX-10277", "$92.4k", 9, "active", false),
+        node(2, "Priya Nair",  "FX-55019", "$38.1k", 6, "active", false),
+        node(3, "Rahul Iyer",  "FX-31884", "$14.2k", 4, "active", false),
+        node(4, "Meera Joshi", "FX-77410", "$6.8k",  2, "capped", false),
+        node(5, "Vikram Rao",  "FX-20933", "$2.1k",  0, "active", false),
+        node(4, "Anil Kumar",  "FX-64502", "$3.9k",  1, "none",   false),
+        node(3, "Kavya Menon", "FX-90118", "$11.6k", 5, "active", false),
+        node(4, "Deepak Shah", "FX-42287", "$4.4k",  2, "active", false),
+        node(2, "Nisha Verma", "FX-15630", "$27.3k", 7, "active", false),
+        node(3, "Rohit Patel", "FX-38845", "$9.8k",  3, "active", false),
+        node(1, "Sneha Gupta", "FX-71104", "$64.2k", 11, "active", false),
+        node(2, "Manoj Reddy", "FX-28376", "$21.7k", 5, "capped", false),
+        node(3, "Farah Khan",  "FX-66092", "$8.2k",  2, "active", false),
+        node(1, "Imran Sheikh","FX-40218", "$47.9k", 8, "active", false),
+        node(2, "Tara Bose",   "FX-19045", "$18.4k", 4, "none",   false)
+      ],
+      cells: Array.from({ length: 30 }, (_, i) => ({
+        bg: i < 12 ? accent : i === 12 ? "#2B3543" : "#151B24"
+      })),
+      levels: members.map((m, i) => {
+        const lv = i + 1;
+        const unlocked = lv <= 12;
+        const rate = rateFor(lv);
+        return {
+          lv: String(lv),
+          members: m.toLocaleString("en-US"),
+          volume: "$" + volumes[i],
+          rate: rate.toFixed(rate % 1 ? 1 : 0) + "%",
+          bar: Math.round((m / 288) * 100) + "%",
+          barTone: unlocked ? "#8B5FD6" : "#2B3543",
+          lvTone:  unlocked ? "#E8ECF3" : "#5D6979",
+          rateTone: unlocked ? "#E8ECF3" : "#5D6979",
+          op: unlocked ? "1" : "0.45"
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

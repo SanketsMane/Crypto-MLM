@@ -20,7 +20,7 @@ export function FlyersHero({ standing }: { standing: Standing | null }) {
   return (
     <section
       aria-labelledby="flyers-title"
-      className="relative isolate overflow-hidden rounded-[20px] border border-gold/25 bg-navy shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_50px_-28px_rgba(4,16,31,0.8)]"
+      className="relative isolate overflow-hidden rounded-[5px] border border-gold/25 bg-navy shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_50px_-28px_rgba(4,16,31,0.8)]"
     >
       <Image
         src="/brand/roaming-travel-bg.webp"
@@ -111,7 +111,7 @@ export function FlyersHero({ standing }: { standing: Standing | null }) {
                 className="mt-2 block h-1.5 w-full max-w-[180px] overflow-hidden rounded-full bg-white/15"
               >
                 <span
-                  className="block h-full rounded-full bg-[linear-gradient(90deg,#B8860B,#D4AF37,#E5C158)] transition-[width] duration-700 ease-out"
+                  className="block h-full rounded-full bg-[linear-gradient(90deg,#E2670A,#FF7A1A,#FF9647)] transition-[width] duration-700 ease-out"
                   style={{ width: `${Math.max(3, standing.pct)}%` }}
                 />
               </span>

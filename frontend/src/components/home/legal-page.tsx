@@ -84,13 +84,13 @@ export function LegalPage({
               <div className="space-y-10">
                 {sections.map((s, i) => (
                   <section key={s.heading} id={slug(s.heading)} className="scroll-mt-28">
-                    <h2 className="flex gap-3 text-[19px] font-bold tracking-[-0.02em] text-white">
+                    <h2 className="flex gap-3 text-[19px] font-bold tracking-[-0.02em] text-[var(--home-text)]">
                       <span className="tabular-nums text-[var(--home-gold)]/60">
                         {String(i + 1).padStart(2, '0')}
                       </span>
                       {s.heading}
                     </h2>
-                    <div className="mt-3 space-y-3 pl-0 text-[14px] leading-[1.85] text-[var(--home-text-2)] sm:pl-9 [&_a]:text-[var(--home-gold)] [&_a]:underline [&_a]:underline-offset-2 [&_li]:mt-1.5 [&_strong]:font-semibold [&_strong]:text-white [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
+                    <div className="mt-3 space-y-3 pl-0 text-[14px] leading-[1.85] text-[var(--home-text-2)] sm:pl-9 [&_a]:text-[var(--home-gold)] [&_a]:underline [&_a]:underline-offset-2 [&_li]:mt-1.5 [&_strong]:font-semibold [&_strong]:text-[var(--home-text)] [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
                       {s.body}
                     </div>
                   </section>

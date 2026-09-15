@@ -127,7 +127,7 @@ export function RootCard({ root }: {
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3 border-b border-line bg-canvas px-5 py-3">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-gold to-gold-hi text-gold-on">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] bg-gradient-to-br from-gold to-gold-hi text-gold-on">
         <User size={16} strokeWidth={2.3} />
       </span>
       <div className="min-w-0">

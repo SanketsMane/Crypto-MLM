@@ -71,7 +71,7 @@ export function DestinationSection({ tiers, onView }: { tiers: TierView[]; onVie
           <div
             role="group"
             aria-label="Qualification route"
-            className="flex w-full rounded-[11px] border border-line bg-canvas-2 p-1 sm:w-auto"
+            className="flex w-full rounded-[5px] border border-line bg-canvas-2 p-1 sm:w-auto"
           >
             {tracks.map((t) => (
               <button
@@ -80,7 +80,7 @@ export function DestinationSection({ tiers, onView }: { tiers: TierView[]; onVie
                 aria-pressed={t === active}
                 onClick={() => setTrack(t)}
                 className={clsx(
-                  'flex-1 whitespace-nowrap rounded-[8px] px-4 py-2 text-[12.5px] font-medium transition sm:flex-none',
+                  'flex-1 whitespace-nowrap rounded-[4px] px-4 py-2 text-[12.5px] font-medium transition sm:flex-none',
                   'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/25',
                   t === active
                     ? 'bg-card text-ink shadow-card ring-1 ring-gold/35'
@@ -117,7 +117,7 @@ export function DestinationSection({ tiers, onView }: { tiers: TierView[]; onVie
       </div>
 
       {shown.length === 0 ? (
-        <div className="rounded-[14px] border border-dashed border-line bg-card px-5 py-12 text-center text-[13px] text-ink-2">
+        <div className="rounded-[5px] border border-dashed border-line bg-card px-5 py-12 text-center text-[13px] text-ink-2">
           No destinations match this filter.
         </div>
       ) : (

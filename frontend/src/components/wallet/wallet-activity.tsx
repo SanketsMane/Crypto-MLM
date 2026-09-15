@@ -50,7 +50,7 @@ export function WalletActivity({ entries, loading }: {
         action={
           <Link
             href="/passbook"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-[10px] border border-violet/30 bg-violet-soft/50 px-3 py-1.5 text-[12.5px] font-medium text-violet-on transition-colors hover:border-violet/55 hover:bg-violet-soft focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet/20"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-[5px] border border-violet/30 bg-violet-soft/50 px-3 py-1.5 text-[12.5px] font-medium text-violet-on transition-colors hover:border-violet/55 hover:bg-violet-soft focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet/20"
           >
             Full passbook <ArrowRight size={14} strokeWidth={2.2} />
           </Link>

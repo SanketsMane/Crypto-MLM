@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 export function Table({ head, children, empty }: { head: string[]; children: ReactNode; empty?: boolean }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-line bg-card">
+    <div className="overflow-x-auto rounded-[5px] border border-line bg-card">
       <table className="w-full min-w-[560px] text-sm">
         <thead>
           <tr className="border-b border-line bg-thead">

@@ -73,7 +73,7 @@ export default function JobsPage() {
       </div>
 
       {(data?.missedRuns.length ?? 0) > 0 && (
-        <div className="mt-3.5 flex items-start gap-3 rounded-[14px] border border-bad/35 bg-bad-soft px-4 py-3">
+        <div className="mt-3.5 flex items-start gap-3 rounded-[5px] border border-bad/35 bg-bad-soft px-4 py-3">
           <AlertTriangle size={17} className="mt-0.5 shrink-0 text-bad" />
           <div className="text-[13px] text-bad-on">
             <p className="font-medium">

@@ -45,7 +45,7 @@ export function Sidebar() {
             <Link key={href} href={href}
               className={clsx('flex h-11 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition',
                 active
-                  ? 'bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] font-semibold text-navy'
+                  ? 'bg-gold font-semibold text-navy'
                   : 'text-white/62 hover:bg-white/[0.07] hover:text-white')}>
               <Icon size={18} strokeWidth={active ? 2.3 : 1.9} />
               {label}

@@ -22,7 +22,7 @@ export function TrackMeter({ track, tiers }: { track: string; tiers: TierView[] 
 
   return (
     <div className={clsx(
-      'relative overflow-hidden rounded-[13px] border bg-canvas-2 p-4',
+      'relative overflow-hidden rounded-[5px] border bg-canvas-2 p-4',
       gold ? 'border-gold/25' : 'border-violet/25',
     )}>
       <div
@@ -35,7 +35,7 @@ export function TrackMeter({ track, tiers }: { track: string; tiers: TierView[] 
 
       <div className="relative flex flex-wrap items-start gap-3">
         <span className={clsx(
-          'grid h-9 w-9 shrink-0 place-items-center rounded-[10px] ring-1',
+          'grid h-9 w-9 shrink-0 place-items-center rounded-[5px] ring-1',
           gold ? 'bg-gold/12 text-gold ring-gold/30' : 'bg-violet/12 text-violet ring-violet/30',
         )}>
           <Icon size={17} strokeWidth={2.1} aria-hidden />

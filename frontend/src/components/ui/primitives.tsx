@@ -11,7 +11,7 @@ export function Card(
 ) {
   return (
     <section id={id} className={clsx(
-      'rounded-[14px] border border-line bg-card shadow-card',
+      'rounded-[5px] border border-line bg-card',
       hover && 'transition-shadow duration-200 hover:shadow-raise',
       className,
     )}>
@@ -65,7 +65,7 @@ export function Button({ variant = 'primary', size = 'md', loading, className, c
       {...rest}
       disabled={disabled || loading}
       className={clsx(
-        'inline-flex items-center justify-center gap-1.5 rounded-[9px] font-medium transition-all duration-150',
+        'inline-flex items-center justify-center gap-1.5 rounded-[4px] font-medium transition-colors duration-140',
         'disabled:cursor-not-allowed disabled:opacity-55',
         'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/25',
         size === 'sm' ? 'h-8 px-3 text-[12.5px]' : 'h-10 px-4 text-[13.5px]',
@@ -162,12 +162,12 @@ export function Table({ head, rows, empty, dense }: {
 
 /* ── Skeleton ─────────────────────────────────────────────────────────── */
 export const Skeleton = ({ className }: { className?: string }) => (
-  <div className={clsx('animate-pulse rounded-lg bg-line-soft', className)} />
+  <div className={clsx('animate-pulse rounded-[3px] bg-line-soft', className)} />
 );
 
 /* ── Select / input controls ──────────────────────────────────────────── */
 export const controlCls =
-  'h-10 rounded-[9px] border border-field-line bg-field px-3 text-[13px] text-ink outline-none transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15';
+  'h-9 rounded-[4px] border border-field-line bg-field px-3 text-[13px] text-ink outline-none transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15';
 
 export function Select({ value, onChange, options, className, label }: {
   value: string; onChange: (v: string) => void;
@@ -214,7 +214,7 @@ export function Metric({ label, value, hint, tone }: {
   label: string; value: ReactNode; hint?: string; tone?: 'good' | 'warn' | 'bad';
 }) {
   return (
-    <div className="rounded-xl border border-line bg-card p-4">
+    <div className="rounded-[5px] border border-line bg-card p-4">
       <p className="text-[10.5px] font-medium uppercase tracking-[0.04em] text-ink-2">{label}</p>
       <p className={clsx('mt-1.5 text-[20px] font-semibold tabular-nums',
         tone === 'good' ? 'text-good' : tone === 'warn' ? 'text-warn' : tone === 'bad' ? 'text-bad' : 'text-ink')}>{value}</p>

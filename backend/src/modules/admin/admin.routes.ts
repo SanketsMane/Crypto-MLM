@@ -8,6 +8,7 @@ import * as reports from './reports/reports.controller.js';
 import * as dashboard from './dashboard/dashboard.controller.js';
 import * as ledger from './ledger/ledger.controller.js';
 import * as settings from './settings/settings.controller.js';
+import * as branding from './branding/branding.controller.js';
 import * as audit from './audit/audit.controller.js';
 import * as support from './support/support.controller.js';
 import * as kyc from './kyc/kyc.controller.js';
@@ -195,6 +196,13 @@ r.post('/jobs/daily-roi/run', can('jobs.run'), idempotent, asyncHandler(jobs.run
 r.get('/settings',      can('settings.view'), asyncHandler(settings.all));
 r.put('/settings/:key', can('settings.edit'), asyncHandler(settings.set));
 r.delete('/settings/:key', can('settings.edit'), asyncHandler(settings.reset));
+
+/* Brand artwork. Gated on the settings permissions rather than its own: the
+   text half of the brand already lives behind `settings.edit`, and splitting
+   them would let an operator rename the company but not replace the logo. */
+r.get('/branding',              can('settings.view'), asyncHandler(branding.overview));
+r.put('/branding/assets/:slot', can('settings.edit'), asyncHandler(branding.upload));
+r.delete('/branding/assets/:slot', can('settings.edit'), asyncHandler(branding.clear));
 r.get('/audit',         can('audit.view'),    asyncHandler(audit.list));
 r.get('/audit/facets',  can('audit.view'),    asyncHandler(audit.facets));
 

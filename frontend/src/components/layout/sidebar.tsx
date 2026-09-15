@@ -64,7 +64,7 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: Props) {
             />
           </Link>
           <button onClick={onCloseMobile} aria-label="Close menu"
-                  className="ml-auto rounded-lg p-1.5 text-white/50 hover:bg-white/10 hover:text-white lg:hidden">
+                  className="ml-auto rounded-[4px] p-1.5 text-white/50 hover:bg-white/10 hover:text-white lg:hidden">
             <X size={18} />
           </button>
         </div>
@@ -96,14 +96,14 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: Props) {
                           title={collapsed ? label : undefined}
                           aria-current={active ? 'page' : undefined}
                           className={clsx(
-                            'group relative flex items-center rounded-[10px] text-[13.5px] transition-all duration-200',
+                            'group relative flex items-center rounded-[5px] text-[13.5px] transition-all duration-200',
                             // 40px rather than 44: with six groups and their
                             // headings, the taller row pushed the last section
                             // off the bottom on a laptop screen.
                             collapsed ? 'h-10 justify-center' : 'h-10 gap-3 px-3',
                             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/70',
                             active
-                              ? 'bg-[linear-gradient(135deg,rgba(212,175,55,0.20)_0%,rgba(212,175,55,0.08)_100%)] font-semibold text-gold-hi ring-1 ring-gold-line/45'
+                              ? 'bg-[linear-gradient(135deg,rgba(255,122,26,0.20)_0%,rgba(255,122,26,0.08)_100%)] font-semibold text-gold-hi ring-1 ring-gold-line/45'
                               : 'text-white/62 hover:bg-white/[0.07] hover:text-white',
                           )}
                         >

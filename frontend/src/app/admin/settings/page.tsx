@@ -59,7 +59,7 @@ export default function SettingsPage() {
   const set = (key: string, value: string) => setEdits((s) => ({ ...s, [key]: value }));
 
   const field =
-    'h-9 w-full rounded-[9px] border border-field-line bg-field px-3 text-[13px] tabular-nums text-ink outline-none ' +
+    'h-9 w-full rounded-[4px] border border-field-line bg-field px-3 text-[13px] tabular-nums text-ink outline-none ' +
     'transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15';
 
   return (
@@ -115,7 +115,7 @@ export default function SettingsPage() {
                         <div className="flex gap-1.5">
                           {([['true', 'On'], ['false', 'Off']] as const).map(([v, label]) => (
                             <button key={v} onClick={() => set(r.key, v)} aria-pressed={valueOf(r) === v}
-                              className={clsx('h-9 w-14 rounded-[9px] border text-[12.5px] font-medium transition',
+                              className={clsx('h-9 w-14 rounded-[4px] border text-[12.5px] font-medium transition',
                                 valueOf(r) === v
                                   ? 'border-gold bg-gold text-gold-on'
                                   : 'border-line bg-card text-ink-2 hover:border-line-strong hover:text-ink')}>
@@ -131,7 +131,7 @@ export default function SettingsPage() {
                             return (
                               <button key={d.n} aria-pressed={on}
                                 onClick={() => set(r.key, (on ? days.filter((x) => x !== d.n) : [...days, d.n]).sort((a, b) => a - b).join(','))}
-                                className={clsx('h-9 w-11 rounded-[9px] border text-[11.5px] font-medium transition',
+                                className={clsx('h-9 w-11 rounded-[4px] border text-[11.5px] font-medium transition',
                                   on ? 'border-gold bg-gold text-gold-on'
                                      : 'border-line bg-card text-ink-3 hover:border-line-strong hover:text-ink')}>
                                 {d.s}
@@ -198,7 +198,7 @@ export default function SettingsPage() {
                           }))) return;
                           reset.mutate(r.key);
                         }}
-                        className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] border border-line text-ink-3 transition hover:border-line-strong hover:text-ink disabled:pointer-events-none disabled:opacity-35"
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] border border-line text-ink-3 transition hover:border-line-strong hover:text-ink disabled:pointer-events-none disabled:opacity-35"
                       >
                         <RotateCcw size={14} />
                       </button>

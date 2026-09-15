@@ -89,7 +89,7 @@ export default async function HomePage() {
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
                 href="/register"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-[11px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-6 py-3.5 text-[14.5px] font-semibold text-navy shadow-[0_12px_34px_-12px_rgba(212,175,55,0.75)] transition hover:brightness-110 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[11px] bg-gold px-6 py-3.5 text-[14px] font-semibold text-gold-on shadow-[0_12px_34px_-12px_rgba(255,122,26,0.75)] transition hover:brightness-110 sm:w-auto"
               >
                 Open your account
                 <ArrowRight size={16} strokeWidth={2.5} />
@@ -218,7 +218,7 @@ export default async function HomePage() {
             {topTiers.map((amount, i) => (
               <Panel key={amount} hover className={i === 1 ? 'relative p-6 ring-1 ring-brand-gold/25 sm:p-7' : 'p-6 sm:p-7'}>
                 {i === 1 && (
-                  <span className="absolute -top-2.5 left-6 rounded-full bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-navy">
+                  <span className="absolute -top-2.5 left-6 rounded-full bg-gold px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-navy">
                     Most chosen
                   </span>
                 )}

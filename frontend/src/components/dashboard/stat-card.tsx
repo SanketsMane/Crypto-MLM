@@ -21,9 +21,9 @@ export function StatCard({ label, value, change, icon: Icon, chip, invert, loadi
   const positive = invert ? !up : up;
 
   return (
-    <article className="flex min-h-[118px] flex-col justify-between rounded-[14px] border border-line bg-card p-4 shadow-card transition-shadow duration-200 hover:shadow-raise">
+    <article className="flex min-h-[118px] flex-col justify-between rounded-[5px] border border-line bg-card p-4 shadow-card transition-shadow duration-200 hover:shadow-raise">
       <div className="flex flex-col gap-2 min-[520px]:flex-row min-[520px]:items-start min-[520px]:gap-3">
-        <span className={clsx('grid h-10 w-10 shrink-0 place-items-center rounded-[10px]', chip)}>
+        <span className={clsx('grid h-10 w-10 shrink-0 place-items-center rounded-[5px]', chip)}>
           <Icon size={19} strokeWidth={2} />
         </span>
         <div className="min-w-0 flex-1">

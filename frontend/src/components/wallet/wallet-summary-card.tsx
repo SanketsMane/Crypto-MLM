@@ -21,7 +21,7 @@ export function WalletSummaryCard({ type, balance, locked }: {
     >
       <div className="flex items-start justify-between gap-3">
         <span
-          className="grid size-11 shrink-0 place-items-center rounded-[14px] border"
+          className="grid size-11 shrink-0 place-items-center rounded-[5px] border"
           style={{
             borderColor: `color-mix(in srgb, ${m.accent} 38%, transparent)`,
             background: `color-mix(in srgb, ${m.accent} 14%, transparent)`,
@@ -65,7 +65,7 @@ export function WalletSummarySkeleton() {
   return (
     <article className="wallet-tile flex flex-col p-5 sm:p-6" style={{ '--tile-accent': '#8B5CF6' } as React.CSSProperties}>
       <div className="flex items-start justify-between">
-        <span className="size-11 rounded-[14px] bg-white/[0.07]" />
+        <span className="size-11 rounded-[5px] bg-white/[0.07]" />
         <span className="size-8 rounded-full bg-white/[0.05]" />
       </div>
       <span className="mt-5 block h-3 w-24 rounded bg-white/[0.07]" />

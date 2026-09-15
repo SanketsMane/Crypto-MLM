@@ -66,7 +66,7 @@ export function SponsorFeedback({ state }: { state: SponsorState }) {
   }
 
   return (
-    <span className={clsx('mt-2 flex items-center gap-2 rounded-[9px] border border-good/25 bg-good/10 px-3 py-2 text-[12px] text-white')}>
+    <span className={clsx('mt-2 flex items-center gap-2 rounded-[4px] border border-good/25 bg-good/10 px-3 py-2 text-[12px] text-white')}>
       <CheckCircle2 size={13} className="shrink-0 text-good" />
       {/* one flex item, or the container's gap opens up around the possessive */}
       <span>Joining <strong className="font-semibold">{state.name}</strong>&apos;s team</span>

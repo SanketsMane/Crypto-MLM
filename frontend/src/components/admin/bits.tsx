@@ -11,7 +11,7 @@ export function Panel({ title, action, children, className }: {
   title?: string; action?: ReactNode; children: ReactNode; className?: string;
 }) {
   return (
-    <section className={clsx('rounded-xl border border-line bg-card shadow-card', className)}>
+    <section className={clsx('rounded-[5px] border border-line bg-card shadow-card', className)}>
       {(title || action) && (
         <header className="flex items-center justify-between border-b border-line px-5 py-3">
           {title && <h2 className="font-mono text-[10px] uppercase tracking-widest text-ink-2">{title}</h2>}
@@ -27,7 +27,7 @@ export function Metric({ label, value, hint, tone }: {
   label: string; value: ReactNode; hint?: string; tone?: 'good' | 'warn' | 'bad';
 }) {
   return (
-    <div className="rounded-xl border border-line bg-card p-4">
+    <div className="rounded-[5px] border border-line bg-card p-4">
       <p className="font-mono text-[10px] uppercase tracking-widest text-ink-2">{label}</p>
       <p className={clsx('mt-1.5 font-mono text-xl font-semibold tabular-nums',
         tone === 'good' ? 'text-good' : tone === 'warn' ? 'text-warn' : tone === 'bad' ? 'text-bad' : 'text-ink')}>{value}</p>

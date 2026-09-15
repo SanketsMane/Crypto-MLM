@@ -1,33 +1,57 @@
-/* ── FortuneX replica — scoped theme ──────────────────────────────────────
-   Everything here hangs off [data-home], so this palette never leaks into the
-   FortuneX console or marketing site. The original is a Bootstrap template;
-   this is a re-implementation of its look in our own CSS, not its stylesheet.
+/* ── Public site — scoped theme ───────────────────────────────────────────
+   Everything hangs off [data-home], so the marketing palette never leaks into
+   the console.
 
-   Palette lifted from the live site: orange #D4AF37 carries brand and CTA,
-   lime #C7F801 belongs to the illustrations, peach #F0DCB0 to display
-   headings, and everything sits on near-black.                            */
+   These names used to hold a palette copied from another company's website,
+   pinned to near-black with no light variant. They now resolve to this
+   product's OWN tokens — the same navy/orange system the console runs on — so
+   the public site and the app are recognisably one product, and the theme
+   toggle works out here too.
+
+   Anything genuinely marketing-only (the display tint, the illustration
+   accent) is defined here rather than in the console's token set, because the
+   console has no use for it.                                               */
 
 [data-home] {
-  --home-bg:        #000000;
-  --home-surface:   #0B0B12;
-  --home-raised:    #12121A;
-  --home-line:      rgba(255, 255, 255, 0.09);
-  --home-line-lit:  rgba(212, 175, 55, 0.45);
+  --home-bg:        var(--color-canvas);
+  --home-surface:   var(--color-card);
+  --home-raised:    var(--color-card-2);
+  --home-line:      var(--color-line);
+  --home-line-lit:  var(--color-gold);
 
-  --home-gold:    #D4AF37;
-  --home-gold-hi: #E5C158;
-  --home-lime:      #C7F801;
-  --home-lime-dim:  #BCE70C;
-  --home-display:     #F0DCB0;
-  --home-cream:     #F7EAD2;
+  /* Brand accent. Named `gold` for the same reason the console's is: the
+     section markup already reads these names. */
+  --home-gold:      var(--color-gold);
+  --home-gold-hi:   var(--color-gold-hi);
 
-  --home-text:      #FFFFFF;
-  --home-text-2:    rgba(255, 255, 255, 0.72);
-  --home-text-3:    #C2C2C4;
+  /* The secondary illustration accent. Was a near-fluorescent lime chosen to
+     match someone else's artwork; now the analytics purple, which is already
+     part of this product's system. */
+  --home-lime:      var(--color-violet);
+  --home-lime-dim:  var(--color-violet-hi);
+
+  /* Display headings carry a warm tint of the accent rather than a flat ink,
+     which is what gives the marketing pages a voice the console does not need. */
+  --home-display:   var(--color-ink);
+  --home-cream:     var(--color-gold-hi);
+
+  --home-text:      var(--color-ink);
+  --home-text-2:    var(--color-ink-2);
+  --home-text-3:    var(--color-ink-3);
 
   background: var(--home-bg);
   color: var(--home-text);
   font-family: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Dark gets a deeper ground than the console's canvas: a marketing page is
+   mostly full-bleed sections, and the console's canvas is tuned for panels
+   sitting ON it rather than for being the page itself. */
+:root[data-theme="dark"] [data-home],
+[data-home]:where(:root[data-theme="dark"] *) {
+  --home-bg:      var(--color-navy);
+  --home-surface: var(--color-navy-card);
+  --home-raised:  var(--color-navy-soft);
 }
 
 /* ── motion ───────────────────────────────────────────────────────────────
@@ -129,7 +153,7 @@
   inset-block: 0;
   width: 34%;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent, var(--home-gold, #D4AF37), transparent);
+  background: linear-gradient(90deg, transparent, var(--home-gold, #FF7A1A), transparent);
   animation: fx-intro-sweep 1.05s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
@@ -152,4 +176,64 @@ html[data-intro] .fx-intro {
    where the preference changes after the attribute was set */
 @media (prefers-reduced-motion: reduce) {
   html[data-intro] .fx-intro { animation: none; opacity: 0; visibility: hidden; }
+}
+
+/* ── depth ────────────────────────────────────────────────────────────────
+   Stripping the template's glow shadows left the sections correct but flat.
+   These put the atmosphere back without going back to floating cards: light
+   comes from ONE off-centre source per section, behind the content, never on
+   it. Symmetric glows read as decoration; an off-axis one reads as depth. */
+
+[data-home] .fx-glow {
+  position: relative;
+  isolation: isolate;
+}
+[data-home] .fx-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(62% 55% at 18% 0%,
+      color-mix(in srgb, var(--home-gold) 9%, transparent), transparent 70%);
+}
+/* Mirrored, for the section that follows — so consecutive sections are lit
+   from opposite sides rather than repeating the same wash down the page. */
+[data-home] .fx-glow-r::before {
+  background:
+    radial-gradient(62% 55% at 82% 0%,
+      color-mix(in srgb, var(--home-gold) 9%, transparent), transparent 70%);
+}
+
+/* ── the sequence connector ───────────────────────────────────────────────
+   The rule between numbered steps draws itself once the row is revealed, so
+   the eye is pulled left-to-right through the order rather than being handed
+   four finished columns at once. */
+[data-home] [data-reveal] .fx-draw {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--reveal-delay, 0ms) + 220ms);
+}
+[data-home] [data-reveal][data-shown] .fx-draw { transform: scaleX(1); }
+
+/* ── live pulse ───────────────────────────────────────────────────────────
+   One dot on the page breathes: the "accruing" indicator. Exactly one, so it
+   reads as a status light rather than as animation for its own sake. */
+@keyframes fx-live {
+  0%, 100% { opacity: 1;   box-shadow: 0 0 0 0 color-mix(in srgb, var(--home-gold) 55%, transparent); }
+  70%      { opacity: 0.85; box-shadow: 0 0 0 5px color-mix(in srgb, var(--home-gold) 0%, transparent); }
+}
+[data-home] .fx-live { animation: fx-live 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+/* Panels lift their accent rather than themselves. */
+[data-home] .fx-cell { transition: background-color 200ms ease; }
+[data-home] .fx-cell:hover { background: var(--home-raised); }
+[data-home] .fx-cell .fx-cell-icon { transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1); }
+[data-home] .fx-cell:hover .fx-cell-icon { transform: translateY(-2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-home] .fx-live { animation: none; }
+  [data-home] [data-reveal] .fx-draw { transition: none; transform: scaleX(1); }
+  [data-home] .fx-cell .fx-cell-icon { transition: none; }
 }

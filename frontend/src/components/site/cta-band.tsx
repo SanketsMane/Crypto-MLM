@@ -23,7 +23,7 @@ export function CtaBand({
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
               href="/register"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-[11px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-6 py-3.5 text-[14px] font-semibold text-navy shadow-[0_10px_30px_-10px_rgba(212,175,55,0.7)] transition hover:brightness-110 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-[11px] bg-gold px-6 py-3.5 text-[14px] font-semibold text-gold-on shadow-[0_10px_30px_-10px_rgba(255,122,26,0.7)] transition hover:brightness-110 sm:w-auto"
             >
               Open your account
               <ArrowRight size={15} strokeWidth={2.5} />

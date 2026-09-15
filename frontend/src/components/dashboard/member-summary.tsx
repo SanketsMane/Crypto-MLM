@@ -43,7 +43,7 @@ export function MemberSummary({ profile, invested, earned, sponsor, joinedAt }: 
   return (
     <section className="dash-card flex flex-col gap-5 p-5 sm:p-6">
       <div className="flex items-center gap-3">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-[linear-gradient(135deg,var(--color-gold-hi)_0%,var(--color-gold)_100%)] text-navy">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[5px] bg-[linear-gradient(135deg,var(--color-gold-hi)_0%,var(--color-gold)_100%)] text-navy">
           <UserRound size={19} strokeWidth={2.2} />
         </span>
         <div className="min-w-0">

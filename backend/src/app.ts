@@ -94,8 +94,18 @@ export function createApp() {
 
   const standardJson = express.json({ limit: '1mb', verify: keepRaw });
   const documentJson = express.json({ limit: '40mb', verify: keepRaw });
+  /**
+   * Brand artwork is capped at 1MB by `core/brand-storage.ts`, but base64
+   * inflates that by a third — so the standard 1MB body limit would reject a
+   * logo that the storage layer considers perfectly acceptable, with a parser
+   * error that says nothing about size. 2MB covers the ceiling with room to
+   * spare, and stays nowhere near the 40MB documents get.
+   */
+  const brandJson = express.json({ limit: '2mb', verify: keepRaw });
   const isDocumentUpload = (req: express.Request) =>
     req.method === 'POST' && /^\/api\/v1\/kyc\/?$/.test(req.path);
+  const isBrandUpload = (req: express.Request) =>
+    req.method === 'PUT' && /^\/api\/v1\/admin\/branding\/assets\/[a-z-]+\/?$/.test(req.path);
 
   /**
    * Authenticated responses must never be cached by anything shared.
@@ -120,7 +130,10 @@ export function createApp() {
     next();
   });
 
-  app.use((req, res, next) => (isDocumentUpload(req) ? documentJson : standardJson)(req, res, next));
+  app.use((req, res, next) => {
+    const parser = isDocumentUpload(req) ? documentJson : isBrandUpload(req) ? brandJson : standardJson;
+    return parser(req, res, next);
+  });
   app.use(pinoHttp({
     logger,
     autoLogging: !env.isProd,

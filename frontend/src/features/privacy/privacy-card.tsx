@@ -107,8 +107,8 @@ export function PrivacyCard() {
               </Button>
             )}
 
-            <div className="flex flex-wrap items-start gap-3 rounded-[10px] border border-line bg-canvas px-4 py-3.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-violet-soft text-violet">
+            <div className="flex flex-wrap items-start gap-3 rounded-[5px] border border-line bg-canvas px-4 py-3.5">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] bg-violet-soft text-violet">
                 <Download size={16} />
               </span>
               <div className="min-w-0 flex-1">

@@ -11,12 +11,12 @@ import type { ReactNode } from 'react';
  * the dashboard so the shared button keeps its contract everywhere else.
  */
 export const goldCta = clsx(
-  'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-[10px] px-4',
+  'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-[5px] px-4',
   'bg-[linear-gradient(135deg,var(--color-gold-hi)_0%,var(--color-gold)_100%)]',
   'font-semibold text-navy',
-  'shadow-[0_1px_2px_rgba(15,23,42,0.10),0_6px_16px_-8px_rgba(200,155,44,0.7)]',
+  'shadow-[0_1px_2px_rgba(15,23,42,0.10),0_6px_16px_-8px_rgba(226,103,10,0.7)]',
   'transition-all duration-150 hover:brightness-[1.06]',
-  'hover:shadow-[0_1px_2px_rgba(15,23,42,0.12),0_10px_22px_-8px_rgba(200,155,44,0.85)]',
+  'hover:shadow-[0_1px_2px_rgba(15,23,42,0.12),0_10px_22px_-8px_rgba(226,103,10,0.85)]',
   'active:scale-[0.985]',
   'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/30',
 );

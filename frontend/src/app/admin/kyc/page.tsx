@@ -231,7 +231,7 @@ export default function KycPage() {
                     { k: 'On the account', v: d.user.name || '—', Icon: UserRound },
                     { k: 'On the document', v: d.fullName, Icon: FileCheck2 },
                   ].map(({ k, v, Icon }) => (
-                    <div key={k} className={clsx('flex items-center gap-2.5 rounded-[10px] border bg-card px-3.5 py-2.5',
+                    <div key={k} className={clsx('flex items-center gap-2.5 rounded-[5px] border bg-card px-3.5 py-2.5',
                       nameMatches ? 'border-line' : 'border-warn/35')}>
                       <Icon size={15} className="shrink-0 text-ink-3" aria-hidden />
                       <div className="min-w-0">
@@ -275,7 +275,7 @@ export default function KycPage() {
                                     mimeType={doc.mimeType} sizeBytes={doc.sizeBytes} />
                   ))}
                   {d.documents.length === 0 && (
-                    <p className="col-span-full rounded-[10px] border border-dashed border-line py-8 text-center text-[13px] text-ink-2">
+                    <p className="col-span-full rounded-[5px] border border-dashed border-line py-8 text-center text-[13px] text-ink-2">
                       This submission has no documents attached.
                     </p>
                   )}

@@ -29,7 +29,7 @@ export function MetricCard({ label, value, icon: Icon, accent, loading }: {
 }) {
   return (
     <article className="dash-card dash-lift p-5">
-      <span className={clsx('grid h-11 w-11 place-items-center rounded-[13px] ring-1 ring-inset', ACCENT[accent])}>
+      <span className={clsx('grid h-11 w-11 place-items-center rounded-[5px] ring-1 ring-inset', ACCENT[accent])}>
         <Icon size={19} strokeWidth={2} />
       </span>
       <p className="mt-4 text-[10.5px] font-medium uppercase leading-[1.3] tracking-[0.1em] text-ink-3">

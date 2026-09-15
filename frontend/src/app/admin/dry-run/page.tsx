@@ -154,7 +154,7 @@ export default function DryRunPage() {
       {/* Modelled data sitting in the database is the thing to never lose track
           of, so it is stated at the top rather than buried in a list. */}
       {footprint.data && !footprint.data.clean && (
-        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-[12px] border border-warn/30 bg-warn-soft px-4 py-3">
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-[5px] border border-warn/30 bg-warn-soft px-4 py-3">
           <FlaskConical size={17} className="shrink-0 text-warn" />
           <p className="min-w-0 flex-1 text-[13px] leading-snug text-ink">
             <strong className="font-semibold">{num(footprint.data.members)} modelled members</strong>{' '}
@@ -246,7 +246,7 @@ export default function DryRunPage() {
                           onClick={(e) => { e.stopPropagation(); setErasing(r); }}
                           onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setErasing(r); } }}
                           title="Erase this run's data"
-                          className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-[9px] border border-line text-ink-3 transition hover:border-bad/40 hover:text-bad"
+                          className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-[4px] border border-line text-ink-3 transition hover:border-bad/40 hover:text-bad"
                         >
                           <Trash2 size={14} />
                         </span>
@@ -386,7 +386,7 @@ function NewRunCard({
                 <button key={p.value} type="button" title={p.hint}
                         onClick={() => set('joinPattern', p.value)}
                         className={clsx(
-                          'rounded-[9px] border px-2 py-2 text-[12px] font-medium transition',
+                          'rounded-[4px] border px-2 py-2 text-[12px] font-medium transition',
                           form.joinPattern === p.value
                             ? 'border-violet bg-violet text-white'
                             : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink',
@@ -428,7 +428,7 @@ function NewRunCard({
                 <button key={m.value} type="button"
                         onClick={() => set('packageMode', m.value)}
                         className={clsx(
-                          'flex w-full items-start gap-2 rounded-[9px] border px-2.5 py-2 text-left transition',
+                          'flex w-full items-start gap-2 rounded-[4px] border px-2.5 py-2 text-left transition',
                           form.packageMode === m.value
                             ? 'border-violet bg-violet/8'
                             : 'border-line bg-card hover:border-violet/40',
@@ -486,7 +486,7 @@ function NewRunCard({
                 <button key={o.value} type="button" title={o.hint}
                         onClick={() => set('reinvestSource', o.value)}
                         className={clsx(
-                          'rounded-[9px] border px-2 py-2 text-[12px] font-medium transition',
+                          'rounded-[4px] border px-2 py-2 text-[12px] font-medium transition',
                           form.reinvestSource === o.value
                             ? 'border-violet bg-violet text-white'
                             : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink',
@@ -533,7 +533,7 @@ function NewRunCard({
                  className={`${controlCls} h-9 w-full font-mono text-[12.5px]`} />
         </Field>
 
-        <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+        <div className="rounded-[5px] border border-line bg-canvas px-3 py-2.5">
           <p className="text-[12px] leading-relaxed text-ink-2">
             Between{' '}
             <strong className="text-ink">
@@ -560,7 +560,7 @@ function NewRunCard({
 /** A titled group, so a form this long stays readable. */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="space-y-3 rounded-[10px] border border-line px-3 pb-3 pt-2">
+    <fieldset className="space-y-3 rounded-[5px] border border-line px-3 pb-3 pt-2">
       <legend className="px-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-ink-3">
         {title}
       </legend>
@@ -587,7 +587,7 @@ function PackagePicker({
   if (!packages) return <Skeleton className="h-40" />;
   if (!packages.length) {
     return (
-      <p className="rounded-[9px] border border-warn/30 bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-ink">
+      <p className="rounded-[4px] border border-warn/30 bg-warn-soft px-3 py-2.5 text-[12px] leading-relaxed text-ink">
         No package is on sale. Add one on the Plans screen before modelling a tier.
       </p>
     );
@@ -600,13 +600,13 @@ function PackagePicker({
 
   return (
     <div className="space-y-1">
-      <div className="max-h-64 space-y-1 overflow-y-auto rounded-[9px] border border-line p-1">
+      <div className="max-h-64 space-y-1 overflow-y-auto rounded-[4px] border border-line p-1">
         {packages.map((p) => {
           const on = selected.includes(p.id);
           return (
             <button key={p.id} type="button" onClick={() => toggle(p.id)}
                     className={clsx(
-                      'flex w-full items-center gap-2.5 rounded-[7px] px-2 py-1.5 text-left transition',
+                      'flex w-full items-center gap-2.5 rounded-[4px] px-2 py-1.5 text-left transition',
                       on ? 'bg-violet/10' : 'hover:bg-canvas',
                     )}>
               <span className={clsx(
@@ -761,7 +761,7 @@ function Results({ run }: { run: Run }) {
     <div className="border-t border-line bg-canvas/50 px-5 py-4">
       {/* The headline is the position including what is still owed. The
           in-month figure looks healthy long before the liability lands. */}
-      <div className="grid gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-4">
+      <div className="grid gap-px overflow-hidden rounded-[5px] border border-line bg-line sm:grid-cols-4">
         <Cell label="Capital in" value={usd(Number(s.capitalIn))} />
         <Cell label="Paid out" value={usd(Number(s.totalPaidOut))} tone="warn" />
         <Cell label="Still owed on caps" value={usd(Number(s.outstandingLiability))} tone="warn"
@@ -775,7 +775,7 @@ function Results({ run }: { run: Run }) {
       </div>
 
       {underwater && (
-        <div className="mt-3 flex items-start gap-2.5 rounded-[10px] border border-bad/30 bg-bad-soft px-4 py-3">
+        <div className="mt-3 flex items-start gap-2.5 rounded-[5px] border border-bad/30 bg-bad-soft px-4 py-3">
           <TrendingDown size={16} className="mt-0.5 shrink-0 text-bad" />
           <p className="min-w-0 text-[12.5px] leading-relaxed text-ink">
             Counting what is still owed to active packages, this run ends{' '}

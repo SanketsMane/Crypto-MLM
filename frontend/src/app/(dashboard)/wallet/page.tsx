@@ -64,7 +64,7 @@ export default function WalletPage() {
       {w.isError && (
         <div role="alert" className="dash-card mt-4 flex flex-wrap items-center justify-between gap-3 p-5">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-[11px] bg-bad-soft text-bad">
+            <span className="grid size-9 shrink-0 place-items-center rounded-[5px] bg-bad-soft text-bad">
               <AlertTriangle size={17} strokeWidth={2} />
             </span>
             <div className="min-w-0">

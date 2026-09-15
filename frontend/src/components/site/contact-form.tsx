@@ -134,7 +134,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={!valid || status === 'sending'}
-        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-[11px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-6 py-3.5 text-[14.5px] font-semibold text-navy transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
+        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-[11px] bg-gold px-6 py-3.5 text-[14px] font-semibold text-gold-on transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
       >
         {status === 'sending' ? (
           <><span className="h-4 w-4 animate-spin rounded-full border-2 border-navy/40 border-t-navy" /> Sending…</>

@@ -21,7 +21,7 @@ export function RankProgress({ rank, team }: {
         action={<Link href="/rank" className="text-[12.5px] font-medium text-violet hover:underline">All ranks</Link>} />
       <div className="flex flex-1 flex-col px-5 pb-5">
         <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-gold/12 text-gold ring-1 ring-gold-line/40">
+          <span className="grid h-11 w-11 place-items-center rounded-[5px] bg-gold/12 text-gold ring-1 ring-gold-line/40">
             <Trophy size={19} strokeWidth={2.1} />
           </span>
           <div>

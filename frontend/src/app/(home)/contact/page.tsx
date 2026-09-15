@@ -48,7 +48,7 @@ export default async function ContactPage() {
                       </span>
                       <div className="min-w-0">
                         <h3 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--home-text-3)]">{title}</h3>
-                        <p className="mt-1 text-[16px] font-semibold text-white">{body}</p>
+                        <p className="mt-1 text-[16px] font-semibold text-[var(--home-text)]">{body}</p>
                         <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--home-text-2)]">{hint}</p>
                       </div>
                     </Card>

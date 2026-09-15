@@ -81,3 +81,12 @@ Doc/reference/fyntrust/
 # Published app builds. The APK is a build artefact served off the server, not
 # source — and at several megabytes it has no business in the history.
 ops/downloads/
+
+# ── source asset drops ───────────────────────────────────────────────────────
+# Originals handed over for the redesign. The versions the app actually serves
+# live under frontend/public/, so committing these too would duplicate ~7MB of
+# binaries in the history for no benefit. They stay on disk, untracked.
+/HeroSectionvideo.mp4
+/home_new_rwo5_img_01.png
+/deposit-bonus-banner-img-20240110.png
+/category-market-analysis-banner-img.png

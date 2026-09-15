@@ -191,7 +191,7 @@ function TreeNode({
     <li>
       <div
         className={clsx(
-          'flex items-center gap-2 rounded-[9px] py-1.5 pr-2 transition',
+          'flex items-center gap-2 rounded-[4px] py-1.5 pr-2 transition',
           hit ? 'bg-gold-soft' : 'hover:bg-canvas',
         )}
       >
@@ -201,7 +201,7 @@ function TreeNode({
             onClick={() => onToggle(node.id)}
             aria-label={open ? `Collapse ${node.name}` : `Expand ${node.name}`}
             aria-expanded={open}
-            className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-ink-3 transition hover:bg-line/50 hover:text-ink"
+            className="grid h-6 w-6 shrink-0 place-items-center rounded-[3px] text-ink-3 transition hover:bg-line/50 hover:text-ink"
           >
             <ChevronRight size={14} className={clsx('transition-transform', open && 'rotate-90')} />
           </button>
@@ -281,7 +281,7 @@ function LevelView() {
           <div className="flex flex-wrap gap-1.5">
             {(levels.data ?? Array.from({ length: 30 }, (_, i) => ({ level: i + 1, members: 0, unlocked: false } as Level))).map((l) => (
               <button key={l.level} onClick={() => setLevel(l.level)}
-                className={`relative h-11 w-11 rounded-[9px] border text-[12px] font-medium tabular-nums transition ${
+                className={`relative h-11 w-11 rounded-[4px] border text-[12px] font-medium tabular-nums transition ${
                   l.level === level
                     ? 'border-violet bg-violet text-white'
                     : l.unlocked

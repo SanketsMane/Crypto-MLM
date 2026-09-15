@@ -115,3 +115,42 @@ export function CountUp({
     </span>
   );
 }
+
+/**
+ * A figure that counts, given an already-formatted string.
+ *
+ * `CountUp` needs a number, a prefix and a suffix. Almost every figure on this
+ * site arrives pre-formatted from the server — `"0.5%"`, `"$104,300"`,
+ * `"Up to 30 levels"` — because the page is what owns the formatting rules.
+ * Reformatting those at each call site would duplicate that logic a dozen
+ * times and let it drift.
+ *
+ * So this takes the string, finds the number inside it, and animates only that
+ * part while leaving everything around it alone. Anything with no number in it
+ * renders unchanged, which is what makes it safe to apply everywhere.
+ */
+const FIGURE = /^([^\d-]*)(-?[\d,]+(?:\.\d+)?)(.*)$/s;
+
+export function Figure({
+  value, duration = 1500, className,
+}: {
+  value: string;
+  duration?: number;
+  className?: string;
+}) {
+  const m = FIGURE.exec(value);
+  if (!m) return <span className={clsx('tabular-nums', className)}>{value}</span>;
+
+  const [, prefix, digits, suffix] = m;
+  const n = Number(digits.replace(/,/g, ''));
+  if (!Number.isFinite(n)) return <span className={clsx('tabular-nums', className)}>{value}</span>;
+
+  // Match the source's own precision — counting "0.5%" to "1%" would be wrong.
+  const dot = digits.indexOf('.');
+  const decimals = dot === -1 ? 0 : digits.length - dot - 1;
+
+  return (
+    <CountUp to={n} duration={duration} prefix={prefix} suffix={suffix}
+             decimals={decimals} className={className} />
+  );
+}

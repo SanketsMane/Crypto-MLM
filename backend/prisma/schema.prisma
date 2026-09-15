@@ -870,6 +870,36 @@ model Setting {
   @@map("settings")
 }
 
+/// The operator's brand artwork.
+///
+/// Text branding (name, tagline, support email) lives in `settings` alongside
+/// every other tunable, because it is a string and the settings table already
+/// has validation, audit and cache invalidation built around it. Images cannot
+/// go there, so they get their own table — but only the metadata. The bytes
+/// live behind `core/brand-storage.ts`, which keeps the driver swappable.
+///
+/// One row per `slot`, so replacing a logo is an upsert rather than an insert
+/// plus a cleanup that might not run. `storageKey` is content-addressed, which
+/// is what allows the public read route to serve these as immutable.
+model BrandingAsset {
+  id         String   @id @default(cuid())
+  /// "logo-light" | "logo-dark" | "icon" | "og-image"
+  slot       String   @unique
+  storageKey String
+  mimeType   String
+  sizeBytes  Int
+  /// Null when the header could not be parsed; used for operator guidance only.
+  width      Int?
+  height     Int?
+  /// AdminUser id, kept as a plain column so deleting an admin never erases
+  /// who changed the brand.
+  uploadedBy String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("branding_assets")
+}
+
 // ─────────────────────────── admin operations ───────────────────────────
 
 enum KycStatus {

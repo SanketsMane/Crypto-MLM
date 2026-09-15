@@ -28,7 +28,7 @@ export function DestinationDetail({ tier, onClose }: { tier: TierView | null; on
       description={`${meta.title} · ${meta.blurb}`}
       width="lg"
       icon={
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-gold-soft text-gold-on-soft ring-1 ring-gold/30">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[5px] bg-gold-soft text-gold-on-soft ring-1 ring-gold/30">
           <Plane size={16} strokeWidth={2.2} aria-hidden />
         </span>
       }
@@ -38,7 +38,7 @@ export function DestinationDetail({ tier, onClose }: { tier: TierView | null; on
         {/* What is being won, and by when — stated before the requirements,
             because both decide whether the requirements are worth meeting. */}
         {(tier.rewardLabel || windowLabel(tier)) && (
-          <div className="rounded-[11px] border border-gold/35 bg-gold-soft p-4">
+          <div className="rounded-[5px] border border-gold/35 bg-gold-soft p-4">
             {tier.rewardLabel && (
               <p className="text-[13px] font-semibold leading-snug text-gold-on-soft">
                 {tier.rewardLabel}
@@ -57,7 +57,7 @@ export function DestinationDetail({ tier, onClose }: { tier: TierView | null; on
         )}
 
         {tier.needsSelf && (
-          <div className="rounded-[11px] border border-line bg-canvas-2 p-4">
+          <div className="rounded-[5px] border border-line bg-canvas-2 p-4">
             <RequirementProgress
               label="Self capital"
               actual={tier.selfActual}
@@ -73,7 +73,7 @@ export function DestinationDetail({ tier, onClose }: { tier: TierView | null; on
         )}
 
         {tier.needsTeam && (
-          <div className="rounded-[11px] border border-line bg-canvas-2 p-4">
+          <div className="rounded-[5px] border border-line bg-canvas-2 p-4">
             <RequirementProgress
               label="Team business"
               actual={tier.teamActual}

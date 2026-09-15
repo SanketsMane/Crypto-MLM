@@ -50,9 +50,9 @@ export function QueueHealth({ data, loading }: { data?: Queues; loading?: boolea
             {items.map(({ label, value, href, Icon, alert }) => (
               <li key={label}>
                 <Link href={href}
-                      className={clsx('group flex items-center gap-3 rounded-xl border px-3 py-2.5 transition',
+                      className={clsx('group flex items-center gap-3 rounded-[5px] border px-3 py-2.5 transition',
                         alert ? 'border-bad/35 bg-bad-soft' : 'border-line bg-canvas/60 hover:border-line-strong')}>
-                  <span className={clsx('grid h-8 w-8 shrink-0 place-items-center rounded-lg',
+                  <span className={clsx('grid h-8 w-8 shrink-0 place-items-center rounded-[4px]',
                     alert ? 'bg-bad/15 text-bad' : 'bg-violet-soft text-violet-on')}>
                     <Icon size={15} strokeWidth={2.1} />
                   </span>

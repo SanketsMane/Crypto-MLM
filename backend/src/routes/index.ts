@@ -20,6 +20,7 @@ import { searchRoutes } from '../modules/search/search.routes.js';
 import * as announcement from '../modules/announcement/announcement.controller.js';
 import * as privacy from '../modules/privacy/privacy.controller.js';
 import * as platformConfig from '../modules/config/config.controller.js';
+import * as branding from '../modules/branding/branding.controller.js';
 import rewards from '../modules/rewards/rewards.routes.js';
 import lottery from '../modules/lottery/lottery.routes.js';
 import { asyncHandler } from '../middleware/async-handler.js';
@@ -32,6 +33,18 @@ const router = Router();
  * so neither can drift from what the engine actually does.
  */
 router.get('/config', asyncHandler(platformConfig.publicConfig));
+
+/**
+ * The operator's brand. Public and unauthenticated, because the login page and
+ * the public site render the logo before anyone has a session.
+ *
+ * `/brand/asset/:key` is the only route in the API that serves stored bytes to
+ * an anonymous caller — deliberately, and only for artwork whose key is a hash
+ * of its own contents. KYC documents stay behind the authenticated admin
+ * stream in `core/document-storage.ts`; the two must not be confused.
+ */
+router.get('/brand', asyncHandler(branding.publicBranding));
+router.get('/brand/asset/:key', asyncHandler(branding.asset));
 
 // Health probes are mounted in app.ts, ahead of the rate limiter — see there.
 

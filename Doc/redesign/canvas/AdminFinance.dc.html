@@ -1,0 +1,247 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #080A0E; font-family: 'IBM Plex Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #5EEAD4; text-decoration: none; } a:hover { color: #99F6E4; }
+    .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    .lbl { font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #5D6979; font-weight: 600; }
+    .pnl { background: #0F131A; border: 1px solid #1E2631; border-radius: 4px; }
+    .chip { height: 24px; display: flex; align-items: center; gap: 6px; padding: 0 9px; border-radius: 3px; border: 1px solid #1E2631; font-size: 11px; color: #93A0B2; }
+    .key { font-family: 'IBM Plex Mono', monospace; font-size: 9px; padding: 1px 4px; border-radius: 2px; background: #1A212B; border: 1px solid #2B3543; color: #93A0B2; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; overflow: hidden; color: #E8ECF3;">
+
+  <div style="height: 46px; flex-shrink: 0; border-bottom: 1px solid #1E2631; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: #0B0E13;">
+    <span style="font-size: 12px; color: #5D6979;">Console</span>
+    <span style="font-size: 12px; color: #2B3543;">/</span>
+    <span style="font-size: 13px; font-weight: 600;">Withdrawal queue</span>
+    <div style="display: flex; align-items: center; gap: 7px; margin-left: 14px; padding-left: 14px; border-left: 1px solid #1E2631;">
+      <span style="width: 5px; height: 5px; border-radius: 50%; background: #FF5A5A;"></span>
+      <span class="num" style="font-size: 11px; color: #FF8080;">3 past SLA</span>
+    </div>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+      <span class="num" style="font-size: 10px; color: #5D6979;">FINANCE · j.mehta</span>
+      <div style="width: 24px; height: 24px; border-radius: 3px; background: #151B24; border: 1px solid #1E2631; display: grid; place-items: center;"><span class="num" style="font-size: 10px; color: #93A0B2;">JM</span></div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; gap: 12px; padding: 12px; min-height: 0;">
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+
+      <!-- Liability first: what the queue actually commits the platform to. -->
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+        <div class="pnl" style="padding: 10px 12px;">
+          <div class="lbl">Pending liability</div>
+          <div class="num" style="font-size: 19px; font-weight: 600; margin-top: 5px;">$48,220.00</div>
+          <div class="num" style="font-size: 10px; color: #5D6979; margin-top: 4px;">across 37 requests</div>
+        </div>
+        <div class="pnl" style="padding: 10px 12px; box-shadow: inset 2px 0 0 #FF5A5A;">
+          <div class="lbl" style="color: #FF8080;">Past 48h SLA</div>
+          <div class="num" style="font-size: 19px; font-weight: 600; margin-top: 5px; color: #FF5A5A;">$6,900.00</div>
+          <div class="num" style="font-size: 10px; color: #5D6979; margin-top: 4px;">3 requests · oldest 71h</div>
+        </div>
+        <div class="pnl" style="padding: 10px 12px;">
+          <div class="lbl">Treasury on hand</div>
+          <div class="num" style="font-size: 19px; font-weight: 600; margin-top: 5px; color: #22C55E;">$214,780.11</div>
+          <div class="num" style="font-size: 10px; color: #5D6979; margin-top: 4px;">4.5× covered</div>
+        </div>
+        <div class="pnl" style="padding: 10px 12px;">
+          <div class="lbl">Next settlement</div>
+          <div class="num" style="font-size: 19px; font-weight: 600; margin-top: 5px;">30 Sep</div>
+          <div class="num" style="font-size: 10px; color: #5D6979; margin-top: 4px;">in 14 days</div>
+        </div>
+      </div>
+
+      <!-- The queue is a job, not a report: selection, bulk action, keys. -->
+      <div class="pnl" style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
+
+        <div style="height: 40px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid #1E2631;">
+          <div class="chip" style="border-color: #2B3543; color: #E8ECF3; background: #151B24;">
+            <span style="width: 5px; height: 5px; border-radius: 50%; background: #F5A524;"></span> Pending
+            <span class="num" style="color: #5D6979;">37</span>
+          </div>
+          <div class="chip">Approved <span class="num" style="color: #5D6979;">12</span></div>
+          <div class="chip">Rejected <span class="num" style="color: #5D6979;">2</span></div>
+          <div style="width: 1px; height: 16px; background: #1E2631; margin: 0 3px;"></div>
+          <div class="chip" style="border-color: #3D1717; color: #FF8080;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Past SLA only
+          </div>
+          <div class="chip">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            Saved · Large payouts
+          </div>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+            <span class="num" style="font-size: 10px; color: #5D6979;">sorted by SLA ageing</span>
+          </div>
+        </div>
+
+        <!-- bulk bar: appears with a selection, so the action is where the eyes are -->
+        <div style="height: 34px; flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #0B1A16; border-bottom: 1px solid #14372E;">
+          <span class="num" style="font-size: 11px; color: #5EEAD4;">3 selected · $6,900.00</span>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 6px;">
+            <span class="key">A</span><span style="font-size: 10.5px; color: #93A0B2;">approve</span>
+            <span class="key" style="margin-left: 8px;">R</span><span style="font-size: 10.5px; color: #93A0B2;">reject</span>
+            <span class="key" style="margin-left: 8px;">J</span><span class="key">K</span><span style="font-size: 10.5px; color: #93A0B2;">move</span>
+            <div style="height: 24px; padding: 0 12px; margin-left: 8px; border-radius: 3px; background: #14A06B; color: #041109; font-size: 11.5px; font-weight: 600; display: grid; place-items: center;">Approve 3</div>
+          </div>
+        </div>
+
+        <!-- header -->
+        <div style="display: grid; grid-template-columns: 26px 62px 96px 92px 76px 92px 150px 78px 96px; align-items: center; height: 26px; flex-shrink: 0; padding: 0 12px; border-bottom: 1px solid #1E2631; background: #0C1016;">
+          <span></span>
+          <span class="lbl">Age</span>
+          <span class="lbl">Requested</span>
+          <span class="lbl">User</span>
+          <span class="lbl" style="text-align: right;">Amount</span>
+          <span class="lbl" style="text-align: right;">Net</span>
+          <span class="lbl" style="padding-left: 12px;">Address</span>
+          <span class="lbl">Status</span>
+          <span class="lbl" style="text-align: right;">Action</span>
+        </div>
+
+        <div style="flex-grow: 1; overflow: hidden;">
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="14">
+            <div style="display: grid; grid-template-columns: 26px 62px 96px 92px 76px 92px 150px 78px 96px; align-items: center; height: 30px; padding: 0 12px; border-bottom: 1px solid #141A22; background: {{r.bg}};">
+              <span style="width: 12px; height: 12px; border-radius: 2px; border: 1.5px solid {{r.box}}; background: {{r.boxFill}};"></span>
+              <span class="num" style="font-size: 11px; color: {{r.ageTone}};">{{r.age}}</span>
+              <span class="num" style="font-size: 11px; color: #93A0B2;">{{r.when}}</span>
+              <span class="num" style="font-size: 11px;">{{r.user}}</span>
+              <span class="num" style="font-size: 11.5px; text-align: right;">{{r.amount}}</span>
+              <span class="num" style="font-size: 11.5px; text-align: right; color: #22C55E;">{{r.net}}</span>
+              <span class="num" style="font-size: 10.5px; color: #5D6979; padding-left: 12px;">{{r.addr}}</span>
+              <span class="num" style="font-size: 9px; color: {{r.stTone}}; border: 1px solid {{r.stLine}}; border-radius: 2px; padding: 2px 5px; justify-self: start;">{{r.status}}</span>
+              <span style="display: flex; gap: 4px; justify-content: flex-end;">
+                <span class="num" style="font-size: 9.5px; padding: 3px 7px; border-radius: 2px; background: #14372E; color: #5EEAD4;">Approve</span>
+                <span class="num" style="font-size: 9.5px; padding: 3px 6px; border-radius: 2px; border: 1px solid #2B3543; color: #93A0B2;">✕</span>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-top: 1px solid #1E2631;">
+          <span class="num" style="font-size: 10.5px; color: #5D6979;">1–14 of 37</span>
+          <div style="display: flex; gap: 4px;">
+            <span class="num" style="font-size: 10.5px; padding: 3px 8px; border-radius: 2px; background: #202836;">1</span>
+            <span class="num" style="font-size: 10.5px; padding: 3px 8px; color: #5D6979;">2</span>
+            <span class="num" style="font-size: 10.5px; padding: 3px 8px; color: #5D6979;">3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── inspector: the selected request, and what approving it means ── -->
+    <div style="width: 306px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+      <div class="pnl" style="display: flex; flex-direction: column;">
+        <div style="height: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid #1E2631;">
+          <span style="font-size: 11.5px; font-weight: 600;">FX-40218</span>
+          <span class="num" style="font-size: 9px; color: #FF5A5A; border: 1px solid #3D1717; border-radius: 2px; padding: 2px 5px;">71h · PAST SLA</span>
+        </div>
+        <div style="padding: 13px 13px 12px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <span class="num" style="font-size: 25px; font-weight: 600;">$2,500.00</span>
+            <span class="num" style="font-size: 12px; color: #22C55E;">net $2,375.00</span>
+          </div>
+          <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 7px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;"><span style="color: #93A0B2;">Member</span><span class="num">FX-88241 · S. Kale</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px;"><span style="color: #93A0B2;">KYC</span><span class="num" style="color: #22C55E;">Verified · 11 Aug</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px;"><span style="color: #93A0B2;">Lifetime out</span><span class="num">$9,140.00</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px;"><span style="color: #93A0B2;">Cap used</span><span class="num">60.2%</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px;"><span style="color: #93A0B2;">Address age</span><span class="num">34 days</span></div>
+          </div>
+
+          <div style="margin-top: 13px; padding: 10px 11px; border-radius: 3px; background: #0B0E13; border: 1px solid #1E2631;">
+            <div style="font-size: 10.5px; color: #93A0B2; line-height: 1.5;">
+              The balance was debited when the request was made. Approving does
+              <span style="color: #E8ECF3;">not</span> move funds a second time — it releases the payout for the
+              <span class="num" style="color: #E8ECF3;">30 Sep</span> settlement.
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 6px; margin-top: 12px;">
+            <div style="flex-grow: 1; height: 30px; border-radius: 3px; background: #14A06B; color: #041109; font-size: 11.5px; font-weight: 600; display: grid; place-items: center;">Approve</div>
+            <div style="height: 30px; padding: 0 14px; border-radius: 3px; border: 1px solid #3D1717; color: #FF8080; font-size: 11.5px; display: grid; place-items: center;">Reject</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pnl" style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
+        <div style="height: 30px; display: flex; align-items: center; padding: 0 12px; border-bottom: 1px solid #1E2631;">
+          <span style="font-size: 11.5px; font-weight: 600;">Audit trail</span>
+        </div>
+        <div style="padding: 4px 0; overflow: hidden;">
+          <sc-for list="{{audit}}" as="a" hint-placeholder-count="6">
+            <div style="padding: 7px 12px; border-bottom: 1px solid #141A22;">
+              <div style="display: flex; justify-content: space-between; gap: 8px;">
+                <span style="font-size: 10.5px; color: #E8ECF3;">{{a.what}}</span>
+                <span class="num" style="font-size: 9.5px; color: #5D6979; flex-shrink: 0;">{{a.when}}</span>
+              </div>
+              <div class="num" style="font-size: 9.5px; color: #5D6979; margin-top: 2px;">{{a.who}}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "accent": {"editor": "color", "default": "#5EEAD4", "options": ["#5EEAD4", "#7C9CFF", "#C6F24E", "#F5A524"]},
+  "$preview": {"width": 1440, "height": 900}
+}'>
+class Component extends DCLogic {
+  renderVals() {
+    const PEND = { status: "PENDING",  stTone: "#F5A524", stLine: "#3D2F0C" };
+    const mk = (age, hrs, when, user, amount, net, addr, sel) => ({
+      age, when, user, amount, net, addr,
+      ...PEND,
+      // Ageing is the primary signal, so it is the only column that carries color.
+      ageTone: hrs > 48 ? "#FF5A5A" : hrs > 36 ? "#F5A524" : "#5D6979",
+      bg:      sel ? "#0D1714" : "transparent",
+      box:     sel ? "#5EEAD4" : "#2B3543",
+      boxFill: sel ? "#5EEAD4" : "transparent"
+    });
+    return {
+      accent: this.props.accent ?? "#5EEAD4",
+      rows: [
+        mk("71h", 71, "13 Sep 04:12", "FX-88241", "$2,500.00", "$2,375.00", "0x7F3a…8e2F51", true),
+        mk("64h", 64, "13 Sep 11:40", "FX-10277", "$3,200.00", "$3,040.00", "0x2B9c…41Ac08", true),
+        mk("52h", 52, "13 Sep 23:05", "FX-55019", "$1,200.00", "$1,140.00", "0x9E11…7bD3F2", true),
+        mk("44h", 44, "14 Sep 07:18", "FX-31884", "$800.00",   "$760.00",   "0x4A70…2cE991", false),
+        mk("39h", 39, "14 Sep 12:02", "FX-77410", "$5,000.00", "$4,750.00", "0xC3d8…59Bb17", false),
+        mk("31h", 31, "14 Sep 20:44", "FX-20933", "$450.00",   "$427.50",   "0x8F22…10Aa63", false),
+        mk("28h", 28, "14 Sep 23:51", "FX-64502", "$120.00",   "$114.00",   "0x1D65…88Ce24", false),
+        mk("22h", 22, "15 Sep 05:30", "FX-90118", "$2,750.00", "$2,612.50", "0x6B04…33Fd70", false),
+        mk("18h", 18, "15 Sep 09:12", "FX-42287", "$600.00",   "$570.00",   "0xE590…7aB412", false),
+        mk("14h", 14, "15 Sep 13:47", "FX-15630", "$980.00",   "$931.00",   "0x3C71…20Df95", false),
+        mk("11h", 11, "15 Sep 16:22", "FX-38845", "$1,500.00", "$1,425.00", "0xA842…64Bc03", false),
+        mk("7h",   7, "15 Sep 20:09", "FX-71104", "$310.00",   "$294.50",   "0x5F19…92Ea88", false),
+        mk("4h",   4, "15 Sep 23:31", "FX-28376", "$4,100.00", "$3,895.00", "0xB730…47Cc51", false),
+        mk("2h",   2, "16 Sep 01:15", "FX-66092", "$75.00",    "$71.25",    "0x0A38…19Fb26", false)
+      ],
+      audit: [
+        { what: "Request created",        when: "13 Sep 04:12", who: "member · FX-88241" },
+        { what: "Balance debited $2,500", when: "13 Sep 04:12", who: "ledger · WDL-40218" },
+        { what: "Flagged past SLA",       when: "15 Sep 04:12", who: "system" },
+        { what: "Opened by operator",     when: "16 Sep 02:40", who: "j.mehta · FINANCE" },
+        { what: "Treasury check passed",  when: "16 Sep 02:40", who: "system" },
+        { what: "Awaiting decision",      when: "—",            who: "—" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

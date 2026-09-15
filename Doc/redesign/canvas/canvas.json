@@ -1,0 +1,35 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",         "x": 0,    "y": 0,    "w": 1440, "h": 900, "title": "Member terminal" },
+    { "file": "Wallet.dc.html",       "x": 1560, "y": 0,    "w": 1440, "h": 900, "title": "Wallet" },
+    { "file": "Withdraw.dc.html",     "x": 3120, "y": 0,    "w": 1440, "h": 900, "title": "Withdraw — review" },
+    { "file": "Genealogy.dc.html",    "x": 0,    "y": 1080, "w": 1440, "h": 900, "title": "Genealogy" },
+    { "file": "AdminFinance.dc.html", "x": 1560, "y": 1080, "w": 1440, "h": 900, "title": "Console — withdrawal queue" },
+    { "file": "Mobile.dc.html",       "x": 3120, "y": 1080, "w": 390,  "h": 844, "title": "Member — phone" },
+    { "file": "System.dc.html",       "x": 0,    "y": 2160, "w": 1180, "h": 860, "title": "Design system" }
+  ],
+  "annotations": [
+    {
+      "id": "direction",
+      "x": 0,
+      "y": -150,
+      "w": 620,
+      "text": "Dense trading terminal — dark-first, IBM Plex Sans/Mono, tabular figures everywhere.\nDeliberately NOT the old navy-and-gold SaaS look: no white cards, no gold, no Inter."
+    },
+    {
+      "id": "density",
+      "x": 3120,
+      "y": 2010,
+      "w": 390,
+      "text": "Same palette, type and components as the desktop terminal — at thumb density.\n44px targets, tables become cards. This is B6's density token, shown rather than argued."
+    },
+    {
+      "id": "cap-note",
+      "x": 1560,
+      "y": -150,
+      "w": 620,
+      "text": "Cap headroom leads every member screen. It is the plan's hardest limit and was buried in the old build — now it is the first number, segmented by which stream is consuming it."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

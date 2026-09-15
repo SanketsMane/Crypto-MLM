@@ -58,7 +58,7 @@ export function AnnouncementBanners() {
       {banners.data.map((b) => {
         const { wrap, icon: Icon } = STYLE[b.severity];
         return (
-          <div key={b.id} className={clsx('flex items-start gap-3 rounded-[12px] border px-4 py-3 text-ink', wrap)}>
+          <div key={b.id} className={clsx('flex items-start gap-3 rounded-[5px] border px-4 py-3 text-ink', wrap)}>
             <Icon size={17} className="mt-0.5 shrink-0 opacity-80" />
             <div className="min-w-0 flex-1">
               <p className="text-[13.5px] font-semibold leading-snug">{b.title}</p>
@@ -73,7 +73,7 @@ export function AnnouncementBanners() {
               type="button"
               onClick={() => dismiss.mutate(b.id)}
               aria-label={`Dismiss ${b.title}`}
-              className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-ink-3 transition hover:bg-black/5 hover:text-ink dark:hover:bg-white/10"
+              className="grid h-7 w-7 shrink-0 place-items-center rounded-[3px] text-ink-3 transition hover:bg-black/5 hover:text-ink dark:hover:bg-white/10"
             >
               <X size={14} />
             </button>

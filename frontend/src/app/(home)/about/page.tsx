@@ -91,13 +91,16 @@ export default async function AboutPage() {
             </Reveal>
 
             <Reveal from="right">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--home-line)]">
-                <Image src="/brand/about-growth.jpg" alt="" aria-hidden fill
+              {/* Framed at the artwork's own 524×414 ratio rather than 4:3, so
+                  `object-cover` has nothing to crop.
+
+                  The black gradient that used to sit on top is gone: it existed
+                  to tone down a bright illustration on a permanently black page,
+                  and on a light page it just dimmed the image for no reason.
+                  Nothing is set over this artwork, so it needs no scrim. */}
+              <div className="relative aspect-[524/414] overflow-hidden rounded-[5px] border border-[var(--home-line)]">
+                <Image src="/home/about-analysis.png" alt="" aria-hidden fill
                        sizes="(max-width: 1024px) 100vw, 600px" className="object-cover" />
-                {/* Much lighter than it was. The old overlay ran to 85% black to
-                    tame a bright illustration; this artwork is already navy and
-                    gold, and that much black buried the bull and the chart. */}
-                <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.10),rgba(0,0,0,0.35))]" />
               </div>
               <dl className="mt-4 grid grid-cols-2 gap-3">
                 {FACTS.map((f) => (
@@ -134,7 +137,7 @@ export default async function AboutPage() {
                   <span className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--home-gold)]/12 text-[var(--home-gold)] ring-1 ring-[var(--home-gold)]/25">
                     <Icon size={20} strokeWidth={1.9} aria-hidden />
                   </span>
-                  <h3 className="mt-5 text-[18px] font-bold text-white">{title}</h3>
+                  <h3 className="mt-5 text-[18px] font-bold text-[var(--home-text)]">{title}</h3>
                   <p className="mt-3 text-[13.5px] leading-[1.75] text-[var(--home-text-2)]">{body}</p>
                 </Card>
               </Reveal>
@@ -160,7 +163,7 @@ export default async function AboutPage() {
                   <span className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-[var(--home-gold)]">
                     {l.role}
                   </span>
-                  <h3 className="mt-3 text-[22px] font-bold tracking-[-0.015em] text-white">{l.name}</h3>
+                  <h3 className="mt-3 text-[22px] font-bold tracking-[-0.015em] text-[var(--home-text)]">{l.name}</h3>
                   <span aria-hidden className="mt-4 block h-px w-full bg-gradient-to-r from-[var(--home-gold)]/45 to-transparent" />
                   <p className="mt-4 text-[13.5px] leading-[1.8] text-[var(--home-text-2)]">{l.body}</p>
                 </Card>
@@ -180,7 +183,7 @@ export default async function AboutPage() {
               { t: 'Verification', b: 'Identity documents are held privately, outside any public path, and are visible only to a reviewer with the compliance capability. A decision records who made it and why.' },
             ].map((o, i) => (
               <Reveal key={o.t} delay={i * 120}>
-                <h3 className="text-[18px] font-bold text-white">{o.t}</h3>
+                <h3 className="text-[18px] font-bold text-[var(--home-text)]">{o.t}</h3>
                 <span aria-hidden className="mt-4 block h-px w-16 bg-[var(--home-gold)]" />
                 <p className="mt-4 text-[13.5px] leading-[1.8] text-[var(--home-text-2)]">{o.b}</p>
               </Reveal>

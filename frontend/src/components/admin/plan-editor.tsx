@@ -91,7 +91,7 @@ export function NumField({
     <span
       title={invalid ? `${label} must be a positive number` : undefined}
       className={clsx(
-        'inline-flex h-9 items-center gap-1 rounded-[8px] border bg-field px-2 transition',
+        'inline-flex h-9 items-center gap-1 rounded-[4px] border bg-field px-2 transition',
         'focus-within:ring-4 focus-within:ring-gold/15',
         invalid
           ? 'border-bad ring-2 ring-bad/25'
@@ -207,7 +207,7 @@ export function SaveBar({
 export function LoadFailed({ error, retry }: { error: unknown; retry?: () => void }) {
   return (
     <div role="alert" className="flex flex-col items-center gap-2 px-5 py-12 text-center">
-      <span className="grid h-9 w-9 place-items-center rounded-lg bg-bad-soft text-bad">
+      <span className="grid h-9 w-9 place-items-center rounded-[4px] bg-bad-soft text-bad">
         <AlertTriangle size={17} />
       </span>
       <p className="text-[13.5px] font-medium text-ink">Could not load this section</p>

@@ -1,96 +1,153 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Image from 'next/image';
-import { Card, Container, Heading } from './sections';
+import { Container, SectionHead } from './sections';
 import { Reveal } from './motion';
 
 const usd = (n: number) =>
   n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 
 /**
- * Earnings calculator.
+ * Earnings projection.
  *
- * The original projects on 30- and 365-day months and years while advertising a
- * Monday-to-Friday bonus, which overstates the yearly figure by roughly a third.
- * This counts trading days only — 5 in 7 — so the projection matches what the
- * engine would actually credit.
+ * Counts trading days only — 5 in 7 — so the projection matches what the engine
+ * would actually credit. Projecting on 30- and 365-day periods while paying a
+ * Monday-to-Friday bonus overstates the yearly figure by roughly a third.
+ *
+ * Rebuilt structurally:
+ * - The background photograph is gone. A section whose whole purpose is a
+ *   number should not be competing with a stock image behind it.
+ * - The four result tiles were individually bordered boxes inside a bordered
+ *   card. They are now rows in one table, which is what a projection is, and
+ *   the figures line up in a column you can read down.
+ * - The ceiling is stated. The old version projected a yearly figure with no
+ *   mention that earnings stop at the cap, which for most amounts on this plan
+ *   is reached well inside a year — the single most misleading thing this
+ *   section could do.
  */
-export function Calculator({ daily, minimum, packages }: { daily: number; minimum: number; packages: number[] }) {
+export function Calculator({
+  daily, minimum, packages, ceiling = 250,
+}: {
+  daily: number;
+  minimum: number;
+  packages: number[];
+  /** Earnings ceiling as a percent of capital. */
+  ceiling?: number;
+}) {
   const max = packages.length ? Math.max(...packages) : 10_000;
   const [amount, setAmount] = useState(Math.min(1_000, max));
 
-  const { perDay, perMonth, perYear } = useMemo(() => {
+  const { perDay, perMonth, perYear, capTotal, daysToCap } = useMemo(() => {
     const d = (amount * daily) / 100;
     const TRADING_DAYS_PER_YEAR = 261;              // 52 weeks × 5, less a couple
-    return { perDay: d, perMonth: d * (TRADING_DAYS_PER_YEAR / 12), perYear: d * TRADING_DAYS_PER_YEAR };
-  }, [amount, daily]);
+    const cap = (amount * ceiling) / 100;
+    return {
+      perDay: d,
+      perMonth: d * (TRADING_DAYS_PER_YEAR / 12),
+      perYear: d * TRADING_DAYS_PER_YEAR,
+      capTotal: cap,
+      daysToCap: d > 0 ? Math.ceil(cap / d) : null,
+    };
+  }, [amount, daily, ceiling]);
 
   return (
-    <section className="relative isolate overflow-hidden py-20 sm:py-24">
-      <Image src="/home/background-bg.jpeg" alt="" aria-hidden fill sizes="100vw"
-             className="-z-20 object-cover opacity-40" />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-black via-black/75 to-black" />
-
+    <section className="border-y border-[var(--home-line)] bg-[var(--home-surface)] py-16 sm:py-20">
       <Container>
-        <Reveal><Heading className="text-center">Earn Flexibly with FortuneX</Heading></Reveal>
+        <Reveal>
+          <SectionHead
+            eyebrow="Projection"
+            title="Work out the return before you commit"
+            lead="Trading days only, at the published rate. This is arithmetic on the plan as configured, not a forecast."
+          />
+        </Reveal>
 
-        <Reveal delay={120}>
-          <Card className="mx-auto mt-12 max-w-[980px] p-7 sm:p-10">
-            <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
-              <div>
-                <span className="text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[var(--home-gold)]">
-                  Calculate your earnings
-                </span>
-                <h3 className="mt-3 text-[24px] font-bold text-white">Trading Asset</h3>
+        <Reveal delay={90}>
+          <div className="mt-10 grid overflow-hidden rounded-[5px] border border-[var(--home-line)] bg-[var(--home-bg)] lg:grid-cols-2">
+            {/* ── input ── */}
+            <div className="border-b border-[var(--home-line)] p-7 lg:border-b-0 lg:border-r">
+              <label htmlFor="home-amount" className="block text-[10.5px] font-semibold uppercase tracking-[0.11em] text-[var(--home-text-3)]">
+                Capital committed
+              </label>
+              <p className="mt-3 tabular-nums text-[40px] font-bold leading-none tracking-[-0.03em] text-[var(--home-text)]">
+                {usd(amount)}
+              </p>
 
-                <label htmlFor="home-amount" className="mt-8 block text-[13.5px] text-[var(--home-text-2)]">
-                  How much do you invest?
-                </label>
-                <p className="mt-2 text-[38px] font-bold leading-none text-[var(--home-display)]">
-                  {usd(amount)}
-                </p>
-
-                <input
-                  id="home-amount"
-                  type="range"
-                  min={minimum}
-                  max={max}
-                  step={minimum}
-                  value={amount}
-                  onChange={(e) => setAmount(Number(e.target.value))}
-                  aria-valuetext={usd(amount)}
-                  className="mt-6 w-full accent-[var(--home-gold)]"
-                />
-                <div className="mt-2 flex justify-between text-[12px] tabular-nums text-[var(--home-text-3)]">
-                  <span>{usd(minimum)}</span>
-                  <span>{usd(max)}</span>
-                </div>
+              <input
+                id="home-amount"
+                type="range"
+                min={minimum}
+                max={max}
+                step={minimum}
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+                aria-valuetext={usd(amount)}
+                className="mt-7 w-full accent-[var(--home-gold)]"
+              />
+              <div className="mt-2 flex justify-between tabular-nums text-[11.5px] text-[var(--home-text-3)]">
+                <span>{usd(minimum)}</span>
+                <span>{usd(max)}</span>
               </div>
 
-              <div className="flex flex-col justify-center gap-3">
-                <div className="rounded-xl border border-[var(--home-gold)]/25 bg-[var(--home-gold)]/[0.07] px-5 py-4">
-                  <p className="text-[12px] uppercase tracking-[0.08em] text-[var(--home-text-3)]">Estimated daily rate</p>
-                  <p className="mt-1 text-[26px] font-bold leading-none text-[var(--home-gold)]">{daily}%</p>
+              <dl className="mt-8 divide-y divide-[var(--home-line)] border-t border-[var(--home-line)]">
+                <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-[12.5px] text-[var(--home-text-2)]">Daily rate</dt>
+                  <dd className="tabular-nums text-[13px] font-semibold text-[var(--home-gold)]">{daily}%</dd>
                 </div>
+                <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-[12.5px] text-[var(--home-text-2)]">Trading days</dt>
+                  <dd className="text-[13px] font-semibold text-[var(--home-text)]">Mon–Fri</dd>
+                </div>
+              </dl>
+            </div>
+
+            {/* ── projection ── */}
+            <div className="flex flex-col p-7">
+              <span className="block text-[10.5px] font-semibold uppercase tracking-[0.11em] text-[var(--home-text-3)]">
+                Projected accrual
+              </span>
+
+              <dl className="mt-4 divide-y divide-[var(--home-line)] border-y border-[var(--home-line)]">
                 {[
-                  { k: 'Daily earnings', v: perDay },
-                  { k: 'Monthly earnings', v: perMonth },
-                  { k: 'Yearly earnings', v: perYear },
+                  { k: 'Per trading day', v: perDay },
+                  { k: 'Per month', v: perMonth },
+                  { k: 'Per year', v: perYear },
                 ].map((row) => (
-                  <div key={row.k}
-                       className="flex items-center justify-between rounded-xl border border-white/[0.07] bg-black/40 px-5 py-4">
-                    <span className="text-[13.5px] text-[var(--home-text-2)]">{row.k}</span>
-                    <span className="text-[17px] font-semibold tabular-nums text-white">{usd(row.v)}</span>
+                  <div key={row.k} className="flex items-center justify-between gap-4 py-3">
+                    <dt className="text-[13px] text-[var(--home-text-2)]">{row.k}</dt>
+                    <dd className="tabular-nums text-[17px] font-semibold text-[var(--home-text)]">{usd(row.v)}</dd>
                   </div>
                 ))}
-                <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--home-text-3)]">
-                  Projected on trading days only (Monday to Friday), before the published earnings
-                  ceiling and withdrawal fee. Not a guarantee of return.
+              </dl>
+
+              {/* The limit, stated next to the projection rather than omitted.
+                  On this plan the ceiling is reached inside a year at most
+                  amounts, so a yearly figure shown alone overstates it. */}
+              <div className="mt-5 rounded-[4px] border border-[var(--home-line)] bg-[var(--home-surface)] px-4 py-3.5">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-[12.5px] font-semibold text-[var(--home-text)]">
+                    Earnings ceiling · {ceiling}%
+                  </span>
+                  <span className="tabular-nums text-[15px] font-semibold text-[var(--home-gold)]">{usd(capTotal)}</span>
+                </div>
+                <p className="mt-1.5 text-[11.5px] leading-relaxed text-[var(--home-text-2)]">
+                  {daysToCap !== null ? (
+                    <>
+                      Accrual stops here — about{' '}
+                      <span className="tabular-nums text-[var(--home-text)]">{daysToCap.toLocaleString('en-US')}</span>{' '}
+                      trading days at this rate, across every income stream combined.
+                    </>
+                  ) : (
+                    <>Accrual stops at the ceiling, across every income stream combined.</>
+                  )}
                 </p>
               </div>
+
+              <p className="mt-4 text-[11px] leading-relaxed text-[var(--home-text-3)]">
+                Before the withdrawal fee. Trading carries risk, including loss of capital — this is
+                the plan as configured, not a guarantee of return.
+              </p>
             </div>
-          </Card>
+          </div>
         </Reveal>
       </Container>
     </section>

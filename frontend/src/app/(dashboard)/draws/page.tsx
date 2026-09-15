@@ -106,7 +106,7 @@ export default function DrawsPage() {
                   {live.prizes.map((p) => (
                     <li key={p.position} className="flex items-center gap-3 py-2.5 first:pt-0">
                       <span className={clsx(
-                        'grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[12px] font-bold',
+                        'grid h-8 w-8 shrink-0 place-items-center rounded-[4px] text-[12px] font-bold',
                         p.position === 1 ? 'bg-gold/20 text-gold-ink' : 'bg-canvas text-ink-2',
                       )}>
                         {p.position}
@@ -128,13 +128,13 @@ export default function DrawsPage() {
                   <div className="flex flex-wrap gap-1.5">
                     {tickets.map((t) => (
                       <span key={t.id}
-                            className="rounded-lg border border-gold/40 bg-gold-soft px-2.5 py-1.5 font-mono text-[12px] font-medium text-gold-ink">
+                            className="rounded-[4px] border border-gold/40 bg-gold-soft px-2.5 py-1.5 font-mono text-[12px] font-medium text-gold-ink">
                         {t.number}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <div className="rounded-[10px] border border-dashed border-line px-4 py-6 text-center">
+                  <div className="rounded-[5px] border border-dashed border-line px-4 py-6 text-center">
                     <Ticket size={18} className="mx-auto text-ink-3" />
                     <p className="mt-1.5 text-[13px] font-medium text-ink">No tickets yet</p>
                     <p className="mt-0.5 text-[12px] leading-relaxed text-ink-2">
@@ -188,7 +188,7 @@ export default function DrawsPage() {
             {data.data.results.flatMap((r) =>
               r.prizes.filter((p) => p.isMine && !p.claimed).map((p) => (
                 <div key={p.prizeId}
-                     className="flex flex-wrap items-center gap-3 rounded-[10px] border border-gold/40 bg-gold-soft px-4 py-3">
+                     className="flex flex-wrap items-center gap-3 rounded-[5px] border border-gold/40 bg-gold-soft px-4 py-3">
                   <Trophy size={17} className="shrink-0 text-gold-ink" />
                   <div className="min-w-0 flex-1">
                     <p className="text-[13.5px] font-semibold text-ink">{p.label} — {r.name}</p>
@@ -218,7 +218,7 @@ export default function DrawsPage() {
           ) : (
             <div className="space-y-4">
               {data.data.results.map((r) => (
-                <div key={r.id} className="rounded-[10px] border border-line">
+                <div key={r.id} className="rounded-[5px] border border-line">
                   <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-2.5">
                     <span className="text-[13.5px] font-semibold text-ink">{r.name}</span>
                     <span className="text-[11.5px] text-ink-3">
@@ -232,7 +232,7 @@ export default function DrawsPage() {
                       <li key={p.prizeId}
                           className={clsx('flex flex-wrap items-center gap-3 px-4 py-2.5',
                                           p.isMine && 'bg-gold-soft')}>
-                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-canvas text-[11px] font-bold text-ink-2">
+                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[3px] bg-canvas text-[11px] font-bold text-ink-2">
                           {p.position}
                         </span>
                         <span className="min-w-0 flex-1">

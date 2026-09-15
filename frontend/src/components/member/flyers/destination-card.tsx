@@ -24,10 +24,10 @@ export function DestinationCard({ tier, onView }: { tier: TierView; onView: (t: 
 
   return (
     <article className={clsx(
-      'group relative flex h-full flex-col overflow-hidden rounded-[16px] border bg-card transition-all duration-200',
+      'group relative flex h-full flex-col overflow-hidden rounded-[5px] border bg-card transition-all duration-200',
       'hover:-translate-y-[3px]',
       qualified
-        ? 'border-gold/60 shadow-[0_0_0_1px_rgba(212,175,55,0.10),0_10px_30px_-18px_rgba(212,175,55,0.55)] hover:shadow-[0_0_0_1px_rgba(212,175,55,0.18),0_16px_38px_-18px_rgba(212,175,55,0.6)]'
+        ? 'border-gold/60 shadow-[0_0_0_1px_rgba(255,122,26,0.10),0_10px_30px_-18px_rgba(255,122,26,0.55)] hover:shadow-[0_0_0_1px_rgba(255,122,26,0.18),0_16px_38px_-18px_rgba(255,122,26,0.6)]'
         : 'border-line shadow-card hover:border-gold/45 hover:shadow-raise',
     )}>
       {/* ── artwork ──────────────────────────────────────────────────── */}
@@ -144,7 +144,7 @@ export function DestinationCard({ tier, onView }: { tier: TierView; onView: (t: 
             type="button"
             onClick={() => onView(tier)}
             className={clsx(
-              'flex w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 py-2.5 text-[12.5px] font-medium transition',
+              'flex w-full items-center justify-center gap-1.5 rounded-[5px] border px-3 py-2.5 text-[12.5px] font-medium transition',
               'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/25',
               qualified
                 ? 'border-gold/45 bg-gold-soft text-gold-on-soft hover:border-gold/70'

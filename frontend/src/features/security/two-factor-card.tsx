@@ -118,14 +118,14 @@ export function TwoFactorCard({
       <div className="space-y-3 px-5 pb-5">
         {step === 'codes' ? (
           <div className="space-y-3">
-            <div className="flex items-start gap-2.5 rounded-[10px] border border-warn/30 bg-warn-soft px-3.5 py-3">
+            <div className="flex items-start gap-2.5 rounded-[5px] border border-warn/30 bg-warn-soft px-3.5 py-3">
               <AlertTriangle size={15} className="mt-0.5 shrink-0 text-warn" />
               <p className="text-[12.5px] leading-relaxed text-ink">
                 Save these now. Each works once, and they are the only way back in if you lose your
                 phone. <strong>They will not be shown again.</strong>
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-1.5 rounded-[10px] border border-line bg-canvas p-3 font-mono text-[12.5px] text-ink">
+            <div className="grid grid-cols-2 gap-1.5 rounded-[5px] border border-line bg-canvas p-3 font-mono text-[12.5px] text-ink">
               {codes.map((c) => <span key={c}>{c}</span>)}
             </div>
             <div className="flex gap-2">
@@ -140,8 +140,8 @@ export function TwoFactorCard({
           </div>
         ) : on ? (
           <>
-            <div className="flex items-start gap-3 rounded-[10px] border border-line bg-canvas px-4 py-3.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-good-soft text-good">
+            <div className="flex items-start gap-3 rounded-[5px] border border-line bg-canvas px-4 py-3.5">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] bg-good-soft text-good">
                 <ShieldCheck size={17} />
               </span>
               <div className="min-w-0">
@@ -211,7 +211,7 @@ export function TwoFactorCard({
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Image src={setup.qrDataUrl} alt="Two-factor QR code" width={150} height={150}
-                unoptimized className="rounded-[10px] border border-line bg-white p-1.5" />
+                unoptimized className="rounded-[5px] border border-line bg-white p-1.5" />
               <div className="min-w-0">
                 <p className="text-[11.5px] uppercase tracking-[0.04em] text-ink-3">Or enter this key</p>
                 <p className="mt-1 break-all font-mono text-[12.5px] text-ink">{setup.secret}</p>
@@ -237,9 +237,9 @@ export function TwoFactorCard({
           </form>
         ) : (
           <>
-            <div className={`flex items-start gap-3 rounded-[10px] border px-4 py-3.5 ${
+            <div className={`flex items-start gap-3 rounded-[5px] border px-4 py-3.5 ${
               emphasis ? 'border-bad/30 bg-bad-soft' : 'border-line bg-canvas'}`}>
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-[4px] ${
                 emphasis ? 'bg-bad/15 text-bad' : 'bg-warn-soft text-warn'}`}>
                 <ShieldAlert size={17} />
               </span>

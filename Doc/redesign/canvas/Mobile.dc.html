@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #080A0E; font-family: 'IBM Plex Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #5EEAD4; text-decoration: none; } a:hover { color: #99F6E4; }
+    .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    .lbl { font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: #5D6979; font-weight: 600; }
+    .pnl { background: #0F131A; border: 1px solid #1E2631; border-radius: 6px; }
+  </style>
+</helmet>
+
+<!-- Same palette, same type, same components as the desktop terminal — at a
+     density a thumb can actually use. Rows become cards; the 30-wide table
+     becomes a horizontal strip. No fake status bar: the real one draws here. -->
+<div style="width: 390px; height: 844px; display: flex; flex-direction: column; overflow: hidden; color: #E8ECF3; background: #080A0E;">
+
+  <div style="height: 52px; flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid #1E2631;">
+    <div style="width: 26px; height: 26px; border-radius: 4px; background: {{accent}}; display: grid; place-items: center;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#08111A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 6-8"/><path d="M15 7h4v4"/></svg>
+    </div>
+    <span style="font-size: 14px; font-weight: 700;">Terminal</span>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 6px;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #22C55E;"></span>
+      <span class="num" style="font-size: 11px; color: #93A0B2;">accruing</span>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; overflow: hidden; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;">
+
+    <!-- The one question, answered first, at a size you can read one-handed. -->
+    <div class="pnl" style="padding: 15px 16px;">
+      <div class="lbl">Headroom left · 250% ceiling</div>
+      <div class="num" style="font-size: 32px; font-weight: 600; letter-spacing: -0.03em; margin-top: 8px;">$12,392.60</div>
+      <div style="display: flex; gap: 2px; height: 8px; margin-top: 13px; border-radius: 2px; overflow: hidden; background: #151B24;">
+        <div style="width: 34%; background: #3B82D9;"></div>
+        <div style="width: 11%; background: #14A06B;"></div>
+        <div style="width: 9.5%; background: #8B5FD6;"></div>
+        <div style="width: 3.5%; background: #BC830E;"></div>
+        <div style="width: 2.2%; background: #D45585;"></div>
+        <div style="flex-grow: 1;"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 9px;">
+        <span class="num" style="font-size: 11.5px; color: #93A0B2;">$18,732.40 earned</span>
+        <span class="num" style="font-size: 11.5px; color: {{accent}};">60.2% used</span>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+      <div class="pnl" style="padding: 11px 13px;">
+        <div class="lbl">Today</div>
+        <div class="num" style="font-size: 19px; font-weight: 600; margin-top: 5px; color: #22C55E;">+$62.25</div>
+      </div>
+      <div class="pnl" style="padding: 11px 13px;">
+        <div class="lbl">Main wallet</div>
+        <div class="num" style="font-size: 19px; font-weight: 600; margin-top: 5px;">$4,281.55</div>
+      </div>
+    </div>
+
+    <div class="pnl" style="padding: 13px 14px 12px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12.5px; font-weight: 600;">Daily accrual</span>
+        <span class="num" style="font-size: 11px; color: #5D6979;">30D</span>
+      </div>
+      <svg viewBox="0 0 320 78" preserveAspectRatio="none" style="width: 100%; height: 78px; margin-top: 10px;">
+        <defs>
+          <linearGradient id="mf" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3B82D9" stop-opacity="0.32"/>
+            <stop offset="100%" stop-color="#3B82D9" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <line x1="0" y1="26" x2="320" y2="26" stroke="#1A212B" stroke-width="1"/>
+        <line x1="0" y1="52" x2="320" y2="52" stroke="#1A212B" stroke-width="1"/>
+        <path d="M0 64 L32 62 L64 56 L96 52 L128 46 L160 40 L192 33 L224 27 L256 20 L288 15 L320 10"
+              fill="none" stroke="#3B82D9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+        <path d="M0 64 L32 62 L64 56 L96 52 L128 46 L160 40 L192 33 L224 27 L256 20 L288 15 L320 10 L320 78 L0 78 Z" fill="url(#mf)"/>
+        <circle cx="320" cy="10" r="3.5" fill="#3B82D9" stroke="#0F131A" stroke-width="2"/>
+      </svg>
+    </div>
+
+    <div class="pnl" style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden;">
+      <div style="height: 38px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid #1E2631;">
+        <span style="font-size: 12.5px; font-weight: 600;">Ledger</span>
+        <a style="font-size: 11.5px;">All →</a>
+      </div>
+      <sc-for list="{{tape}}" as="e" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 44px; border-bottom: 1px solid #141A22;">
+          <span style="width: 6px; height: 6px; border-radius: 1px; background: {{e.c}}; flex-shrink: 0;"></span>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-size: 12.5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">{{e.label}}</div>
+            <div class="num" style="font-size: 10.5px; color: #5D6979; margin-top: 1px;">{{e.t}}</div>
+          </div>
+          <span class="num" style="font-size: 13px; color: {{e.tone}}; flex-shrink: 0;">{{e.amt}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- 44px minimum on every target. -->
+  <div style="height: 62px; flex-shrink: 0; border-top: 1px solid #1E2631; display: flex; align-items: stretch; background: #0B0E13;">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: {{accent}};">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      <span style="font-size: 10px; font-weight: 500;">Terminal</span>
+    </div>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5D6979;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M16 12h3"/></svg>
+      <span style="font-size: 10px; font-weight: 500;">Wallet</span>
+    </div>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5D6979;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M17 11a3 3 0 100-6"/><path d="M21 20c0-2.5-1.5-4.6-3.6-5.5"/></svg>
+      <span style="font-size: 10px; font-weight: 500;">Team</span>
+    </div>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5D6979;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20h-20"/></svg>
+      <span style="font-size: 10px; font-weight: 500;">Income</span>
+    </div>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5D6979;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
+      <span style="font-size: 10px; font-weight: 500;">Account</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "accent": {"editor": "color", "default": "#5EEAD4", "options": ["#5EEAD4", "#7C9CFF", "#C6F24E", "#F5A524"]},
+  "$preview": {"width": 390, "height": 844}
+}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? "#5EEAD4";
+    const G = "#22C55E", R = "#FF5A5A";
+    return {
+      accent,
+      tape: [
+        { t: "09:00 today",  label: "Daily trade bonus",       amt: "+62.25",  tone: G, c: "#3B82D9" },
+        { t: "08:41 today",  label: "Direct · L1 · Arun",      amt: "+24.00",  tone: G, c: "#14A06B" },
+        { t: "08:41 today",  label: "Generation · L3 · Priya", amt: "+8.40",   tone: G, c: "#8B5FD6" },
+        { t: "Yesterday",    label: "Withdrawal · pending",    amt: "−500.00", tone: R, c: "#FF5A5A" },
+        { t: "13 Sep",       label: "Rank reward · Director",  amt: "+1,090.00", tone: G, c: "#BC830E" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

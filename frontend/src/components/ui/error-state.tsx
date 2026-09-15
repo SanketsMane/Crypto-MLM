@@ -39,7 +39,7 @@ export function ErrorState({
         role="alert"
         className={`flex flex-col items-center gap-3 px-6 text-center ${full ? 'py-20' : 'py-12'}`}
       >
-        <span className="grid h-12 w-12 place-items-center rounded-xl bg-bad-soft text-bad">
+        <span className="grid h-12 w-12 place-items-center rounded-[5px] bg-bad-soft text-bad">
           <AlertTriangle size={22} />
         </span>
 

@@ -46,9 +46,9 @@ export function BalancePanel({ main, walletAddress, todayIncome }: {
   ];
 
   return (
-    <section className="balance-panel relative isolate flex flex-1 flex-col overflow-hidden rounded-[24px] p-5 sm:p-7 xl:p-10">
+    <section className="balance-panel relative isolate flex flex-1 flex-col overflow-hidden rounded-[5px] p-5 sm:p-7 xl:p-10">
       <div className="relative flex items-start gap-3.5 sm:gap-4">
-        <span className="grid size-13 shrink-0 place-items-center rounded-[16px] border border-gold-line/35 bg-white/[0.06] text-[var(--color-gold-hi)] sm:size-14">
+        <span className="grid size-13 shrink-0 place-items-center rounded-[5px] border border-gold-line/35 bg-white/[0.06] text-[var(--color-gold-hi)] sm:size-14">
           <Wallet size={22} strokeWidth={1.9} />
         </span>
         <div className="min-w-0">

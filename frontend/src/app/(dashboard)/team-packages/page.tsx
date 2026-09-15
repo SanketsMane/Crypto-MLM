@@ -82,7 +82,7 @@ export default function TeamPackagesPage() {
               type="button"
               onClick={() => { setLevel(null); setPage(0); }}
               className={clsx(
-                'h-9 rounded-[9px] border px-3 text-[12px] font-medium transition',
+                'h-9 rounded-[4px] border px-3 text-[12px] font-medium transition',
                 level === null
                   ? 'border-violet bg-violet text-white'
                   : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink',
@@ -96,7 +96,7 @@ export default function TeamPackagesPage() {
                 type="button"
                 onClick={() => { setLevel(l); setPage(0); }}
                 className={clsx(
-                  'h-9 w-9 rounded-[9px] border text-[12px] font-medium tabular-nums transition',
+                  'h-9 w-9 rounded-[4px] border text-[12px] font-medium tabular-nums transition',
                   level === l
                     ? 'border-violet bg-violet text-white'
                     : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink',

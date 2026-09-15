@@ -99,7 +99,7 @@ export default function NetworkPage() {
                     <ol className="flex flex-wrap items-center gap-1.5 text-[12.5px]">
                       {[...g.upline].reverse().map((u) => (
                         <li key={u.userCode} className="flex items-center gap-1.5">
-                          <span className="rounded-md bg-canvas px-1.5 py-0.5 font-medium tabular-nums text-ink-2">
+                          <span className="rounded-[3px] bg-canvas px-1.5 py-0.5 font-medium tabular-nums text-ink-2">
                             {u.userCode}
                           </span>
                           <span className="text-ink-3">›</span>

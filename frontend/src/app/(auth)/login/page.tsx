@@ -95,7 +95,7 @@ function LoginForm() {
         </Link>
       </p>
 
-      <p className="mt-8 flex items-start gap-2 rounded-[10px] border border-white/[0.07] bg-white/[0.02] px-3.5 py-3 text-[11.5px] leading-relaxed text-white/58">
+      <p className="mt-8 flex items-start gap-2 rounded-[5px] border border-white/[0.07] bg-white/[0.02] px-3.5 py-3 text-[11.5px] leading-relaxed text-white/58">
         <ShieldCheck size={14} className="mt-px shrink-0 text-white/55" />
         FortuneX will never ask for your password, a recovery phrase or a one-time code by email,
         chat or phone.
@@ -113,7 +113,7 @@ function TwoFactorStep({ challengeToken, onCancel }: { challengeToken: string; o
   return (
     <>
       <header className="mb-7">
-        <span className="grid h-11 w-11 place-items-center rounded-xl border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
+        <span className="grid h-11 w-11 place-items-center rounded-[5px] border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
           <KeyRound size={19} strokeWidth={1.9} />
         </span>
         <h1 className="mt-4 text-[26px] font-semibold tracking-[-0.02em] text-white">Two-factor required</h1>
@@ -159,7 +159,7 @@ function TwoFactorStep({ challengeToken, onCancel }: { challengeToken: string; o
 export default function LoginPage() {
   // useSearchParams needs a Suspense boundary to prerender.
   return (
-    <Suspense fallback={<div className="h-[360px] animate-pulse rounded-2xl bg-white/[0.03]" />}>
+    <Suspense fallback={<div className="h-[360px] animate-pulse rounded-[5px] bg-white/[0.03]" />}>
       <LoginForm />
     </Suspense>
   );

@@ -104,7 +104,7 @@ export function SiteFooter() {
             </p>
             <Link
               href="/register"
-              className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-4 py-2.5 text-[13px] font-semibold text-navy transition hover:brightness-110"
+              className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-gold px-4 py-2.5 text-[13px] font-semibold text-navy transition hover:brightness-110"
             >
               Open account
             </Link>

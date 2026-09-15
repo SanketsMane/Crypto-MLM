@@ -77,13 +77,13 @@ function LinkCard({ link, code }: { link: string; code: string }) {
         subtitle="Anyone who signs up through this is placed directly under you."
       />
       <div className="space-y-3 px-5 pb-5">
-        <div className="flex items-center gap-2 rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+        <div className="flex items-center gap-2 rounded-[5px] border border-line bg-canvas px-3 py-2.5">
           <span className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-ink">{link}</span>
           <button
             type="button"
             onClick={() => copy(link, 'link')}
             aria-label="Copy invite link"
-            className="shrink-0 rounded-md p-1.5 text-ink-2 transition hover:bg-line/40 hover:text-ink"
+            className="shrink-0 rounded-[3px] p-1.5 text-ink-2 transition hover:bg-line/40 hover:text-ink"
           >
             {copied === 'link' ? <Check size={15} className="text-good" /> : <Copy size={15} />}
           </button>
@@ -154,7 +154,7 @@ function MessagesCard({ link, name }: { link: string; name: string }) {
         {MESSAGES.map((m) => {
           const text = m.text(link, name);
           return (
-            <div key={m.key} className="rounded-[10px] border border-line bg-canvas p-3">
+            <div key={m.key} className="rounded-[5px] border border-line bg-canvas p-3">
               <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
                 <span className="text-[12.5px] font-medium text-ink">{m.label}</span>
                 <span className="text-[11px] text-ink-3">{m.hint}</span>
@@ -169,7 +169,7 @@ function MessagesCard({ link, name }: { link: string; name: string }) {
                   href={`https://wa.me/?text=${encodeURIComponent(text)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-[9px] border border-line px-2.5 py-1.5 text-[12px] font-medium text-ink-2 transition hover:border-line-strong hover:text-ink"
+                  className="inline-flex items-center gap-1.5 rounded-[4px] border border-line px-2.5 py-1.5 text-[12px] font-medium text-ink-2 transition hover:border-line-strong hover:text-ink"
                 >
                   <MessageCircle size={13} /> WhatsApp
                 </a>
@@ -177,7 +177,7 @@ function MessagesCard({ link, name }: { link: string; name: string }) {
                   href={`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-[9px] border border-line px-2.5 py-1.5 text-[12px] font-medium text-ink-2 transition hover:border-line-strong hover:text-ink"
+                  className="inline-flex items-center gap-1.5 rounded-[4px] border border-line px-2.5 py-1.5 text-[12px] font-medium text-ink-2 transition hover:border-line-strong hover:text-ink"
                 >
                   <SendIcon size={13} /> Telegram
                 </a>
@@ -239,7 +239,7 @@ function QrCard({ link, code }: { link: string; code: string }) {
     <Card>
       <CardHead title="QR code" subtitle="For printing, or showing on your phone." />
       <div className="flex flex-col items-center gap-3 px-5 pb-5">
-        <div className="rounded-[12px] border border-line bg-white p-3">
+        <div className="rounded-[5px] border border-line bg-white p-3">
           <canvas ref={canvas} className="block h-[240px] w-[240px]" />
           {!ready && (
             <div className="grid h-[240px] w-[240px] place-items-center text-ink-3">

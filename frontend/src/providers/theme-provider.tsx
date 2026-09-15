@@ -14,7 +14,9 @@ function storedTheme(): Theme | null {
 }
 
 function systemTheme(): Theme {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  // Not the OS. See the note in lib/theme.ts — an unchosen theme lands on
+  // the terminal, which is the one this product was designed in.
+  return 'dark';
 }
 
 interface ThemeCtx {
@@ -26,7 +28,7 @@ interface ThemeCtx {
   toggle: () => void;
 }
 
-const Ctx = createContext<ThemeCtx>({ theme: 'light', ready: false, setTheme: () => {}, toggle: () => {} });
+const Ctx = createContext<ThemeCtx>({ theme: 'dark', ready: false, setTheme: () => {}, toggle: () => {} });
 
 export const useTheme = () => useContext(Ctx);
 
@@ -39,7 +41,7 @@ export const useTheme = () => useContext(Ctx);
  * rather than by this state, so nothing depends on hydration timing.
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('dark');
   const [ready, setReady] = useState(false);
 
   /* Mirror the applied theme into React. Runs before paint and re-asserts the
@@ -72,16 +74,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = useCallback((next: Theme) => apply(next, true), [apply]);
   const toggle = useCallback(() => apply(domTheme() === 'dark' ? 'light' : 'dark', true), [apply]);
 
-  /* follow the OS while the visitor has not chosen for themselves */
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => {
-      if (storedTheme()) return;
-      apply(mq.matches ? 'dark' : 'light', false);
-    };
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, [apply]);
+  /* No OS listener any more.
+     This used to follow `prefers-color-scheme` for anyone who had not chosen a
+     theme. Now that an unchosen theme means the terminal rather than the OS
+     (see lib/theme.ts), watching that query would do exactly the thing the
+     rule forbids: flip a visitor into light because their laptop changed at
+     sunrise, without them ever asking for it. */
 
   /* keep every open tab of the console on the same theme */
   useEffect(() => {

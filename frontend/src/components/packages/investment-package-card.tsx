@@ -30,7 +30,7 @@ export interface PackageCardData {
 
 /** A soft wash behind the artwork. Subtle enough that the grid still reads as one family. */
 const ACCENT_GLOW: Record<PlanAccent, string> = {
-  gold: 'rgba(212,175,55,0.20)',
+  gold: 'rgba(255,122,26,0.20)',
   violet: 'rgba(139,109,246,0.18)',
   blue: 'rgba(59,130,246,0.17)',
   green: 'rgba(22,179,100,0.16)',
@@ -66,7 +66,7 @@ export function InvestmentPackageCard({
   return (
     <article
       className={clsx(
-        'plan-card group relative isolate flex min-h-[300px] flex-col overflow-hidden rounded-2xl border p-5',
+        'plan-card group relative isolate flex min-h-[300px] flex-col overflow-hidden rounded-[5px] border p-5',
         'transition-[transform,box-shadow,border-color] duration-[180ms] ease-out',
         'hover:-translate-y-[3px]',
         plan.isPopular && 'ring-1 ring-gold/35',
@@ -103,7 +103,7 @@ export function InvestmentPackageCard({
           {plan.name}
         </h3>
         {plan.isPopular && (
-          <span className="shrink-0 rounded-md bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-2 py-[3px] text-[10px] font-bold uppercase leading-none tracking-[0.06em] text-navy">
+          <span className="shrink-0 rounded-[3px] bg-gold px-2 py-[3px] text-[10px] font-bold uppercase leading-none tracking-[0.06em] text-navy">
             Popular
           </span>
         )}
@@ -134,11 +134,11 @@ export function InvestmentPackageCard({
           onClick={onInvest}
           disabled={disabled || pending}
           className={clsx(
-            'inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] text-[14px] font-semibold',
+            'inline-flex h-11 w-full items-center justify-center gap-2 rounded-[5px] text-[14px] font-semibold',
             'transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-55',
             'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/30',
             affordable
-              ? 'bg-[linear-gradient(135deg,#D4AF37_0%,#E5C158_100%)] text-navy shadow-[0_6px_18px_-8px_rgba(212,175,55,0.7)] group-hover:brightness-[1.06]'
+              ? 'bg-gold text-navy shadow-[0_6px_18px_-8px_rgba(255,122,26,0.7)] group-hover:brightness-[1.06]'
               : 'border border-gold/40 bg-transparent text-gold hover:bg-gold/10',
           )}
         >

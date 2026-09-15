@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
   return (
     <>
       <header className="mb-7">
-        <span className="grid h-11 w-11 place-items-center rounded-xl border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
+        <span className="grid h-11 w-11 place-items-center rounded-[5px] border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
           <MailCheck size={19} strokeWidth={1.9} />
         </span>
         <h1 className="mt-4 text-[26px] font-semibold tracking-[-0.02em] text-white">Check your email</h1>

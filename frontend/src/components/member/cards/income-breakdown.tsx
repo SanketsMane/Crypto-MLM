@@ -54,7 +54,7 @@ export function IncomeBreakdown({ income, series, range, onRange, loading }: {
              member does not have. The panel says so in words instead. */
           <div className="grid h-full place-items-center">
             <div className="flex flex-col items-center gap-2.5 px-4 text-center">
-              <span className="grid h-11 w-11 place-items-center rounded-[13px] bg-[var(--dash-well)] text-ink-4 ring-1 ring-inset ring-[var(--dash-border)]">
+              <span className="grid h-11 w-11 place-items-center rounded-[5px] bg-[var(--dash-well)] text-ink-4 ring-1 ring-inset ring-[var(--dash-border)]">
                 <LineChart size={19} strokeWidth={1.9} />
               </span>
               <p className="text-[12.5px] text-ink-2">No earnings in this period yet.</p>
@@ -77,7 +77,7 @@ export function IncomeBreakdown({ income, series, range, onRange, loading }: {
               <Tooltip
                 cursor={{ stroke: 'var(--color-s1)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 content={({ active, payload, label }) => active && payload?.length ? (
-                  <div className="rounded-lg border border-line bg-card px-3 py-2 shadow-[0_8px_24px_-8px_rgba(16,24,40,0.22)]">
+                  <div className="rounded-[4px] border border-line bg-card px-3 py-2 shadow-[0_8px_24px_-8px_rgba(16,24,40,0.22)]">
                     <p className="text-[11px] text-ink-2">{label ? axisDate(String(label)) : ''}</p>
                     <p className="mt-0.5 text-[13.5px] font-semibold tabular-nums text-ink">{usd(payload[0]!.value as number)}</p>
                   </div>

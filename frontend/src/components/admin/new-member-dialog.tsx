@@ -51,7 +51,7 @@ export function NewMemberDialog({ open, onClose }: { open: boolean; onClose: () 
   const valid = form.email.includes('@') && form.firstName.trim().length >= 2 && form.password.length >= 8;
 
   const field =
-    'w-full rounded-[9px] border border-field-line bg-field px-3 py-2 text-[13px] text-ink outline-none ' +
+    'w-full rounded-[4px] border border-field-line bg-field px-3 py-2 text-[13px] text-ink outline-none ' +
     'transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15';
 
   return (

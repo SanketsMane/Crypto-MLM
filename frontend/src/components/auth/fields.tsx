@@ -13,10 +13,10 @@ import { AlertCircle, Check, Eye, EyeOff, Loader2 } from 'lucide-react';
    see the `:-webkit-autofill` block in globals.css. The value must match the
    field's own background or an autofilled row stands out as a lighter box. */
 const base =
-  'w-full rounded-[10px] border bg-[#0B0B12] px-3.5 py-2.5 text-[14px] text-white outline-none ' +
+  'w-full rounded-[5px] border bg-[#0B0B12] px-3.5 py-2.5 text-[14px] text-white outline-none ' +
   'transition placeholder:text-white/35 disabled:opacity-50 ' +
   '[--fx-autofill-bg:#0B0B12] [--fx-autofill-fg:#FFFFFF]';
-const ok = 'border-white/10 focus:border-[#D4AF37]/60 focus:ring-4 focus:ring-[#D4AF37]/12';
+const ok = 'border-white/10 focus:border-[#FF7A1A]/60 focus:ring-4 focus:ring-[#FF7A1A]/12';
 const bad = 'border-bad/60 focus:border-bad focus:ring-4 focus:ring-bad/15';
 
 export function Field({
@@ -115,7 +115,7 @@ export function PasswordInput({
           onClick={() => setShown((s) => !s)}
           aria-label={shown ? 'Hide password' : 'Show password'}
           tabIndex={-1}
-          className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-white/70 transition hover:bg-white/[0.08] hover:text-white"
+          className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-[4px] text-white/70 transition hover:bg-white/[0.08] hover:text-white"
         >
           {shown ? <EyeOff size={15} /> : <Eye size={15} />}
         </button>
@@ -200,7 +200,7 @@ export function Notice({
 
   return (
     <div role={tone === 'bad' ? 'alert' : 'status'}
-         className={clsx('rounded-[10px] border px-3.5 py-3 text-[12.5px] leading-relaxed', styles)}>
+         className={clsx('rounded-[5px] border px-3.5 py-3 text-[12.5px] leading-relaxed', styles)}>
       {title && <p className="font-medium">{title}</p>}
       <p className={clsx(title && 'mt-0.5 text-white/70')}>{children}</p>
     </div>
@@ -216,7 +216,7 @@ export function SubmitButton({
       {...rest}
       type="submit"
       disabled={rest.disabled || loading}
-      className="inline-flex w-full items-center justify-center gap-2 rounded-[11px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-6 py-3 text-[14.5px] font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      className="inline-flex w-full items-center justify-center gap-2 rounded-[5px] bg-gold px-6 py-3 text-[14.5px] font-semibold text-gold-on transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     >
       {loading && <Loader2 size={15} className="animate-spin" />}
       {children}

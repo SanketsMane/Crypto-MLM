@@ -241,7 +241,7 @@ export default function WalletPage() {
               {treasury.isLoading ? <Skeleton className="h-[132px]" /> : (t?.providers ?? []).map((p) => {
                 const ctl = t?.gateways.controls.find((c) => c.id === p.id);
                 return (
-                <div key={p.id} className="rounded-[10px] border border-line bg-canvas px-3.5 py-3">
+                <div key={p.id} className="rounded-[5px] border border-line bg-canvas px-3.5 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[13px] font-semibold text-ink">{p.label}</span>
                     <span className="flex gap-1.5">
@@ -290,7 +290,7 @@ export default function WalletPage() {
                       indistinguishable from an empty one, and would make a
                       shortfall look like a balanced book. */}
                   {!p.readable ? (
-                    <p className="mt-2 flex gap-2 rounded-[8px] bg-warn-soft px-2.5 py-2 text-[11.5px] leading-relaxed text-warn">
+                    <p className="mt-2 flex gap-2 rounded-[4px] bg-warn-soft px-2.5 py-2 text-[11.5px] leading-relaxed text-warn">
                       <AlertTriangle size={14} className="mt-px shrink-0" />
                       <span>Balance could not be read — {p.reason ?? 'no reason given'}</span>
                     </p>
@@ -352,7 +352,7 @@ export default function WalletPage() {
                   {/* Why nothing is enabled, when nothing is. Otherwise an
                       operator is left guessing at which variable is missing. */}
                   {(t?.gateways.reasons ?? []).length > 0 && (
-                    <ul className="space-y-1 rounded-[10px] bg-warn-soft px-3 py-2.5">
+                    <ul className="space-y-1 rounded-[5px] bg-warn-soft px-3 py-2.5">
                       {t!.gateways.reasons.map((r) => (
                         <li key={r} className="flex gap-2 text-[11.5px] leading-relaxed text-warn">
                           <AlertTriangle size={13} className="mt-0.5 shrink-0" />{r}
@@ -486,7 +486,7 @@ function Figure(
   { icon: typeof Landmark; label: string; value: string },
 ) {
   return (
-    <div className="rounded-[10px] border border-line bg-canvas px-3.5 py-3">
+    <div className="rounded-[5px] border border-line bg-canvas px-3.5 py-3">
       <p className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.04em] text-ink-2">
         <Icon size={13} /> {label}
       </p>

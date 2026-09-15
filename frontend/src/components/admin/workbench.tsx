@@ -32,7 +32,7 @@ export function Rail({ children }: { children: ReactNode }) {
   return (
     <section
       style={{ maxHeight: `calc(100dvh - ${CHROME})` }}
-      className="flex flex-col overflow-hidden rounded-[14px] border border-line bg-card shadow-card lg:sticky lg:top-[86px] lg:col-span-5 xl:col-span-4"
+      className="flex flex-col overflow-hidden rounded-[5px] border border-line bg-card shadow-card lg:sticky lg:top-[86px] lg:col-span-5 xl:col-span-4"
     >
       {children}
     </section>
@@ -45,7 +45,7 @@ export function Detail({ children }: { children: ReactNode }) {
     // container, which silently defeats the sticky DetailBar inside it — the bar
     // can only stick within a box that never scrolls, so it scrolled away with
     // the page. `clip` clips to the rounded corner without becoming one.
-    <section className="overflow-clip rounded-[14px] border border-line bg-card shadow-card lg:col-span-7 xl:col-span-8">
+    <section className="overflow-clip rounded-[5px] border border-line bg-card shadow-card lg:col-span-7 xl:col-span-8">
       {children}
     </section>
   );
@@ -168,7 +168,7 @@ export function QueueRow({ selected, onSelect, children }: {
 export function EmptyDetail({ icon, title, hint }: { icon: ReactNode; title: string; hint: string }) {
   return (
     <div className="grid place-items-center px-5 py-24 text-center">
-      <span className="grid h-12 w-12 place-items-center rounded-xl bg-canvas text-ink-3">{icon}</span>
+      <span className="grid h-12 w-12 place-items-center rounded-[5px] bg-canvas text-ink-3">{icon}</span>
       <p className="mt-4 text-[14px] font-medium text-ink">{title}</p>
       <p className="mt-1 max-w-[38ch] text-[12.5px] leading-relaxed text-ink-2">{hint}</p>
       <p className="mt-4 text-[11.5px] text-ink-3">

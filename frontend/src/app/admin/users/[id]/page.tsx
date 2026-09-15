@@ -145,7 +145,7 @@ export default function AdminUserDetail() {
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {data.wallets.map((w) => (
-            <div key={w.type} className="rounded-lg border border-line bg-canvas p-3">
+            <div key={w.type} className="rounded-[4px] border border-line bg-canvas p-3">
               <p className="font-mono text-[10px] uppercase tracking-widest text-ink-2">{w.type}</p>
               <p className="mt-1 font-mono text-lg tabular-nums">{usd(w.balance)}</p>
             </div>

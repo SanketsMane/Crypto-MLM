@@ -124,7 +124,7 @@ export default function StatementPage() {
 
             {/* The reconciliation. Opening, movement, closing — in that order,
                 because that is the order someone checks it in. */}
-            <div className="grid gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-4">
+            <div className="grid gap-px overflow-hidden rounded-[5px] border border-line bg-line sm:grid-cols-4">
               {[
                 { k: 'Opening balance', v: usd(Number(s.opening)) },
                 { k: 'Money in', v: `+${usd(Number(s.totals.credits))}`, tone: 'text-good' },
@@ -177,7 +177,7 @@ export default function StatementPage() {
                 Transactions — {s.totals.entries}
               </h2>
               {!s.entries.length ? (
-                <div className="flex flex-col items-center gap-2 rounded-[10px] border border-dashed border-line py-10 text-center">
+                <div className="flex flex-col items-center gap-2 rounded-[5px] border border-dashed border-line py-10 text-center">
                   <FileText size={20} className="text-ink-3" />
                   <p className="text-[13px] text-ink-2">Nothing moved in this period.</p>
                 </div>

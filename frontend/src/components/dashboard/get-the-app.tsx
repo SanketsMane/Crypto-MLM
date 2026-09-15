@@ -52,6 +52,10 @@ export function GetTheApp() {
     // rather than offering a download that 404s.
     retry: false,
     staleTime: 5 * 60_000,
+    /* ...and nothing is SAID either. Without this the global query-error
+       toaster turned "no Android build published yet" into a red error on
+       every dashboard load, contradicting the line above. */
+    meta: { silent: true },
   });
 
   const version = manifest.data?.version;
@@ -98,7 +102,7 @@ export function GetTheApp() {
       title="FortuneX for Android"
       description="Check your balance, deposit, invest and withdraw from your phone. Your account, plan and network are exactly as they are here — signing in on the app changes nothing about how your account works."
       icon={
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-[11px] bg-violet/10 text-violet">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[5px] bg-violet/10 text-violet">
           <Smartphone size={20} />
         </div>
       }
@@ -107,7 +111,7 @@ export function GetTheApp() {
           <button
             type="button"
             onClick={close}
-            className="rounded-lg px-3 py-2 text-[12.5px] text-ink-2 transition hover:text-ink"
+            className="rounded-[4px] px-3 py-2 text-[12.5px] text-ink-2 transition hover:text-ink"
           >
             Maybe later
           </button>
@@ -126,7 +130,7 @@ export function GetTheApp() {
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1 space-y-2">
-          <div className="rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+          <div className="rounded-[5px] border border-line bg-canvas px-3 py-2.5">
             <p className="text-[10.5px] uppercase tracking-[0.04em] text-ink-2">This release</p>
             <p className="mt-0.5 text-[13px] font-semibold text-ink">
               Version {m.version} · {mb(m.sizeBytes)}
@@ -147,7 +151,7 @@ export function GetTheApp() {
             <img
               src={qr}
               alt="QR code to download the FortuneX Android app"
-              className="size-[112px] rounded-[10px] border border-line bg-white p-1.5"
+              className="size-[112px] rounded-[5px] border border-line bg-white p-1.5"
             />
             <span className="text-[10.5px] text-ink-3">Scan to install</span>
           </div>

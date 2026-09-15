@@ -255,7 +255,7 @@ function QuoteBreakdown({
   if (amount <= 0) return null;
 
   return (
-    <dl aria-live="polite" className="space-y-1.5 rounded-[10px] border border-line bg-canvas px-3.5 py-3 text-[12.5px]">
+    <dl aria-live="polite" className="space-y-1.5 rounded-[5px] border border-line bg-canvas px-3.5 py-3 text-[12.5px]">
       <Line label="Requested" value={quote ? usd(quote.amount) : UNKNOWN} muted={loading} />
       <Line
         label={quote ? `Fee (${quote.feePercent}%)` : 'Fee'}
@@ -315,14 +315,14 @@ function ReviewDialog({
       }
     >
       <div className="space-y-4 pb-1">
-        <div className="rounded-[11px] border border-line bg-canvas-2 p-4">
+        <div className="rounded-[5px] border border-line bg-canvas-2 p-4">
           <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-3">Sending to</p>
           {/* Never truncated. Truncation is what hides a wrong character. */}
           <p className="mt-1.5 break-all font-mono text-[13.5px] leading-relaxed text-ink">{address}</p>
           <p className="mt-1.5 text-[11.5px] text-ink-2">{network} · check this against your wallet</p>
         </div>
 
-        <dl className="space-y-1.5 rounded-[11px] border border-line bg-canvas-2 p-4 text-[13px]">
+        <dl className="space-y-1.5 rounded-[5px] border border-line bg-canvas-2 p-4 text-[13px]">
           <Line label="Requested" value={usd(quote.amount)} />
           <Line label={`Fee (${quote.feePercent}%)`} value={`−${usd(quote.fee)}`} tone="bad" />
           {quote.taxPercent > 0 && (
@@ -352,7 +352,7 @@ function Notice({
 }) {
   const warn = tone === 'warn';
   return (
-    <div className={`flex items-start gap-2.5 rounded-[10px] border px-3.5 py-3 ${
+    <div className={`flex items-start gap-2.5 rounded-[5px] border px-3.5 py-3 ${
       warn ? 'border-warn/30 bg-warn-soft' : 'border-bad/30 bg-bad-soft'}`}>
       {icon ?? <AlertCircle size={15} className={`mt-0.5 shrink-0 ${warn ? 'text-warn' : 'text-bad'}`} />}
       <div className="min-w-0">

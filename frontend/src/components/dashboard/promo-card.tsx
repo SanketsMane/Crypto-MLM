@@ -15,7 +15,7 @@ import { ArrowRight, Users } from 'lucide-react';
 export function GrowNetworkCard({ className }: { className?: string }) {
   return (
     <article
-      className={`relative isolate flex min-h-[190px] overflow-hidden rounded-[14px] bg-navy sm:min-h-[210px] ${className ?? ''}`}
+      className={`relative isolate flex min-h-[190px] overflow-hidden rounded-[5px] bg-navy sm:min-h-[210px] ${className ?? ''}`}
     >
       <Image
         src="/brand/grow-network.png"
@@ -49,7 +49,7 @@ export function GrowNetworkCard({ className }: { className?: string }) {
 
         <Link
           href="/admin/network"
-          className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-[9px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-4 py-2.5 text-[12.5px] font-semibold text-navy shadow-[0_6px_18px_-6px_rgba(212,175,55,0.55)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/25"
+          className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-[4px] bg-gold px-4 py-2.5 text-[12.5px] font-semibold text-gold-on shadow-[0_6px_18px_-6px_rgba(255,122,26,0.55)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/25"
         >
           Invite Now
           <ArrowRight size={14} strokeWidth={2.5} />

@@ -17,7 +17,7 @@ function ChartTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-line bg-card px-3 py-2 shadow-pop">
+    <div className="rounded-[4px] border border-line bg-card px-3 py-2 shadow-pop">
       <p className="text-[11px] text-ink-2">{label ? axisDate(label) : ''}</p>
       <p className="mt-0.5 text-[14px] font-semibold tabular-nums text-ink">{usdWhole(payload[0]!.value)}</p>
     </div>

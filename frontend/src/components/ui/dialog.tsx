@@ -87,7 +87,7 @@ export function ActionDialog({
             const v = values[f.name] ?? '';
             const bad = touched && missing.includes(f);
             const cls = clsx(
-              'w-full rounded-[9px] border bg-field px-3 py-2 text-[13px] text-ink outline-none transition',
+              'w-full rounded-[4px] border bg-field px-3 py-2 text-[13px] text-ink outline-none transition',
               'placeholder:text-field-ph focus:ring-4',
               bad ? 'border-bad focus:border-bad focus:ring-bad/15' : 'border-field-line focus:border-gold focus:ring-gold/15',
             );

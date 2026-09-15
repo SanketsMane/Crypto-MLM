@@ -85,13 +85,13 @@ function RegisterForm() {
 
   if (closed) {
     return (
-      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-7 text-center">
+      <div className="rounded-[5px] border border-white/10 bg-white/[0.04] p-7 text-center">
         <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white">Registration is closed</h1>
         <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-white/55">
           New sign-ups are paused at the moment. Existing members can still sign in normally.
         </p>
         <Link href="/login"
-              className="mt-5 inline-block rounded-lg bg-[#D4AF37] px-4 py-2.5 text-[14px] font-semibold text-black transition hover:brightness-105">
+              className="mt-5 inline-block rounded-[4px] bg-[#FF7A1A] px-4 py-2.5 text-[14px] font-semibold text-black transition hover:brightness-105">
           Sign in
         </Link>
       </div>
@@ -154,13 +154,13 @@ function RegisterForm() {
 
         <label className="flex cursor-pointer items-start gap-2.5 pt-0.5">
           <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)}
-                 className="mt-0.5 h-4 w-4 shrink-0 accent-[#D4AF37]" />
+                 className="mt-0.5 h-4 w-4 shrink-0 accent-[#FF7A1A]" />
           <span className="text-[12px] leading-[1.6] text-white/55">
             I accept the{' '}
-            <Link href="/legal/terms" target="_blank" className="text-[#D4AF37] underline underline-offset-2">terms</Link>,{' '}
-            <Link href="/legal/privacy" target="_blank" className="text-[#D4AF37] underline underline-offset-2">privacy policy</Link>{' '}
+            <Link href="/legal/terms" target="_blank" className="text-[#FF7A1A] underline underline-offset-2">terms</Link>,{' '}
+            <Link href="/legal/privacy" target="_blank" className="text-[#FF7A1A] underline underline-offset-2">privacy policy</Link>{' '}
             and{' '}
-            <Link href="/legal/risk-disclosure" target="_blank" className="text-[#D4AF37] underline underline-offset-2">risk disclosure</Link>,
+            <Link href="/legal/risk-disclosure" target="_blank" className="text-[#FF7A1A] underline underline-offset-2">risk disclosure</Link>,
             and understand that trading carries risk including loss of capital.
           </span>
         </label>
@@ -178,7 +178,7 @@ function RegisterForm() {
 
       <p className="mt-4 text-center text-[13px] text-white/50">
         Already have an account?{' '}
-        <Link href="/login" className="font-medium text-[#D4AF37] transition hover:underline">Sign in</Link>
+        <Link href="/login" className="font-medium text-[#FF7A1A] transition hover:underline">Sign in</Link>
       </p>
     </>
   );
@@ -186,7 +186,7 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="h-[520px] animate-pulse rounded-2xl bg-white/[0.03]" />}>
+    <Suspense fallback={<div className="h-[520px] animate-pulse rounded-[5px] bg-white/[0.03]" />}>
       <RegisterForm />
     </Suspense>
   );

@@ -47,8 +47,8 @@ export function NetworkOverview({ data, rootCode, loading }: {
           <>
             {/* root */}
             <div className="flex justify-center">
-              <div className="inline-flex items-center gap-2.5 rounded-xl bg-navy px-4 py-2.5">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-gold to-gold-hi text-navy">
+              <div className="inline-flex items-center gap-2.5 rounded-[5px] bg-navy px-4 py-2.5">
+                <span className="grid h-7 w-7 place-items-center rounded-[4px] bg-gradient-to-br from-gold to-gold-hi text-navy">
                   <User size={14} strokeWidth={2.4} />
                 </span>
                 <span className="leading-tight">
@@ -67,7 +67,7 @@ export function NetworkOverview({ data, rootCode, loading }: {
             {/* levels */}
             <div className="grid grid-cols-3 gap-2.5">
               {levels.map((l) => (
-                <div key={l.level} className="rounded-xl border border-line bg-canvas/60 px-2 py-2.5 text-center">
+                <div key={l.level} className="rounded-[5px] border border-line bg-canvas/60 px-2 py-2.5 text-center">
                   <p className="text-[12px] font-semibold text-ink">Level {l.level}</p>
                   <p className="text-[11px] tabular-nums text-ink-2">{num(l.members)} members</p>
                 </div>

@@ -127,7 +127,7 @@ function StepUpDialog({
       title="Confirm it is you"
       description={reason ?? 'This step protects your payout from anyone who picks up your unlocked device.'}
       icon={
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-gold-soft text-gold-on-soft ring-1 ring-gold/30">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[5px] bg-gold-soft text-gold-on-soft ring-1 ring-gold/30">
           <ShieldCheck size={16} strokeWidth={2.2} aria-hidden />
         </span>
       }
@@ -169,7 +169,7 @@ function StepUpDialog({
         )}
 
         {error && (
-          <p id="step-up-error" role="alert" className="rounded-[8px] bg-bad-soft px-3 py-2 text-[12px] text-bad">
+          <p id="step-up-error" role="alert" className="rounded-[4px] bg-bad-soft px-3 py-2 text-[12px] text-bad">
             {error}
           </p>
         )}

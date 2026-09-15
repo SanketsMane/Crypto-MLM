@@ -141,7 +141,7 @@ export default function ErrorsPage() {
                   aria-expanded={open === f.id}
                   className="flex w-full items-start gap-3 px-5 py-3.5 text-left transition hover:bg-canvas"
                 >
-                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[9px] bg-bad-soft text-bad">
+                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[4px] bg-bad-soft text-bad">
                     <AlertTriangle size={15} />
                   </span>
 
@@ -196,7 +196,7 @@ export default function ErrorsPage() {
                           tabIndex={0}
                           role="region"
                           aria-label="Stack trace"
-                          className="max-h-72 overflow-auto rounded-[10px] border border-line bg-card p-3 font-mono text-[11px] leading-relaxed text-ink-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+                          className="max-h-72 overflow-auto rounded-[5px] border border-line bg-card p-3 font-mono text-[11px] leading-relaxed text-ink-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
                         >
                           {f.stack}
                         </pre>

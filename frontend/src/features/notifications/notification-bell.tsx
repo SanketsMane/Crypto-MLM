@@ -135,8 +135,8 @@ export function NotificationBell({
           role="dialog"
           aria-label="Notifications"
           className={clsx(
-            'absolute right-0 z-50 mt-2 w-[min(calc(100vw-2rem),380px)] overflow-hidden rounded-[14px]',
-            'border border-line bg-card shadow-[0_18px_50px_-12px_rgba(0, 0, 0,0.28)]',
+            'absolute right-0 z-50 mt-2 w-[min(calc(100vw-2rem),380px)] overflow-hidden rounded-[5px]',
+            'border border-line bg-card shadow-[0_18px_50px_-12px_rgba(0,0,0,0.28)]',
           )}
         >
           <header className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
@@ -151,13 +151,13 @@ export function NotificationBell({
                 href={settingsHref}
                 onClick={() => setOpen(false)}
                 title="Notification settings"
-                className="grid h-8 w-8 place-items-center rounded-lg text-ink-3 transition hover:bg-canvas hover:text-ink"
+                className="grid h-8 w-8 place-items-center rounded-[4px] text-ink-3 transition hover:bg-canvas hover:text-ink"
               >
                 <Settings2 size={15} />
               </Link>
               <button
                 type="button" onClick={() => setOpen(false)} aria-label="Close"
-                className="grid h-8 w-8 place-items-center rounded-lg text-ink-3 transition hover:bg-canvas hover:text-ink"
+                className="grid h-8 w-8 place-items-center rounded-[4px] text-ink-3 transition hover:bg-canvas hover:text-ink"
               >
                 <X size={15} />
               </button>
@@ -229,7 +229,7 @@ export function NotificationBell({
               type="button"
               disabled={unread === 0 || actions.markAllRead.isPending}
               onClick={() => actions.markAllRead.mutate(filter === 'all' ? undefined : filter)}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12px] font-medium text-ink-2 transition hover:bg-canvas hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-[4px] px-2 py-1.5 text-[12px] font-medium text-ink-2 transition hover:bg-canvas hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
             >
               <CheckCheck size={14} />
               Mark all as read
@@ -237,7 +237,7 @@ export function NotificationBell({
             <Link
               href={variant === 'admin' ? '/admin/notifications' : '/notifications'}
               onClick={() => setOpen(false)}
-              className="rounded-lg px-2 py-1.5 text-[12px] font-medium text-violet transition hover:underline"
+              className="rounded-[4px] px-2 py-1.5 text-[12px] font-medium text-violet transition hover:underline"
             >
               View all
             </Link>
@@ -264,7 +264,7 @@ function Row({
         onClick={() => onOpen(n)}
         className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-canvas"
       >
-        <span className={clsx('mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg', SEVERITY_STYLE[n.severity])}>
+        <span className={clsx('mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[4px]', SEVERITY_STYLE[n.severity])}>
           <Icon size={15} />
         </span>
 
@@ -290,7 +290,7 @@ function Row({
         onClick={(e) => { e.stopPropagation(); onArchive(n.id); }}
         aria-label="Dismiss"
         title="Dismiss"
-        className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-md bg-card text-ink-3 opacity-0 shadow-sm transition hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+        className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-[3px] bg-card text-ink-3 opacity-0 shadow-sm transition hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
       >
         <Check size={13} />
       </button>

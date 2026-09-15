@@ -45,8 +45,8 @@ export default function GlobalError({
             style={{
               width: 48, height: 48, margin: '0 auto 20px',
               display: 'grid', placeItems: 'center',
-              borderRadius: 12, background: 'rgba(212,175,55,0.12)',
-              color: '#D4AF37', fontSize: 24, lineHeight: 1,
+              borderRadius: 12, background: 'rgba(255,122,26,0.12)',
+              color: '#FF7A1A', fontSize: 24, lineHeight: 1,
             }}
           >
             !
@@ -72,7 +72,7 @@ export default function GlobalError({
               style={{
                 cursor: 'pointer', border: 0, borderRadius: 10,
                 padding: '11px 20px', fontSize: 14, fontWeight: 600,
-                background: 'linear-gradient(135deg,#D4AF37 0%,#C49A2C 100%)', color: '#0B1220',
+                background: 'linear-gradient(135deg,#FF7A1A 0%,#E2670A 100%)', color: '#0B1220',
               }}
             >
               Try again

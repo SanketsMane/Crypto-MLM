@@ -29,7 +29,7 @@ export function PlatformActivity({ items, loading }: { items: ActivityItem[]; lo
           const { Icon, cls } = ICON[a.type as keyof typeof ICON] ?? ICON.user;
           return (
             <li key={i} className="flex items-start gap-3 border-b border-line-soft py-3 last:border-b-0">
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${cls}`}>
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-[4px] ${cls}`}>
                 <Icon size={16} strokeWidth={2} />
               </span>
               <div className="min-w-0 flex-1">

@@ -74,7 +74,7 @@ export function IncomeStreams({ rows, days, onDays, loading }: {
                     if (!active || !payload?.length) return null;
                     const total = payload.reduce((a, p) => a + Number(p.value ?? 0), 0);
                     return (
-                      <div className="rounded-lg border border-line bg-card px-3 py-2 shadow-pop">
+                      <div className="rounded-[4px] border border-line bg-card px-3 py-2 shadow-pop">
                         <p className="text-[11px] text-ink-2">{label ? axisDate(String(label)) : ''}</p>
                         {payload.filter((p) => Number(p.value) > 0).map((p) => (
                           <p key={String(p.dataKey)} className="mt-0.5 flex items-center gap-2 text-[12px]">

@@ -35,7 +35,7 @@ export function LevelProgress({ levels }: {
         </div>
 
         {levels?.next ? (
-          <div className="mt-auto rounded-lg border border-line bg-canvas px-3 py-2.5">
+          <div className="mt-auto rounded-[4px] border border-line bg-canvas px-3 py-2.5">
             <p className="flex items-center gap-1.5 text-[12px] font-medium text-ink">
               <Lock size={12} className="text-ink-3" /> Unlock level {levels.next.level} — earns {levels.next.percent}%
             </p>
@@ -47,7 +47,7 @@ export function LevelProgress({ levels }: {
             </p>
           </div>
         ) : (
-          <p className="mt-auto flex items-center gap-1.5 rounded-lg bg-good-soft px-3 py-2.5 text-[12px] text-good">
+          <p className="mt-auto flex items-center gap-1.5 rounded-[4px] bg-good-soft px-3 py-2.5 text-[12px] text-good">
             <Unlock size={12} /> Every level is unlocked.
           </p>
         )}

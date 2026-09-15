@@ -29,13 +29,13 @@ function PlanTable({ head, rows }: { head: string[]; rows: (string | number)[][]
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={i} className="border-t border-[var(--home-line)] transition-colors hover:bg-white/[0.03]">
+            <tr key={i} className="border-t border-[var(--home-line)] transition-colors hover:bg-[var(--home-surface)]">
               {/* Cells wrap. A reward reads "$1,565 car purchase fund, or a new
                   ID top-up"; forcing that onto one line stretched the table far
                   past the width anyone reads it at. */}
               {r.map((c, j) => (
                 <td key={j} className={`px-5 py-3.5 text-[13.5px] ${
-                  j === 0 ? 'font-semibold text-white' : 'text-[var(--home-text-2)]'}`}>
+                  j === 0 ? 'font-semibold text-[var(--home-text)]' : 'text-[var(--home-text-2)]'}`}>
                   {c}
                 </td>
               ))}
@@ -82,7 +82,7 @@ export default async function OpportunityPage() {
                     <Icon size={20} strokeWidth={1.9} aria-hidden />
                   </span>
                   <p className="mt-5 text-[34px] font-bold leading-none text-[var(--home-display)]">{figure}</p>
-                  <h3 className="mt-3 text-[16px] font-bold text-white">{title}</h3>
+                  <h3 className="mt-3 text-[16px] font-bold text-[var(--home-text)]">{title}</h3>
                   <p className="mt-2.5 text-[13px] leading-[1.75] text-[var(--home-text-2)]">{body}</p>
                 </Card>
               </Reveal>
@@ -125,7 +125,7 @@ export default async function OpportunityPage() {
 
           <Reveal delay={160}>
             <Link href="/plans"
-                  className="mx-auto mt-12 inline-flex items-center gap-2.5 rounded-xl border border-[var(--home-line)] px-7 py-3.5 text-[14px] font-semibold text-white transition hover:border-[var(--home-gold)] hover:text-[var(--home-gold)]">
+                  className="mx-auto mt-12 inline-flex items-center gap-2.5 rounded-xl border border-[var(--home-line)] px-7 py-3.5 text-[14px] font-semibold text-[var(--home-text)] transition hover:border-[var(--home-gold)] hover:text-[var(--home-gold)]">
               See every tier in detail <ArrowRight size={15} strokeWidth={2.5} aria-hidden />
             </Link>
           </Reveal>

@@ -65,7 +65,7 @@ export default function PackagesPage() {
         })}
 
         {plans.isLoading && Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="min-h-[300px] animate-pulse rounded-2xl border border-line bg-card" />
+          <div key={i} className="min-h-[300px] animate-pulse rounded-[5px] border border-line bg-card" />
         ))}
       </div>
 

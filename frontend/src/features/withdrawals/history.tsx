@@ -64,7 +64,7 @@ export function WithdrawalHistory({ rows, loading }: { rows: Row[]; loading?: bo
 
       {loading ? (
         <div className="space-y-2 px-5 pb-5" aria-busy="true" aria-label="Loading your withdrawals">
-          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[52px] rounded-[10px]" />)}
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[52px] rounded-[5px]" />)}
         </div>
       ) : rows.length === 0 ? (
         <div className="px-5 pb-8 pt-2 text-center">
@@ -122,7 +122,7 @@ function Detail({ row }: { row: Row }) {
     <div className="space-y-3 border-t border-line-soft bg-canvas-2 px-5 py-4">
       {/* The reason first: it is why the member opened this row. */}
       {row.rejectReason && (
-        <div className="rounded-[9px] border border-bad/25 bg-bad-soft px-3 py-2.5">
+        <div className="rounded-[4px] border border-bad/25 bg-bad-soft px-3 py-2.5">
           <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-bad">
             {row.status === 'FAILED' ? 'Why it could not be sent' : 'Why it was rejected'}
           </p>

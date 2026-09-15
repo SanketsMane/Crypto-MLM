@@ -61,7 +61,7 @@ export function KycChecks({ checks }: { checks: ReviewCheck[] }) {
       </ul>
 
       {failed.length > 0 && (
-        <p className="mt-3 rounded-[8px] border border-bad/25 bg-bad-soft px-3 py-2 text-[12px] leading-relaxed text-bad-on">
+        <p className="mt-3 rounded-[4px] border border-bad/25 bg-bad-soft px-3 py-2 text-[12px] leading-relaxed text-bad-on">
           Approval is blocked while a check is failing. Resolve it with the member, or reject the submission
           with a reason.
         </p>

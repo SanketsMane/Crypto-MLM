@@ -25,7 +25,7 @@ export default function NotFound() {
 
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Link href="/"
-                  className="inline-flex items-center gap-2 rounded-[11px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-6 py-3.5 text-[14px] font-semibold text-navy transition hover:brightness-110">
+                  className="inline-flex items-center gap-2 rounded-[11px] bg-gold px-6 py-3.5 text-[14px] font-semibold text-gold-on transition hover:brightness-110">
               <Home size={15} strokeWidth={2.4} /> Back to home
             </Link>
             <Link href="/login"

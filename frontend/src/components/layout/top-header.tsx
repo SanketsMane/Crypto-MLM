@@ -93,7 +93,7 @@ export function TopHeader({ onToggleSidebar, onOpenMobile }: { onToggleSidebar: 
           </button>
 
           {menu && (
-            <div className="absolute right-0 top-[calc(100%+8px)] w-56 overflow-hidden rounded-xl border border-line bg-card shadow-pop">
+            <div className="absolute right-0 top-[calc(100%+8px)] w-56 overflow-hidden rounded-[5px] border border-line bg-card shadow-pop">
               <div className="border-b border-line px-4 py-3">
                 <p className="truncate text-[13px] font-semibold text-ink">{admin?.name}</p>
                 <p className="truncate text-[11.5px] text-ink-2">{admin?.email}</p>

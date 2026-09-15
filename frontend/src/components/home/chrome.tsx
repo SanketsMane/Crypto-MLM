@@ -6,6 +6,9 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 import { ArrowRight, Facebook, Instagram, Mail, Menu, Send, Twitter, X } from 'lucide-react';
+import { BrandMark } from '@/components/layout/brand-mark';
+import { useBrand, useBrandName } from '@/providers/brand-provider';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 
 const NAV = [
   { label: 'Home', href: '/' },
@@ -23,26 +26,30 @@ const SOCIAL = [
   { Icon: Send, label: 'Telegram', href: 'https://t.me' },
 ];
 
-/** Gold utility strip above the nav — contact on the left, socials right. */
+/** Utility strip above the nav — contact on the left, socials right.
+    Was a full-width fill of the accent colour. A hairline strip on the page
+    surface reads as chrome; a solid orange band read as a promotion. */
 export function TopBar() {
+  const brand = useBrand();
   return (
-    <div className="bg-[var(--home-gold)] text-black">
+    <div className="border-b border-[var(--home-line)] bg-[var(--home-surface)] text-[var(--home-text-2)]">
       <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-y-2 px-4 py-2.5 sm:px-6">
-        <a href="mailto:support@fortunex.com"
-           className="flex items-center gap-2 text-[13.5px] font-medium transition hover:opacity-75">
-          <Mail size={15} strokeWidth={2.2} aria-hidden />
-          support@fortunex.com
+        {/* The operator's address, not a build-time constant. */}
+        <a href={`mailto:${brand.supportEmail}`}
+           className="flex items-center gap-2 text-[12.5px] font-medium transition-colors hover:text-[var(--home-gold)]">
+          <Mail size={14} strokeWidth={2.2} aria-hidden />
+          {brand.supportEmail}
         </a>
         <div className="flex items-center gap-3">
-          <span className="hidden border-r border-black/25 pr-3 text-[13.5px] font-semibold sm:block">
+          <span className="hidden border-r border-[var(--home-line)] pr-3 text-[12.5px] font-semibold sm:block">
             Follow Us:
           </span>
           <ul className="flex items-center gap-2">
             {SOCIAL.map(({ Icon, label, href }) => (
               <li key={label}>
                 <a href={href} target="_blank" rel="noreferrer noopener" aria-label={label}
-                   className="grid h-8 w-8 place-items-center rounded-full border border-black/30 transition hover:bg-black hover:text-[var(--home-gold)]">
-                  <Icon size={14} strokeWidth={2.2} aria-hidden />
+                   className="grid h-7 w-7 place-items-center rounded-[4px] border border-[var(--home-line)] transition-colors hover:border-[var(--home-gold)] hover:text-[var(--home-gold)]">
+                  <Icon size={13} strokeWidth={2.2} aria-hidden />
                 </a>
               </li>
             ))}
@@ -62,6 +69,7 @@ export function Nav() {
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const brandLabel = useBrandName();
 
   /* "/" only matches itself — every other entry also owns anything nested
      beneath it, so /legal/terms would still light up Terms if it ever moved. */
@@ -78,12 +86,17 @@ export function Nav() {
   return (
     <header className={clsx(
       'sticky top-0 z-50 transition-colors duration-300',
-      stuck ? 'bg-black/85 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.9)] backdrop-blur-md' : 'bg-black',
+      'border-b border-[var(--home-line)]',
+      /* Translucent once scrolled so the video shows through, opaque at rest.
+         Both follow the theme — this used to be black in light mode too. */
+      stuck
+        ? 'bg-[color-mix(in_srgb,var(--home-bg)_82%,transparent)] backdrop-blur-md'
+        : 'bg-[var(--home-bg)]',
     )}>
       <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-6 px-4 py-4 sm:px-6">
-        <Link href="/" className="relative block h-[46px] w-[190px] shrink-0" aria-label="FortuneX — home">
-          <Image src="/brand/Clearlogo.png" alt="FortuneX" fill sizes="190px"
-                 priority className="object-contain object-left" />
+        {/* The operator's mark. Was a baked-in PNG of someone else's brand. */}
+        <Link href="/" className="block shrink-0" aria-label={`${brandLabel} — home`}>
+          <BrandMark variant="full" surface="dark" className="h-8" />
         </Link>
 
         <nav aria-label="Primary" className="hidden lg:block">
@@ -95,7 +108,9 @@ export function Nav() {
                   <Link href={n.href} aria-current={active ? 'page' : undefined} className={clsx(
                     'relative text-[15px] font-medium transition-colors',
                     'after:absolute after:-bottom-1.5 after:left-0 after:h-[2px] after:w-0 after:bg-[var(--home-gold)] after:transition-all after:duration-300 hover:after:w-full',
-                    active ? 'text-[var(--home-gold)] after:w-full' : 'text-white hover:text-[var(--home-gold)]',
+                    /* Was `text-[var(--home-text)]`, which vanished the moment the header
+                       stopped being black in light mode. */
+                    active ? 'text-[var(--home-gold)] after:w-full' : 'text-[var(--home-text)] hover:text-[var(--home-gold)]',
                   )}>
                     {n.label}
                   </Link>
@@ -106,27 +121,37 @@ export function Nav() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Link href="/register" className="text-[15px] font-medium text-white transition hover:text-[var(--home-gold)]">
+          {/* The same switch the console uses, not a second implementation.
+              It reads `data-theme` off <html>, so it is already in the right
+              position in the first painted frame rather than catching up
+              after hydration. */}
+          <ThemeToggle size="sm" />
+          <Link href="/register" className="text-[14px] font-medium text-[var(--home-text)] transition-colors hover:text-[var(--home-gold)]">
             Sign Up
           </Link>
           <Link href="/login"
-                className="group inline-flex items-center gap-2 rounded-lg bg-[var(--home-gold)] px-5 py-2.5 text-[14.5px] font-semibold text-black transition hover:bg-[var(--home-gold-hi)]">
+                className="group inline-flex items-center gap-2 rounded-[4px] bg-[var(--home-gold)] px-5 py-2.5 text-[14px] font-semibold text-[var(--color-gold-on)] transition-colors hover:bg-[var(--home-gold-hi)]">
             Sign In
             <ArrowRight size={15} strokeWidth={2.6} aria-hidden
                         className="transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
 
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
-                aria-label={open ? 'Close menu' : 'Open menu'}
-                className="grid h-10 w-10 place-items-center rounded-lg border border-white/15 text-white lg:hidden">
-          {open ? <X size={18} /> : <Menu size={18} />}
-        </button>
+        {/* On a phone the switch sits beside the menu button rather than inside
+            the drawer — changing theme should not cost two taps and a scroll. */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <ThemeToggle size="sm" />
+          <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
+                  aria-label={open ? 'Close menu' : 'Open menu'}
+                  className="grid h-9 w-9 place-items-center rounded-[4px] border border-[var(--home-line)] text-[var(--home-text)]">
+            {open ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
       </div>
 
       {/* mobile drawer — grid-rows trick so it animates to its own height */}
       <div className={clsx(
-        'grid overflow-hidden border-white/10 transition-all duration-300 lg:hidden',
+        'grid overflow-hidden border-[var(--home-line)] transition-all duration-300 lg:hidden',
         open ? 'grid-rows-[1fr] border-t' : 'grid-rows-[0fr]',
       )}>
         <div className="min-h-0">
@@ -141,7 +166,7 @@ export function Nav() {
                           'block rounded-lg px-3 py-2.5 text-[15px] transition',
                           active
                             ? 'bg-[var(--home-gold)]/10 font-semibold text-[var(--home-gold)]'
-                            : 'text-white hover:bg-white/[0.06] hover:text-[var(--home-gold)]',
+                            : 'text-[var(--home-text)] hover:bg-[var(--home-surface)] hover:text-[var(--home-gold)]',
                         )}>
                     {n.label}
                   </Link>
@@ -150,11 +175,11 @@ export function Nav() {
             })}
             <li className="flex gap-2 px-3 pt-3">
               <Link href="/register" onClick={() => setOpen(false)}
-                    className="flex-1 rounded-lg border border-white/15 py-2.5 text-center text-[14.5px] font-medium text-white">
+                    className="flex-1 rounded-lg border border-[var(--home-line)] py-2.5 text-center text-[14.5px] font-medium text-[var(--home-text)]">
                 Sign Up
               </Link>
               <Link href="/login" onClick={() => setOpen(false)}
-                    className="flex-1 rounded-lg bg-[var(--home-gold)] py-2.5 text-center text-[14.5px] font-semibold text-black">
+                    className="flex-1 rounded-lg bg-[var(--home-gold)] py-2.5 text-center text-[14.5px] font-semibold text-[var(--color-gold-on)]">
                 Sign In
               </Link>
             </li>
@@ -186,7 +211,7 @@ export function Footer() {
               {SOCIAL.map(({ Icon, label, href }) => (
                 <li key={label}>
                   <a href={href} target="_blank" rel="noreferrer noopener" aria-label={label}
-                     className="grid h-9 w-9 place-items-center rounded-full border border-white/15 text-white transition hover:border-[var(--home-gold)] hover:bg-[var(--home-gold)] hover:text-black">
+                     className="grid h-9 w-9 place-items-center rounded-full border border-[var(--home-line)] text-[var(--home-text)] transition hover:border-[var(--home-gold)] hover:bg-[var(--home-gold)] hover:text-[var(--color-gold-on)]">
                     <Icon size={15} strokeWidth={2.1} aria-hidden />
                   </a>
                 </li>
@@ -201,7 +226,7 @@ export function Footer() {
             { head: 'Quick Link', links: [['Terms & Conditions', '/terms'], ['FAQ', '/faq'], ['Contact', '/contact']] },
           ].map((col) => (
             <div key={col.head}>
-              <h3 className="text-[16px] font-semibold text-white">{col.head}</h3>
+              <h3 className="text-[16px] font-semibold text-[var(--home-text)]">{col.head}</h3>
               <ul className="mt-5 space-y-3">
                 {col.links.map(([label, href]) => (
                   <li key={label}>
@@ -216,7 +241,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 text-[12.5px] text-[var(--home-text-3)]">
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--home-line)] pt-6 text-[12.5px] text-[var(--home-text-3)]">
           <p>Copyright {new Date().getFullYear()} — FortuneX. All rights reserved.</p>
           <div className="flex gap-5">
             <Link href="/legal/privacy" className="transition hover:text-[var(--home-gold)]">Privacy Policy</Link>

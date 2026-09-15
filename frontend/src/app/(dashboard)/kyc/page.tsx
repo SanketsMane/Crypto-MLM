@@ -85,7 +85,7 @@ export default function KycPage() {
             {isLoading ? (
               <p className="py-6 text-center text-[13px] text-ink-2">Loading…</p>
             ) : status === 'APPROVED' ? (
-              <div className="flex items-start gap-3 rounded-xl border border-good/30 bg-good-soft px-4 py-3">
+              <div className="flex items-start gap-3 rounded-[5px] border border-good/30 bg-good-soft px-4 py-3">
                 <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-good" />
                 <div>
                   <p className="text-[13.5px] font-medium text-good-on">Your identity is verified</p>
@@ -95,7 +95,7 @@ export default function KycPage() {
                 </div>
               </div>
             ) : status === 'PENDING' ? (
-              <div className="flex items-start gap-3 rounded-xl border border-warn/30 bg-warn-soft px-4 py-3">
+              <div className="flex items-start gap-3 rounded-[5px] border border-warn/30 bg-warn-soft px-4 py-3">
                 <Clock size={18} className="mt-0.5 shrink-0 text-warn" />
                 <div>
                   <p className="text-[13.5px] font-medium text-warn-on">Under review</p>
@@ -106,7 +106,7 @@ export default function KycPage() {
                 </div>
               </div>
             ) : status === 'REJECTED' ? (
-              <div className="flex items-start gap-3 rounded-xl border border-bad/30 bg-bad-soft px-4 py-3">
+              <div className="flex items-start gap-3 rounded-[5px] border border-bad/30 bg-bad-soft px-4 py-3">
                 <XCircle size={18} className="mt-0.5 shrink-0 text-bad" />
                 <div>
                   <p className="text-[13.5px] font-medium text-bad-on">Not accepted</p>
@@ -115,7 +115,7 @@ export default function KycPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-start gap-3 rounded-xl border border-line bg-canvas px-4 py-3">
+              <div className="flex items-start gap-3 rounded-[5px] border border-line bg-canvas px-4 py-3">
                 <ShieldCheck size={18} className="mt-0.5 shrink-0 text-ink-3" />
                 <div>
                   <p className="text-[13.5px] font-medium text-ink">Not started</p>
@@ -183,7 +183,7 @@ export default function KycPage() {
                     const file = files[slot.type];
                     return (
                       <div key={slot.type}
-                           className={clsx('rounded-xl border px-3 py-2.5 transition',
+                           className={clsx('rounded-[5px] border px-3 py-2.5 transition',
                              file ? 'border-gold bg-gold-soft' : 'border-line bg-canvas')}>
                         <div className="flex items-center gap-2">
                           <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-ink">
@@ -203,7 +203,7 @@ export default function KycPage() {
                         ) : (
                           <>
                             <p className="mt-0.5 text-[11.5px] text-ink-3">{slot.hint}</p>
-                            <label className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] border border-line bg-card px-2.5 py-1.5 text-[12px] font-medium text-ink transition hover:border-line-strong">
+                            <label className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-[4px] border border-line bg-card px-2.5 py-1.5 text-[12px] font-medium text-ink transition hover:border-line-strong">
                               <Upload size={12} /> Choose file
                               <input type="file" accept={ACCEPT} className="hidden"
                                      onChange={(e) => pick(slot.type, e.target.files?.[0])} />

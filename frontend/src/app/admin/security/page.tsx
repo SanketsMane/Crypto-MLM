@@ -95,7 +95,7 @@ function SessionsCard() {
           <ul className="divide-y divide-line">
             {(sessions.data ?? []).map((s) => (
               <li key={s.id} className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-canvas text-ink-2">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[4px] bg-canvas text-ink-2">
                   <Monitor size={16} />
                 </span>
                 <div className="min-w-0 flex-1">

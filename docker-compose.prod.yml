@@ -102,8 +102,9 @@ services:
       redis:    { condition: service_healthy }
       migrate:  { condition: service_completed_successfully }
     volumes:
-      # KYC documents and ticket attachments. A container filesystem is not
-      # durable — this must be a real volume or an object store.
+      # KYC documents, ticket attachments and the operator's brand artwork.
+      # A container filesystem is not durable — this must be a real volume or
+      # an object store. Losing it loses the logo along with the documents.
       - storage:/app/storage
     expose: ['4000']
     healthcheck:

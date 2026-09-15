@@ -34,7 +34,7 @@ export function MemberCard({
   ];
 
   return (
-    <div className="metal-card overflow-hidden rounded-[18px]">
+    <div className="metal-card overflow-hidden rounded-[5px]">
       {/* The mark is the one place gold appears — the rest of the card is
           steel, so the branding lands without shouting. */}
       <div className="flex items-start justify-between gap-3">

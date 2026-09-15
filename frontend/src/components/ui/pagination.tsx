@@ -27,7 +27,7 @@ export function Pagination({
   const from = total === 0 ? 0 : current * pageSize + 1;
   const to = Math.min(total, (current + 1) * pageSize);
 
-  const btn = 'grid h-8 w-8 place-items-center rounded-[8px] border border-line bg-card text-ink-2 transition ' +
+  const btn = 'grid h-8 w-8 place-items-center rounded-[4px] border border-line bg-card text-ink-2 transition ' +
               'hover:border-line-strong hover:text-ink disabled:pointer-events-none disabled:opacity-40 ' +
               'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/20';
 
@@ -45,7 +45,7 @@ export function Pagination({
             <select
               value={pageSize}
               onChange={(e) => { onPageSize(Number(e.target.value)); onPage(0); }}
-              className="h-8 rounded-[8px] border border-field-line bg-field px-2 text-[12.5px] text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15"
+              className="h-8 rounded-[4px] border border-field-line bg-field px-2 text-[12.5px] text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15"
             >
               {sizes.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>

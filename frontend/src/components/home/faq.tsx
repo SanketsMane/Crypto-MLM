@@ -41,8 +41,10 @@ export function Faq({ items = FAQS, heading = 'FAQs', lead = 'Quick answers on t
             <p className="mt-4 text-[14.5px] leading-[1.8] text-[var(--home-text-2)]">
               {lead}
             </p>
-            <div className="relative mt-9 hidden aspect-square overflow-hidden rounded-2xl border border-[var(--home-line)] lg:block">
-              <Image src="/home/faq-thumb.jpg" alt="" aria-hidden fill sizes="480px" className="object-cover" />
+            {/* Framed at the artwork's own 1341×1155 ratio. The box was square,
+                which under `object-cover` cropped both sides off this image. */}
+            <div className="relative mt-9 hidden aspect-[1341/1155] overflow-hidden rounded-[5px] border border-[var(--home-line)] lg:block">
+              <Image src="/home/faq-thumb.png" alt="" aria-hidden fill sizes="480px" className="object-cover" />
             </div>
             <p className="mt-7 text-[13.5px] text-[var(--home-text-2)]">
               Can&rsquo;t see your question?{' '}
@@ -68,14 +70,14 @@ export function Faq({ items = FAQS, heading = 'FAQs', lead = 'Quick answers on t
                               aria-controls={`home-faq-${i}`}
                               className="flex w-full items-center justify-between gap-5 px-6 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--home-gold)]">
                         <span className={clsx('text-[15.5px] font-semibold transition-colors',
-                          isOpen ? 'text-[var(--home-gold)]' : 'text-white')}>
+                          isOpen ? 'text-[var(--home-gold)]' : 'text-[var(--home-text)]')}>
                           {f.q}
                         </span>
                         <span className={clsx(
                           'grid h-8 w-8 shrink-0 place-items-center rounded-full border transition-all duration-300',
                           isOpen
-                            ? 'rotate-45 border-[var(--home-gold)] bg-[var(--home-gold)] text-black'
-                            : 'border-white/20 text-white',
+                            ? 'rotate-45 border-[var(--home-gold)] bg-[var(--home-gold)] text-[var(--color-gold-on)]'
+                            : 'border-[var(--home-line)] text-[var(--home-text)]',
                         )}>
                           <Plus size={16} strokeWidth={2.4} aria-hidden />
                         </span>

@@ -49,14 +49,14 @@ export function DocumentViewer({ id, label, mimeType, sizeBytes }: {
 
   return (
     <>
-      <figure className="overflow-hidden rounded-[12px] border border-line bg-canvas">
+      <figure className="overflow-hidden rounded-[5px] border border-line bg-canvas">
         <figcaption className="flex items-center gap-2 border-b border-line bg-card px-3 py-2">
           <FileText size={13} className="shrink-0 text-ink-3" />
           <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-ink">{label}</span>
           <span className="shrink-0 text-[11px] tabular-nums text-ink-3">{kb}</span>
           {url && !isPdf && (
             <button onClick={() => setFull(true)} aria-label={`View ${label} full size`}
-                    className="shrink-0 rounded-md p-1 text-ink-3 transition hover:bg-canvas hover:text-ink">
+                    className="shrink-0 rounded-[3px] p-1 text-ink-3 transition hover:bg-canvas hover:text-ink">
               <Expand size={13} />
             </button>
           )}
@@ -88,7 +88,7 @@ export function DocumentViewer({ id, label, mimeType, sizeBytes }: {
       <Modal open={full} onClose={() => setFull(false)} title={label} width="lg">
         {url && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={label} className="max-h-[70vh] w-full rounded-lg object-contain" />
+          <img src={url} alt={label} className="max-h-[70vh] w-full rounded-[4px] object-contain" />
         )}
       </Modal>
     </>

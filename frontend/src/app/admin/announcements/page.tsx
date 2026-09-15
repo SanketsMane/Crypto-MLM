@@ -147,7 +147,7 @@ export default function AnnouncementsPage() {
                 className={`${controlCls} h-10 w-full`} />
             </label>
 
-            <label className="flex items-start gap-2.5 rounded-[10px] border border-line bg-canvas px-3 py-2.5">
+            <label className="flex items-start gap-2.5 rounded-[5px] border border-line bg-canvas px-3 py-2.5">
               <input type="checkbox" checked={form.pinned}
                 onChange={(e) => setForm({ ...form, pinned: e.target.checked })}
                 className="mt-0.5 h-3.5 w-3.5 rounded border-line-strong accent-gold" />
@@ -245,7 +245,7 @@ export default function AnnouncementsPage() {
                               remove.mutate(a.id);
                             }}
                             aria-label="Delete draft" title="Delete draft"
-                            className="grid h-9 w-9 place-items-center rounded-[9px] border border-line text-ink-3 transition hover:border-bad/40 hover:text-bad">
+                            className="grid h-9 w-9 place-items-center rounded-[4px] border border-line text-ink-3 transition hover:border-bad/40 hover:text-bad">
                             <Trash2 size={14} />
                           </button>
                         </>

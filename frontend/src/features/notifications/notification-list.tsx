@@ -187,7 +187,7 @@ export function NotificationList({
             <button
               type="button"
               onClick={() => setSelected(new Set())}
-              className="rounded-lg px-2 py-1.5 text-[12px] text-ink-3 transition hover:text-ink"
+              className="rounded-[4px] px-2 py-1.5 text-[12px] text-ink-3 transition hover:text-ink"
             >
               Cancel
             </button>
@@ -244,7 +244,7 @@ export function NotificationList({
                       className="mt-2.5 h-3.5 w-3.5 shrink-0 rounded border-line-strong accent-gold"
                     />
 
-                    <span className={clsx('mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg', SEVERITY_STYLE[n.severity])}>
+                    <span className={clsx('mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-[4px]', SEVERITY_STYLE[n.severity])}>
                       <Icon size={16} />
                     </span>
 
@@ -273,7 +273,7 @@ export function NotificationList({
                           onClick={() => actions.markUnread.mutate(n.id)}
                           title="Mark as unread"
                           aria-label="Mark as unread"
-                          className="grid h-7 w-7 place-items-center rounded-md text-ink-3 transition hover:bg-canvas hover:text-ink"
+                          className="grid h-7 w-7 place-items-center rounded-[3px] text-ink-3 transition hover:bg-canvas hover:text-ink"
                         >
                           <RotateCcw size={13} />
                         </button>

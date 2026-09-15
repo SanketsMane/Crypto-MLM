@@ -102,7 +102,7 @@ export default function SupportPage() {
                 {PRIORITIES.map((p) => (
                   <button key={p.value} type="button" onClick={() => setPriority(p.value)}
                           title={p.hint}
-                          className={`rounded-[9px] border px-2 py-2 text-[12px] font-medium transition ${
+                          className={`rounded-[4px] border px-2 py-2 text-[12px] font-medium transition ${
                             priority === p.value
                               ? 'border-violet bg-violet text-white'
                               : 'border-line bg-card text-ink-2 hover:border-violet/40 hover:text-ink'}`}>
@@ -154,7 +154,7 @@ export default function SupportPage() {
             <div className="space-y-2.5 px-5 pb-4">
               {t.messages.map((m) => (
                 <div key={m.id}
-                     className={`max-w-[85%] rounded-[10px] px-3.5 py-2.5 ${
+                     className={`max-w-[85%] rounded-[5px] px-3.5 py-2.5 ${
                        m.isStaff ? 'bg-violet-soft' : 'ml-auto bg-canvas'}`}>
                   <p className="text-[10.5px] font-medium uppercase tracking-[0.04em] text-ink-2">
                     {m.isStaff ? 'Support' : 'You'} · {ago(m.createdAt)}

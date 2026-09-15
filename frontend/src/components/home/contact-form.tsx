@@ -46,8 +46,8 @@ export function ContactForm() {
   };
 
   const field =
-    'w-full rounded-xl border border-[var(--home-line)] bg-black/50 px-4 py-3.5 text-[14px] text-white outline-none transition ' +
-    'placeholder:text-white/30 focus:border-[var(--home-gold)] focus:ring-4 focus:ring-[var(--home-gold)]/12 ' +
+    'w-full rounded-xl border border-[var(--home-line)] bg-[var(--home-raised)] px-4 py-3.5 text-[14px] text-[var(--home-text)] outline-none transition ' +
+    'placeholder:text-[var(--home-text-2)] focus:border-[var(--home-gold)] focus:ring-4 focus:ring-[var(--home-gold)]/12 ' +
     '[--fx-autofill-bg:#0B0B12] [--fx-autofill-fg:#FFFFFF]';
 
   if (status === 'sent') {
@@ -56,7 +56,7 @@ export function ContactForm() {
         <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--home-gold)]/12 text-[var(--home-gold)] ring-1 ring-[var(--home-gold)]/30">
           <CheckCircle2 size={26} strokeWidth={1.9} aria-hidden />
         </span>
-        <h3 className="mt-5 text-[20px] font-bold text-white">Message sent</h3>
+        <h3 className="mt-5 text-[20px] font-bold text-[var(--home-text)]">Message sent</h3>
         <p className="mx-auto mt-2.5 max-w-[42ch] text-[13.5px] leading-[1.75] text-[var(--home-text-2)]">
           Thanks — it reached the support desk. You will get a reply at the address you gave us.
         </p>
@@ -117,13 +117,13 @@ export function ContactForm() {
         </label>
 
         {error && (
-          <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[13px] text-white">
+          <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[13px] text-[var(--home-text)]">
             {error}
           </p>
         )}
 
         <button type="submit" disabled={status === 'sending'}
-                className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-[var(--home-gold)] px-6 py-4 text-[15px] font-semibold text-black transition hover:bg-[var(--home-gold-hi)] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
+                className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-[var(--home-gold)] px-6 py-4 text-[15px] font-semibold text-[var(--color-gold-on)] transition hover:bg-[var(--home-gold-hi)] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
           {status === 'sending'
             ? <><Loader2 size={16} className="animate-spin" aria-hidden /> Sending…</>
             : <>Send message <Send size={15} strokeWidth={2.4} aria-hidden /></>}

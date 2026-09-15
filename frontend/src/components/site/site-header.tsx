@@ -90,7 +90,7 @@ export function SiteHeader() {
           </Link>
           <Link
             href="/register"
-            className="hidden items-center gap-1.5 rounded-[10px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] px-4 py-2.5 text-[13.5px] font-semibold text-navy shadow-[0_8px_22px_-10px_rgba(212,175,55,0.7)] transition hover:brightness-110 sm:inline-flex"
+            className="hidden items-center gap-1.5 rounded-[10px] bg-gold px-4 py-2.5 text-[13.5px] font-semibold text-navy shadow-[0_8px_22px_-10px_rgba(255,122,26,0.7)] transition hover:brightness-110 sm:inline-flex"
           >
             Open account
             <ArrowRight size={14} strokeWidth={2.5} />
@@ -135,7 +135,7 @@ export function SiteHeader() {
             Sign in
           </Link>
           <Link href="/register"
-                className="flex-1 rounded-[10px] bg-[linear-gradient(135deg,#D4AF37_0%,#C49A2C_100%)] py-3 text-center text-[14px] font-semibold text-navy">
+                className="flex-1 rounded-[10px] bg-gold py-3 text-center text-[14px] font-semibold text-navy">
             Open account
           </Link>
         </div>

@@ -310,9 +310,9 @@ export default function DrawsAdminPage() {
                 <ul className="space-y-1.5">
                   {draw.prizes.map((p) => (
                     <li key={p.id}
-                        className={clsx('flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[10px] border px-3.5 py-2.5',
+                        className={clsx('flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[5px] border px-3.5 py-2.5',
                           p.winnerTicketId ? 'border-line bg-canvas' : 'border-line bg-card')}>
-                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-mute-soft text-[11px] font-semibold tabular-nums text-mute-on">
+                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-[3px] bg-mute-soft text-[11px] font-semibold tabular-nums text-mute-on">
                         {p.position}
                       </span>
                       <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink">{p.label}</span>
@@ -354,7 +354,7 @@ export default function DrawsAdminPage() {
                   </p>
 
                   <dl className="space-y-2">
-                    <div className="rounded-[10px] border border-line bg-canvas px-3.5 py-2.5">
+                    <div className="rounded-[5px] border border-line bg-canvas px-3.5 py-2.5">
                       <dt className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.04em] text-ink-2">
                         <ShieldCheck size={12} className="text-good" /> Commitment (SHA-256)
                       </dt>
@@ -362,13 +362,13 @@ export default function DrawsAdminPage() {
                         <code className="min-w-0 flex-1 break-all font-mono text-[11px] leading-relaxed text-ink">{draw.seedHash}</code>
                         <button type="button" onClick={() => copy(draw.seedHash!, 'Commitment')}
                                 aria-label="Copy commitment hash"
-                                className="shrink-0 rounded-md p-1 text-ink-3 transition hover:bg-card hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+                                className="shrink-0 rounded-[3px] p-1 text-ink-3 transition hover:bg-card hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
                           <Copy size={13} />
                         </button>
                       </dd>
                     </div>
 
-                    <div className="rounded-[10px] border border-line bg-canvas px-3.5 py-2.5">
+                    <div className="rounded-[5px] border border-line bg-canvas px-3.5 py-2.5">
                       <dt className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.04em] text-ink-2">
                         {draw.seed ? <ShieldCheck size={12} className="text-good" /> : <Lock size={12} />} Seed
                       </dt>
@@ -378,7 +378,7 @@ export default function DrawsAdminPage() {
                             <code className="min-w-0 flex-1 break-all font-mono text-[11px] leading-relaxed text-ink">{draw.seed}</code>
                             <button type="button" onClick={() => copy(draw.seed!, 'Seed')}
                                     aria-label="Copy seed"
-                                    className="shrink-0 rounded-md p-1 text-ink-3 transition hover:bg-card hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+                                    className="shrink-0 rounded-[3px] p-1 text-ink-3 transition hover:bg-card hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
                               <Copy size={13} />
                             </button>
                           </>
@@ -412,7 +412,7 @@ export default function DrawsAdminPage() {
       >
         {draw && (
           <div className="space-y-3">
-            <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-[10px] border border-line bg-line">
+            <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-[5px] border border-line bg-line">
               {[
                 { k: 'Prize pool', v: usd(poolOf(draw.prizes)) },
                 { k: 'Tickets', v: num(draw._count.tickets) },
@@ -427,7 +427,7 @@ export default function DrawsAdminPage() {
 
             <ul className="space-y-1">
               {draw.prizes.map((p) => (
-                <li key={p.id} className="flex items-center gap-2 rounded-md bg-canvas px-2.5 py-1.5 text-[12px]">
+                <li key={p.id} className="flex items-center gap-2 rounded-[3px] bg-canvas px-2.5 py-1.5 text-[12px]">
                   <span className="w-4 shrink-0 tabular-nums text-ink-3">{p.position}</span>
                   <span className="min-w-0 flex-1 truncate text-ink">{p.label}</span>
                   <span className="shrink-0 font-semibold tabular-nums text-ink">{usd(p.amount)}</span>
@@ -436,7 +436,7 @@ export default function DrawsAdminPage() {
             </ul>
 
             {draw.prizes.length > draw._count.tickets && (
-              <p className="rounded-[10px] bg-warn-soft px-3.5 py-2.5 text-[12px] leading-relaxed text-warn-on">
+              <p className="rounded-[5px] bg-warn-soft px-3.5 py-2.5 text-[12px] leading-relaxed text-warn-on">
                 There are {draw.prizes.length} prizes but only {num(draw._count.tickets)} ticket
                 {draw._count.tickets === 1 ? '' : 's'}. Prizes beyond the last ticket go unawarded.
               </p>
@@ -518,14 +518,14 @@ export default function DrawsAdminPage() {
               </span>
               <button type="button"
                       onClick={() => setForm({ ...form, prizes: [...form.prizes, { ...EMPTY_PRIZE, position: form.prizes.length + 1 }] })}
-                      className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11.5px] font-medium text-violet transition hover:bg-violet-soft">
+                      className="inline-flex items-center gap-1 rounded-[3px] px-1.5 py-0.5 text-[11.5px] font-medium text-violet transition hover:bg-violet-soft">
                 <Plus size={11} /> Add
               </button>
             </div>
             <div className="space-y-1.5">
               {form.prizes.map((p, i) => (
                 <div key={i} className="flex items-center gap-1.5">
-                  <span className="grid h-9 w-8 shrink-0 place-items-center rounded-md bg-canvas text-[11px] font-bold tabular-nums text-ink-2">
+                  <span className="grid h-9 w-8 shrink-0 place-items-center rounded-[3px] bg-canvas text-[11px] font-bold tabular-nums text-ink-2">
                     {i + 1}
                   </span>
                   <input value={p.label} placeholder="1st prize"
@@ -550,7 +550,7 @@ export default function DrawsAdminPage() {
                   {form.prizes.length > 1 && (
                     <button type="button" aria-label={`Remove prize ${i + 1}`}
                             onClick={() => setForm({ ...form, prizes: form.prizes.filter((_, x) => x !== i) })}
-                            className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-ink-3 transition hover:bg-bad-soft hover:text-bad">
+                            className="grid h-9 w-9 shrink-0 place-items-center rounded-[3px] text-ink-3 transition hover:bg-bad-soft hover:text-bad">
                       <Trash2 size={13} />
                     </button>
                   )}

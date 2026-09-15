@@ -22,7 +22,7 @@ export function DateRangeControl({ days, onDays }: { days: number; onDays: (d: n
   const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
   return (
-    <label className="relative inline-flex h-10 items-center gap-2.5 rounded-[9px] border border-line bg-card px-3.5 text-[13px] text-ink transition focus-within:border-gold focus-within:ring-4 focus-within:ring-gold/15 hover:border-line-strong">
+    <label className="relative inline-flex h-10 items-center gap-2.5 rounded-[4px] border border-line bg-card px-3.5 text-[13px] text-ink transition focus-within:border-gold focus-within:ring-4 focus-within:ring-gold/15 hover:border-line-strong">
       <CalendarDays size={16} className="pointer-events-none text-ink-2" />
       <span className="pointer-events-none tabular-nums">{fmt(from)} – {fmt(to)}</span>
       <ChevronDown size={15} className="pointer-events-none text-ink-3" />

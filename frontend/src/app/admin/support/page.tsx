@@ -317,7 +317,7 @@ export default function SupportPage() {
               <div className="space-y-3 px-5 py-4">
                 {t.messages.map((m) => (
                   <div key={m.id} className={clsx('flex', m.isStaff ? 'justify-end' : 'justify-start')}>
-                    <div className={clsx('max-w-[78%] rounded-[12px] px-3.5 py-2.5',
+                    <div className={clsx('max-w-[78%] rounded-[5px] px-3.5 py-2.5',
                       m.isStaff ? 'bg-violet-soft' : 'border border-line bg-canvas')}>
                       <p className="text-[11px] font-medium text-ink-2">
                         {m.author}{' '}
@@ -341,7 +341,7 @@ export default function SupportPage() {
               {mayManage ? (
                 <div className="sticky bottom-0 z-10 border-t border-line bg-card/95 p-4 backdrop-blur">
                   {closed && (
-                    <p className="mb-2 rounded-md bg-warn-soft px-3 py-1.5 text-[11.5px] text-warn-on">
+                    <p className="mb-2 rounded-[3px] bg-warn-soft px-3 py-1.5 text-[11.5px] text-warn-on">
                       This ticket is closed. Sending a reply reopens it.
                     </p>
                   )}
@@ -355,7 +355,7 @@ export default function SupportPage() {
                       }}
                       rows={3}
                       placeholder="Write a reply…"
-                      className="w-full resize-none rounded-[9px] border border-field-line bg-field px-3 py-2 text-[13px] text-ink outline-none transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15"
+                      className="w-full resize-none rounded-[4px] border border-field-line bg-field px-3 py-2 text-[13px] text-ink outline-none transition placeholder:text-field-ph focus:border-gold focus:ring-4 focus:ring-gold/15"
                     />
                   </label>
                   <div className="mt-2 flex items-center justify-between gap-3">

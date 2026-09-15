@@ -39,7 +39,7 @@ export function PortfolioStats({ total, segments, loading }: {
                         if (!active || !payload?.length) return null;
                         const p = payload[0]!.payload as Segment;
                         return (
-                          <div className="rounded-lg border border-line bg-card px-3 py-2 shadow-pop">
+                          <div className="rounded-[4px] border border-line bg-card px-3 py-2 shadow-pop">
                             <p className="text-[12px] font-medium text-ink">{p.label}</p>
                             <p className="text-[11.5px] tabular-nums text-ink-2">{num(p.count)} · {pct(p.percent)}</p>
                           </div>

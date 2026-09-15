@@ -6,6 +6,7 @@ import { planLockState, type PlanLockState } from '../../../core/plan-structure.
 import * as audit from '../audit/audit.service.js';
 import { allowed, assertValidRules } from '../../../core/ip-allowlist.js';
 import { invalidatePublicConfig } from '../../config/config.service.js';
+import { invalidateBranding } from '../../branding/branding.service.js';
 import { notifyAdmins } from '../../../core/notify.js';
 
 /**
@@ -113,6 +114,8 @@ export async function set(adminId: string, key: string, rawValue: string, req?: 
   // The member app and public site read a cached copy of this — drop it, or an
   // operator changes a fee and members keep seeing the old one for a minute.
   invalidatePublicConfig();
+  // Branding text lives in this same table, behind its own cache.
+  invalidateBranding();
 
   await audit.record({
     adminId, action: 'SETTING_CHANGE', entityType: 'setting', entityId: key,
@@ -152,6 +155,8 @@ export async function reset(adminId: string, key: string, req?: Request) {
   // The member app and public site read a cached copy of this — drop it, or an
   // operator changes a fee and members keep seeing the old one for a minute.
   invalidatePublicConfig();
+  // Branding text lives in this same table, behind its own cache.
+  invalidateBranding();
 
   await audit.record({
     adminId, action: 'SETTING_CHANGE', entityType: 'setting', entityId: key,

@@ -64,7 +64,7 @@ export function SupportViewBar() {
       <button
         type="button"
         onClick={leave}
-        className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[12px] font-medium text-ink-2 transition hover:bg-black/5 hover:text-ink dark:hover:bg-white/10"
+        className="inline-flex shrink-0 items-center gap-1 rounded-[3px] px-2 py-1 text-[12px] font-medium text-ink-2 transition hover:bg-black/5 hover:text-ink dark:hover:bg-white/10"
       >
         <X size={13} /> Leave
       </button>

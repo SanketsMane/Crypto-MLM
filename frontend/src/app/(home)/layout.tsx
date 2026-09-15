@@ -9,7 +9,7 @@ import { INTRO_INIT_SCRIPT } from '@/lib/intro-splash';
    came from, where it was pulled through a Google Fonts @import inside the
    stylesheet — which blocks render. next/font self-hosts it and inlines the
    face declarations instead, so the type does not reflow on first paint.
-   The rest of the app runs on Inter; this is the one route that does not. */
+   The rest of the app runs on IBM Plex; this is the one route that does not. */
 const lexend = Lexend({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700', '800'],
