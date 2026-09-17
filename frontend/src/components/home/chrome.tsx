@@ -96,7 +96,10 @@ export function Nav() {
       <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-6 px-4 py-4 sm:px-6">
         {/* The operator's mark. Was a baked-in PNG of someone else's brand. */}
         <Link href="/" className="block shrink-0" aria-label={`${brandLabel} — home`}>
-          <BrandMark variant="full" surface="dark" className="h-8" />
+          {/* No `surface` — this header follows the theme (see --home-bg
+              above), so the logo has to follow it too. Pinning it to the dark
+              artwork put a white wordmark on a near-white header. */}
+          <BrandMark variant="full" className="h-8" />
         </Link>
 
         <nav aria-label="Primary" className="hidden lg:block">

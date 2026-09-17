@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useBrand } from '@/providers/brand-provider';
 import { brandName, isPlaceholder } from '@/lib/branding';
 import clsx from 'clsx';
@@ -21,16 +20,38 @@ import clsx from 'clsx';
  * State 2 is the one that matters. A white-label platform has to look
  * deliberate before anyone opens the asset uploader, so the fallback is a real
  * lockup rather than a broken-image box or an empty header.
+ *
+ * ── Two bugs fixed here the first time real artwork was uploaded ──
+ *
+ * The uploaded logo used to render as `next/image` with `fill` inside a bare
+ * `<span className="relative block">`. A filled image is absolutely positioned
+ * and takes its size from its parent, and that span had no height — so the
+ * logo collapsed to nothing at twelve of the thirteen call sites. Only the
+ * public header, which happened to pass `className="h-8"`, ever showed it.
+ * A plain `<img>` with a height and `w-auto` is the right tool here anyway:
+ * the operator's artwork has whatever aspect ratio it has, and the browser
+ * already knows it from the file. Asking `next/image` to optimise a 50KB PNG
+ * that is already being streamed through our own route buys nothing.
+ *
+ * And `variant="mark"` ignored uploaded artwork entirely, so a collapsed
+ * sidebar kept showing the generic drawn glyph next to a fully branded page.
  */
 export function BrandMark({
   variant = 'full',
-  surface = 'dark',
+  surface,
   ink = 'theme',
   className,
 }: {
   /** `full` is mark + wordmark; `mark` is the square glyph alone. */
   variant?: 'full' | 'mark';
-  /** Which uploaded logo to prefer. The rail is dark in both themes. */
+  /**
+   * Which ground this sits on, and therefore which logo to use.
+   *
+   * Left unset it follows the theme, swapping the two files in CSS rather
+   * than in JavaScript — a `useTheme()` read here would render the wrong
+   * logo on the server and correct it after hydration, which is a visible
+   * flash on every page load.
+   */
   surface?: 'light' | 'dark';
   /**
    * Which ink the wordmark takes.
@@ -45,16 +66,44 @@ export function BrandMark({
   className?: string;
 }) {
   const brand = useBrand();
-  const uploaded = surface === 'dark'
-    ? brand.assets['logo-dark'] ?? brand.assets['logo-light']
-    : brand.assets['logo-light'] ?? brand.assets['logo-dark'];
   const name = brandName(brand);
 
-  if (uploaded && variant === 'full') {
+  /* Each slot falls back to the other, so an operator who uploads only one
+     logo still gets it everywhere rather than a gap on half the product. */
+  const onLight = brand.assets['logo-light'] ?? brand.assets['logo-dark'];
+  const onDark = brand.assets['logo-dark'] ?? brand.assets['logo-light'];
+  const icon = brand.assets.icon;
+
+  /* `ink="onDark"` already means "this ground is dark in both themes", and
+     nine call sites say it without also saying `surface`. Honouring it keeps
+     them correct without a sweep. */
+  const ground = surface ?? (ink === 'onDark' ? 'dark' : 'theme');
+
+  if (variant === 'mark' && icon) {
+    /* eslint-disable-next-line @next/next/no-img-element */
+    return <img src={icon} alt={name} className={clsx('block size-[22px] shrink-0 object-contain', className)} />;
+  }
+
+  if (variant === 'full' && (onLight || onDark)) {
+    const img = (src: string, extra?: string) => (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img
+        src={src}
+        alt={name}
+        /* h-7 is the default because the console rail is a 52px header; every
+           call site can override it, and `w-auto` keeps the operator's own
+           aspect ratio whatever it is. */
+        className={clsx('block h-7 w-auto max-w-full object-contain object-left', extra, className)}
+      />
+    );
+
+    if (ground === 'dark') return img(onDark!);
+    if (ground === 'light') return img(onLight!);
     return (
-      <span className={clsx('relative block', className)}>
-        <Image src={uploaded} alt={name} fill sizes="200px" priority className="object-contain object-left" />
-      </span>
+      <>
+        {img(onLight!, 'dark:hidden')}
+        {img(onDark!, 'hidden dark:block')}
+      </>
     );
   }
 
