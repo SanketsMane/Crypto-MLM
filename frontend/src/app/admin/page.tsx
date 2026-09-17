@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { BadgeCheck, Banknote, LineChart, Percent, TrendingUp, Users } from 'lucide-react';
 import { adminGet } from '@/lib/admin-api';
 import { useGreeting } from '@/lib/greeting';
+import { useAdmin } from '@/features/admin/use-admin';
 import { PageHeader } from '@/components/ui/primitives';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { InvestmentOverview, type SeriesPoint } from '@/components/dashboard/investment-overview';
@@ -41,6 +42,11 @@ const TILES = [
 export default function DashboardPage() {
   const [days, setDays] = useState('7');
   const greeting = useGreeting();
+  /* The console already knows who is signed in — /admin/me is fetched by the
+     layout for the permission gates, so this is the same cached query. The
+     greeting was addressing every operator as "Admin" regardless. */
+  const { admin } = useAdmin();
+  const firstName = admin?.name?.trim().split(/\s+/)[0];
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'dashboard'],
@@ -68,12 +74,12 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title="Dashboard"
-        subtitle={`${greeting}, Admin! Here's what's happening with your platform.`}
+        subtitle={`${greeting}${firstName ? `, ${firstName}` : ``}. Here's what's happening with your platform.`}
         action={<DateRangeControl days={Number(days)} onDays={(d) => setDays(String(d))} />}
       />
 
       {/* KPI row — 1 / 2 / 3 / 6 across the breakpoints */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 xl:gap-3.5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 xl:gap-3.5">
         {TILES.map((t) => {
           const k = kpi(t.key);
           const raw = k?.value ?? 0;
